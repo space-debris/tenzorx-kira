@@ -33,6 +33,16 @@ MIN_VIABLE_OCCUPANCY = 30  # Below this, store is critically understocked
 # Empty shelf penalty — each empty shelf area reduces score
 EMPTY_SHELF_PENALTY = 0.05
 
+# Organization adjustment multipliers
+ORGANIZATION_MULTIPLIERS = {
+    "well_organized": 1.10,   # +10% — well-managed store signal
+    "average": 1.00,           # No adjustment
+    "disorganized": 0.90,      # -10% — poor management signal
+}
+
+# Overstocking threshold — above this, slight penalty (possible staging)
+OVERSTOCKING_THRESHOLD = 95
+
 
 # ---------------------------------------------------------------------------
 # Public API
@@ -62,22 +72,49 @@ def compute_shelf_density(
             - "empty_shelf_ratio" (float): Proportion of empty shelf areas.
             - "occupancy_raw" (float): Raw occupancy percentage 0-100.
             - "quality_adjustment" (float): Organization-based adjustment factor.
-
-    Processing Logic:
-        1. Extract raw occupancy percentage from Vision output
-        2. Normalize to 0-1 scale (30% = 0, 85% = 1, >85% slight penalty)
-        3. Apply empty shelf penalty
-        4. Apply organization quality adjustment
-        5. Clamp final score to [0, 1]
-
-    TODO:
-        - Implement shelf density scoring
-        - Calibrate OPTIMAL_OCCUPANCY against real store data
-        - Add overstocking detection (>95% occupancy may indicate staging)
-        - Consider product type in density assessment
     """
-    # TODO: Implement shelf density computation
-    raise NotImplementedError("Shelf density not yet implemented")
+    # Extract raw values with safe defaults
+    occupancy_raw = float(image_analysis.get("shelf_occupancy", 50.0))
+    empty_shelf_areas = int(image_analysis.get("empty_shelf_areas", 0))
+    organization_level = image_analysis.get("organization_level", "average")
+
+    logger.info(
+        f"Computing shelf density: occupancy={occupancy_raw}%, "
+        f"empty_areas={empty_shelf_areas}, org={organization_level}"
+    )
+
+    # Step 1: Normalize raw occupancy to 0-1 scale
+    normalized_score = _normalize_occupancy(occupancy_raw)
+
+    # Step 2: Apply empty shelf penalty
+    # Each empty shelf area reduces the score, capped at 50% reduction
+    empty_penalty = min(empty_shelf_areas * EMPTY_SHELF_PENALTY, 0.50)
+    score_after_penalty = normalized_score * (1.0 - empty_penalty)
+
+    # Step 3: Compute empty shelf ratio
+    # Approximate: empty areas relative to total possible areas
+    # A typical small store has ~10-20 shelf sections
+    estimated_total_sections = max(
+        int(occupancy_raw / 10) + empty_shelf_areas, 1
+    )
+    empty_shelf_ratio = empty_shelf_areas / estimated_total_sections
+
+    # Step 4: Apply organization quality adjustment
+    quality_adjustment = ORGANIZATION_MULTIPLIERS.get(organization_level, 1.0)
+    final_score = _apply_organization_adjustment(score_after_penalty, organization_level)
+
+    # Step 5: Clamp to [0, 1]
+    final_score = max(0.0, min(1.0, final_score))
+
+    result = {
+        "shelf_density_score": round(final_score, 4),
+        "empty_shelf_ratio": round(empty_shelf_ratio, 4),
+        "occupancy_raw": round(occupancy_raw, 2),
+        "quality_adjustment": quality_adjustment,
+    }
+
+    logger.info(f"Shelf density result: {result}")
+    return result
 
 
 def _normalize_occupancy(occupancy_percent: float) -> float:
@@ -95,12 +132,33 @@ def _normalize_occupancy(occupancy_percent: float) -> float:
 
     Returns:
         float: Normalized score (0-1).
-
-    TODO:
-        - Implement piecewise normalization
     """
-    # TODO: Implement occupancy normalization
-    raise NotImplementedError
+    # Clamp input to valid range
+    occupancy = max(0.0, min(100.0, occupancy_percent))
+
+    if occupancy < MIN_VIABLE_OCCUPANCY:
+        # 0-30%: Critically low — linear from 0 to 0
+        # Give a small score for any non-zero occupancy
+        return occupancy / MIN_VIABLE_OCCUPANCY * 0.1
+
+    elif occupancy <= OPTIMAL_OCCUPANCY:
+        # 30-85%: Linear scale from 0.1 to 1.0
+        ratio = (occupancy - MIN_VIABLE_OCCUPANCY) / (
+            OPTIMAL_OCCUPANCY - MIN_VIABLE_OCCUPANCY
+        )
+        return 0.1 + ratio * 0.9
+
+    elif occupancy <= OVERSTOCKING_THRESHOLD:
+        # 85-95%: Optimal — score is 1.0
+        return 1.0
+
+    else:
+        # 95-100%: Possible staging — slight linear penalty
+        # Score goes from 1.0 at 95% down to 0.9 at 100%
+        overage = (occupancy - OVERSTOCKING_THRESHOLD) / (
+            100.0 - OVERSTOCKING_THRESHOLD
+        )
+        return 1.0 - (overage * 0.1)
 
 
 def _apply_organization_adjustment(
@@ -119,9 +177,16 @@ def _apply_organization_adjustment(
 
     Returns:
         float: Adjusted score.
-
-    TODO:
-        - Implement organization adjustment factors
     """
-    # TODO: Implement organization adjustment
-    raise NotImplementedError
+    multiplier = ORGANIZATION_MULTIPLIERS.get(organization_level, 1.0)
+
+    adjusted = base_score * multiplier
+
+    # Log the adjustment impact
+    if multiplier != 1.0:
+        logger.debug(
+            f"Organization adjustment: {organization_level} "
+            f"({multiplier}x) — {base_score:.3f} → {adjusted:.3f}"
+        )
+
+    return adjusted

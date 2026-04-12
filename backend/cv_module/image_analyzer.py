@@ -20,6 +20,8 @@ import base64
 import json
 import logging
 import os
+import re
+from collections import Counter
 from typing import Any
 
 import google.generativeai as genai
@@ -37,6 +39,9 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 # Model to use for vision analysis
 VISION_MODEL = "gemini-1.5-pro-latest"
+
+# Maximum retries for API calls
+MAX_RETRIES = 3
 
 # Structured extraction prompt for kirana store analysis
 ANALYSIS_PROMPT = """
@@ -72,6 +77,8 @@ assessment purposes. Extract the following features in JSON format:
 
 Be precise and conservative in your estimates. If you cannot determine
 a feature with reasonable confidence, use null.
+
+IMPORTANT: Return ONLY the JSON object, no additional text or markdown.
 """
 
 
@@ -100,36 +107,79 @@ async def analyze_images(
             - "raw_analyses" (list[dict]): Per-image Gemini responses
             - "store_type" (str): Consensus store type
             - "store_size" (str): Consensus store size
+            - "store_size_sqft_estimate" (int): Average sqft estimate
             - "shelf_occupancy" (float): Average shelf occupancy 0-100
+            - "empty_shelf_areas" (int): Average empty shelf areas
             - "product_categories" (list[str]): Union of all detected categories
             - "sku_count_estimate" (int): Best estimate of unique SKUs
             - "brand_tier" (str): Consensus brand tier
             - "brand_names" (list[str]): All detected brand names
             - "infrastructure" (dict): Aggregated infrastructure features
+            - "freshness_indicators" (dict): Aggregated freshness signals
+            - "organization_level" (str): Consensus organization level
+            - "lighting_quality" (str): Consensus lighting quality
             - "image_quality" (float): Average image quality score
             - "analysis_confidence" (float): Overall analysis confidence
-
-    Processing Steps:
-        1. Configure Gemini API client
-        2. For each image: send to Gemini Vision with ANALYSIS_PROMPT
-        3. Parse JSON response from each image
-        4. Aggregate features across all images (consensus/union/average)
-        5. Return unified analysis dict
 
     Raises:
         ValueError: If no images provided or all API calls fail.
         RuntimeError: If Gemini API key is not configured.
-
-    TODO:
-        - Implement Gemini Vision API calls
-        - Implement response parsing with JSON extraction
-        - Implement multi-image aggregation logic
-        - Add retry logic for API rate limits
-        - Add image preprocessing (resize if >2MB)
-        - Add response caching for identical images
     """
-    # TODO: Implement image analysis pipeline
-    raise NotImplementedError("Image analyzer not yet implemented")
+    if not images:
+        raise ValueError("At least one image is required for analysis")
+
+    if not GEMINI_API_KEY:
+        raise RuntimeError(
+            "GEMINI_API_KEY is not configured. "
+            "Set it in backend/.env or as an environment variable."
+        )
+
+    # Configure Gemini API client
+    genai.configure(api_key=GEMINI_API_KEY)
+
+    # Process each image through Gemini Vision
+    raw_analyses: list[dict[str, Any]] = []
+    for idx, img in enumerate(images):
+        image_data = img.get("image_data", "")
+        mime_type = img.get("mime_type", "image/jpeg")
+        image_type = img.get("image_type", "interior")
+
+        logger.info(
+            f"Analyzing image {idx + 1}/{len(images)} "
+            f"(type={image_type}, mime={mime_type})"
+        )
+
+        try:
+            result = await _send_to_gemini_vision(
+                image_base64=image_data,
+                mime_type=mime_type,
+                prompt=ANALYSIS_PROMPT,
+            )
+            result["_image_type"] = image_type
+            result["_image_index"] = idx
+            raw_analyses.append(result)
+            logger.info(f"Image {idx + 1} analyzed successfully")
+        except Exception as e:
+            logger.warning(
+                f"Failed to analyze image {idx + 1}: {e}. Skipping."
+            )
+            continue
+
+    if not raw_analyses:
+        raise ValueError(
+            "All image analyses failed. Check API key and image data."
+        )
+
+    # Aggregate features across all images
+    aggregated = _aggregate_analyses(raw_analyses)
+    aggregated["raw_analyses"] = raw_analyses
+
+    logger.info(
+        f"Image analysis complete: {len(raw_analyses)}/{len(images)} images "
+        f"processed successfully. Confidence: {aggregated.get('analysis_confidence', 0):.2f}"
+    )
+
+    return aggregated
 
 
 async def _send_to_gemini_vision(
@@ -147,15 +197,84 @@ async def _send_to_gemini_vision(
 
     Returns:
         dict: Parsed JSON response from Gemini Vision.
-
-    TODO:
-        - Implement API call using google-generativeai SDK
-        - Parse JSON from response text
-        - Handle malformed responses gracefully
-        - Add retry with exponential backoff
     """
-    # TODO: Implement Gemini Vision API call
-    raise NotImplementedError
+    model = genai.GenerativeModel(VISION_MODEL)
+
+    # Decode base64 to bytes for the API
+    image_bytes = base64.b64decode(image_base64)
+
+    # Build the image part for Gemini
+    image_part = {
+        "mime_type": mime_type,
+        "data": image_bytes,
+    }
+
+    last_error = None
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            response = model.generate_content(
+                [prompt, image_part],
+                generation_config=genai.types.GenerationConfig(
+                    temperature=0.1,  # Low temperature for structured output
+                    max_output_tokens=2048,
+                ),
+            )
+
+            # Extract text from response
+            response_text = response.text.strip()
+
+            # Parse JSON from response — handle markdown code blocks
+            parsed = _extract_json(response_text)
+
+            if parsed is not None:
+                return parsed
+
+            logger.warning(
+                f"Attempt {attempt}: Could not parse JSON from response. "
+                f"Response preview: {response_text[:200]}"
+            )
+            last_error = ValueError("Failed to parse JSON from Gemini response")
+
+        except Exception as e:
+            logger.warning(f"Attempt {attempt} failed: {e}")
+            last_error = e
+
+            # Exponential backoff for rate limits
+            if attempt < MAX_RETRIES:
+                import asyncio
+                await asyncio.sleep(2 ** attempt)
+
+    raise last_error or RuntimeError("Gemini Vision API call failed")
+
+
+def _extract_json(text: str) -> dict[str, Any] | None:
+    """
+    Extract JSON from response text, handling markdown code blocks
+    and other formatting artifacts.
+    """
+    # Try direct JSON parse first
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    # Try extracting from markdown code block ```json ... ```
+    json_block_match = re.search(r"```(?:json)?\s*\n?(.*?)\n?\s*```", text, re.DOTALL)
+    if json_block_match:
+        try:
+            return json.loads(json_block_match.group(1).strip())
+        except json.JSONDecodeError:
+            pass
+
+    # Try finding the first { ... } block
+    brace_match = re.search(r"\{.*\}", text, re.DOTALL)
+    if brace_match:
+        try:
+            return json.loads(brace_match.group(0))
+        except json.JSONDecodeError:
+            pass
+
+    return None
 
 
 def _aggregate_analyses(
@@ -175,11 +294,168 @@ def _aggregate_analyses(
 
     Returns:
         dict: Aggregated analysis result.
-
-    TODO:
-        - Implement aggregation logic per feature type
-        - Handle missing/null values in individual analyses
-        - Compute consensus confidence
     """
-    # TODO: Implement multi-image aggregation
-    raise NotImplementedError
+    if not raw_analyses:
+        return {}
+
+    # --- Categorical features: majority vote ---
+    store_type = _majority_vote(raw_analyses, "store_type", default="kirana")
+    store_size = _majority_vote(raw_analyses, "store_size", default="medium")
+    brand_tier = _majority_vote(raw_analyses, "brand_tier", default="mixed")
+    organization_level = _majority_vote(
+        raw_analyses, "organization_level", default="average"
+    )
+    lighting_quality = _majority_vote(
+        raw_analyses, "lighting_quality", default="adequate"
+    )
+
+    # --- Numeric features: average ---
+    shelf_occupancy = _safe_average(raw_analyses, "shelf_occupancy_percent", default=50.0)
+    empty_shelf_areas = int(
+        _safe_average(raw_analyses, "empty_shelf_areas", default=0)
+    )
+    store_size_sqft = int(
+        _safe_average(raw_analyses, "store_size_sqft_estimate", default=200)
+    )
+    sku_count = int(
+        _safe_average(raw_analyses, "estimated_unique_sku_count", default=100)
+    )
+    image_quality = _safe_average(raw_analyses, "image_quality_score", default=0.5)
+    analysis_confidence = _safe_average(raw_analyses, "confidence", default=0.5)
+
+    # --- List features: union ---
+    product_categories: list[str] = []
+    brand_names: list[str] = []
+    for analysis in raw_analyses:
+        cats = analysis.get("visible_product_categories") or []
+        product_categories.extend(cats)
+        brands = analysis.get("brand_names_visible") or []
+        brand_names.extend(brands)
+
+    # Deduplicate (case-insensitive)
+    product_categories = list(
+        {c.lower().strip() for c in product_categories if c}
+    )
+    brand_names = list({b.strip() for b in brand_names if b})
+
+    # --- Boolean/dict features: aggregation ---
+    infrastructure = _aggregate_infrastructure(raw_analyses)
+    freshness_indicators = _aggregate_freshness(raw_analyses)
+
+    # Apply confidence penalty for fewer images
+    image_count = len(raw_analyses)
+    if image_count < 3:
+        analysis_confidence *= 0.8  # Penalty for insufficient images
+    elif image_count >= 4:
+        analysis_confidence = min(analysis_confidence * 1.05, 1.0)  # Slight boost
+
+    return {
+        "store_type": store_type,
+        "store_size": store_size,
+        "store_size_sqft_estimate": store_size_sqft,
+        "shelf_occupancy": shelf_occupancy,
+        "empty_shelf_areas": empty_shelf_areas,
+        "product_categories": product_categories,
+        "sku_count_estimate": sku_count,
+        "brand_tier": brand_tier,
+        "brand_names": brand_names,
+        "organization_level": organization_level,
+        "lighting_quality": lighting_quality,
+        "infrastructure": infrastructure,
+        "freshness_indicators": freshness_indicators,
+        "image_quality": image_quality,
+        "analysis_confidence": analysis_confidence,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Aggregation Helpers
+# ---------------------------------------------------------------------------
+
+def _majority_vote(
+    analyses: list[dict[str, Any]],
+    key: str,
+    default: str = "",
+) -> str:
+    """Return the most common value for a categorical key across analyses."""
+    values = [a.get(key) for a in analyses if a.get(key) is not None]
+    if not values:
+        return default
+    counter = Counter(values)
+    return counter.most_common(1)[0][0]
+
+
+def _safe_average(
+    analyses: list[dict[str, Any]],
+    key: str,
+    default: float = 0.0,
+) -> float:
+    """Compute average of a numeric key, skipping None/missing values."""
+    values = []
+    for a in analyses:
+        val = a.get(key)
+        if val is not None:
+            try:
+                values.append(float(val))
+            except (ValueError, TypeError):
+                continue
+    if not values:
+        return default
+    return sum(values) / len(values)
+
+
+def _aggregate_infrastructure(
+    analyses: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Aggregate infrastructure features using OR for booleans, majority for strings."""
+    has_refrigeration = False
+    has_digital_payment = False
+    has_signage = False
+    counter_types: list[str] = []
+
+    for analysis in analyses:
+        infra = analysis.get("infrastructure") or {}
+        if infra.get("has_refrigeration"):
+            has_refrigeration = True
+        if infra.get("has_digital_payment"):
+            has_digital_payment = True
+        if infra.get("has_signage"):
+            has_signage = True
+        ct = infra.get("counter_type")
+        if ct:
+            counter_types.append(ct)
+
+    counter_type = "basic"
+    if counter_types:
+        counter_type = Counter(counter_types).most_common(1)[0][0]
+
+    return {
+        "has_refrigeration": has_refrigeration,
+        "has_digital_payment": has_digital_payment,
+        "has_signage": has_signage,
+        "counter_type": counter_type,
+    }
+
+
+def _aggregate_freshness(
+    analyses: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Aggregate freshness indicators using OR logic for booleans."""
+    has_perishables = False
+    visible_expiry_risk = False
+    recent_stock_visible = False
+
+    for analysis in analyses:
+        fresh = analysis.get("freshness_indicators") or {}
+        if fresh.get("has_perishables"):
+            has_perishables = True
+        if fresh.get("visible_expiry_risk"):
+            visible_expiry_risk = True
+        if fresh.get("recent_stock_visible"):
+            recent_stock_visible = True
+
+    return {
+        "has_perishables": has_perishables,
+        "visible_expiry_risk": visible_expiry_risk,
+        "recent_stock_visible": recent_stock_visible,
+    }

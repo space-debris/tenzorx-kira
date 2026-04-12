@@ -18,6 +18,7 @@ Economic Significance:
 from __future__ import annotations
 
 import logging
+import math
 from typing import Any
 
 logger = logging.getLogger("kira.geo.catchment")
@@ -78,22 +79,44 @@ async def estimate_catchment(
             - "stores_in_catchment" (int): competition_count + 1 (including this store).
             - "demand_per_store" (int): Population / stores.
             - "demand_index" (float): Normalized demand score 0-1.
-
-    Processing Logic:
-        1. Determine catchment radius from area type
-        2. Compute catchment area (π × r²)
-        3. Estimate population from area × density proxy
-        4. Compute demand per store: population / (competition + 1)
-        5. Normalize demand to 0-1 index
-
-    TODO:
-        - Implement catchment estimation
-        - Add census-based population density lookup (PIN code level)
-        - Add POI density as population proxy (more POIs = more people)
-        - Consider residential building density from OSM
     """
-    # TODO: Implement catchment estimation
-    raise NotImplementedError("Catchment estimator not yet implemented")
+    logger.info(
+        f"Estimating catchment: lat={latitude}, lon={longitude}, "
+        f"area_type={area_type}, competitors={competition_count}"
+    )
+
+    # Step 1: Determine catchment radius from area type
+    radius_m = CATCHMENT_RADIUS.get(area_type, CATCHMENT_RADIUS["semi_urban"])
+
+    # Step 2: Compute catchment area (π × r²)
+    area_sqkm = _compute_catchment_area(radius_m)
+
+    # Step 3: Estimate population from area × density proxy
+    population = _estimate_population(area_sqkm, area_type)
+
+    # Step 4: Compute demand per store
+    stores_in_catchment = competition_count + 1  # Include this store
+    demand_per_store = int(population / stores_in_catchment)
+
+    # Step 5: Normalize demand to 0-1 index
+    demand_index = _compute_demand_index(population, stores_in_catchment)
+
+    result = {
+        "catchment_radius_m": radius_m,
+        "catchment_area_sqkm": round(area_sqkm, 4),
+        "catchment_population": population,
+        "stores_in_catchment": stores_in_catchment,
+        "demand_per_store": demand_per_store,
+        "demand_index": round(demand_index, 4),
+    }
+
+    logger.info(
+        f"Catchment estimation complete: radius={radius_m}m, "
+        f"area={area_sqkm:.3f} sq km, population={population}, "
+        f"demand_per_store={demand_per_store}, index={demand_index:.3f}"
+    )
+
+    return result
 
 
 def _compute_catchment_area(
@@ -107,12 +130,11 @@ def _compute_catchment_area(
 
     Returns:
         float: Area in square kilometers.
-
-    TODO:
-        - Implement: area = π × (radius/1000)²
     """
-    # TODO: Implement area computation
-    raise NotImplementedError
+    # Convert meters to kilometers, then compute area of circle
+    radius_km = radius_meters / 1000.0
+    area = math.pi * radius_km ** 2
+    return area
 
 
 def _estimate_population(
@@ -128,13 +150,14 @@ def _estimate_population(
 
     Returns:
         int: Estimated population.
-
-    TODO:
-        - Implement using POPULATION_DENSITY lookup
-        - Add PIN-code-level census data (future enhancement)
     """
-    # TODO: Implement population estimation
-    raise NotImplementedError
+    density = POPULATION_DENSITY.get(
+        area_type, POPULATION_DENSITY["semi_urban"]
+    )
+    population = int(area_sqkm * density)
+
+    # Ensure minimum reasonable population
+    return max(population, 50)
 
 
 def _compute_demand_index(
@@ -150,10 +173,22 @@ def _compute_demand_index(
 
     Returns:
         float: Demand index 0-1 (higher = more unserved demand = better).
-
-    TODO:
-        - Implement: demand_per_store = population / store_count
-        - Normalize using MIN/MAX_DEMAND_PER_STORE
     """
-    # TODO: Implement demand index computation
-    raise NotImplementedError
+    # Ensure we don't divide by zero
+    store_count = max(store_count, 1)
+
+    # Compute raw demand per store
+    demand_per_store = population / store_count
+
+    # Normalize to 0-1 using MIN/MAX thresholds
+    if demand_per_store <= MIN_DEMAND_PER_STORE:
+        index = 0.0
+    elif demand_per_store >= MAX_DEMAND_PER_STORE:
+        index = 1.0
+    else:
+        # Linear interpolation between thresholds
+        index = (demand_per_store - MIN_DEMAND_PER_STORE) / (
+            MAX_DEMAND_PER_STORE - MIN_DEMAND_PER_STORE
+        )
+
+    return max(0.0, min(1.0, index))
