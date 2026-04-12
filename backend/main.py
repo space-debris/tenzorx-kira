@@ -17,6 +17,7 @@ import logging
 import os
 import uuid
 from datetime import datetime
+from pathlib import Path
 from typing import Optional
 
 from dotenv import load_dotenv
@@ -58,7 +59,7 @@ from llm_layer.risk_summarizer import generate_risk_summary
 # Configuration
 # ---------------------------------------------------------------------------
 
-load_dotenv()
+load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
 
 logging.basicConfig(
     level=getattr(logging, os.getenv("LOG_LEVEL", "INFO")),
@@ -149,6 +150,18 @@ async def submit_assessment(
     store_name: Optional[str] = Form(
         default=None,
         description="Optional store name"
+    ),
+    shop_size: Optional[str] = Form(
+        default=None,
+        description="Optional shop size (e.g. small, medium, large)"
+    ),
+    rent: Optional[float] = Form(
+        default=None,
+        description="Optional monthly rent in INR"
+    ),
+    years_in_operation: Optional[float] = Form(
+        default=None,
+        description="Optional years in operation"
     ),
 ) -> AssessmentOutput:
     """
@@ -281,7 +294,13 @@ async def submit_assessment(
 
         # ---- Step 4: Fusion Engine — Signal Fusion ----
         logger.info("Running fusion engine...")
-        fusion_result = await run_fusion_engine(cv_signals, geo_signals)
+        fusion_result = await run_fusion_engine(
+            cv_signals, 
+            geo_signals,
+            shop_size=shop_size,
+            rent=rent,
+            years_in_operation=years_in_operation,
+        )
 
         revenue_estimate = fusion_result["revenue_estimate"]
         risk_assessment = fusion_result["risk_assessment"]

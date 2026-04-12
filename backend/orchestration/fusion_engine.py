@@ -91,6 +91,9 @@ async def run_fusion_engine(
     cv_signals: CVSignals,
     geo_signals: GeoSignals,
     weights: dict[str, float] | None = None,
+    shop_size: str | None = None,
+    rent: float | None = None,
+    years_in_operation: float | None = None,
 ) -> dict[str, Any]:
     """
     Fuse CV and Geo signals into a composite revenue estimate and risk assessment.
@@ -103,6 +106,9 @@ async def run_fusion_engine(
         cv_signals: Computer vision signals from the CV module.
         geo_signals: Geo intelligence signals from the Geo module.
         weights: Optional custom weight dict. If None, uses DEFAULT_WEIGHTS.
+        shop_size: Optional user-provided shop size.
+        rent: Optional user-provided rent in INR.
+        years_in_operation: Optional user-provided years in operation.
 
     Returns:
         dict containing:
@@ -151,8 +157,34 @@ async def run_fusion_engine(
     logger.info(f"Composite score: {composite_score:.4f}")
     logger.info(f"Signal contributions: {signal_contributions}")
 
+    # Step 2b: Apply Optional User Inputs adjustments
+    if years_in_operation is not None:
+        if years_in_operation >= 5:
+            # Established business, positive signal
+            logger.info(f"Applying tenure bonus for {years_in_operation} years.")
+            composite_score = min(1.0, composite_score * 1.05)
+        elif years_in_operation <= 1:
+            # New business, penalty signal
+            logger.info(f"Applying new-business penalty for {years_in_operation} years.")
+            composite_score = composite_score * 0.95
+
+    if shop_size is not None:
+        size_lower = shop_size.lower()
+        if size_lower == "large":
+            logger.info(f"Applying large-shop size bonus.")
+            composite_score = min(1.0, composite_score * 1.05)
+        elif size_lower == "small":
+            composite_score = composite_score * 0.95
+
     # Step 3: Map to revenue range
     monthly_low, monthly_high = _map_score_to_revenue(composite_score, area_type)
+
+    if rent is not None and rent > 0:
+        # If rent is extremely high compared to revenue, flag it or adjust high
+        if rent > (monthly_high * 0.5):
+            logger.warning(f"Rent {rent} is dangerously high relative to revenue.")
+            composite_score = composite_score * 0.90
+            monthly_low, monthly_high = _map_score_to_revenue(composite_score, area_type)
 
     # Step 4: Determine risk band
     risk_band = _determine_risk_band(composite_score)

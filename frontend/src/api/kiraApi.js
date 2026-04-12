@@ -22,7 +22,7 @@ const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === 'true';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 60000, // 60s — assessment processing can take time
+  timeout: 300000, // 5 minutes (300000ms) — Gemini vision analysis of 4 images takes ~3.5 minutes
 });
 
 // ---------------------------------------------------------------------------

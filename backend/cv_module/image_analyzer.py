@@ -21,6 +21,7 @@ import json
 import logging
 import os
 import re
+from pathlib import Path
 from collections import Counter
 from typing import Any
 
@@ -28,7 +29,8 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load backend/.env explicitly so key resolution does not depend on launch cwd.
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
 logger = logging.getLogger("kira.cv.image_analyzer")
 
 
@@ -36,7 +38,9 @@ logger = logging.getLogger("kira.cv.image_analyzer")
 # Configuration
 # ---------------------------------------------------------------------------
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+def _get_gemini_api_key() -> str:
+    """Fetch Gemini API key at call time so .env updates are picked up after reload."""
+    return os.getenv("GEMINI_API_KEY", "")
 
 # Model to use for vision analysis
 # Using gemma-4-31b-it — free tier: 15 RPM, Unlimited TPM, 1.5K RPD
@@ -131,7 +135,8 @@ async def analyze_images(
     if not images:
         raise ValueError("At least one image is required for analysis")
 
-    if not GEMINI_API_KEY:
+    gemini_api_key = _get_gemini_api_key()
+    if not gemini_api_key:
         raise RuntimeError(
             "GEMINI_API_KEY is not configured. "
             "Set it in backend/.env or as an environment variable."
@@ -156,6 +161,7 @@ async def analyze_images(
                 image_base64=image_data,
                 mime_type=mime_type,
                 prompt=ANALYSIS_PROMPT,
+                api_key=gemini_api_key,
             )
             result["_image_type"] = image_type
             result["_image_index"] = idx
@@ -188,6 +194,7 @@ async def _send_to_gemini_vision(
     image_base64: str,
     mime_type: str,
     prompt: str,
+    api_key: str,
 ) -> dict[str, Any]:
     """
     Send a single image to Gemini Vision API with a structured prompt.
@@ -201,7 +208,7 @@ async def _send_to_gemini_vision(
         dict: Parsed JSON response from Gemini Vision.
     """
     # Initialize the new google.genai client
-    client = genai.Client(api_key=GEMINI_API_KEY)
+    client = genai.Client(api_key=api_key)
 
     # Decode base64 to bytes for the API
     image_bytes = base64.b64decode(image_base64)

@@ -24,13 +24,15 @@ from __future__ import annotations
 
 import logging
 import os
+from pathlib import Path
 from typing import Any
 
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load backend/.env explicitly so key resolution does not depend on launch cwd.
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
 logger = logging.getLogger("kira.llm.explainer")
 
 
@@ -38,7 +40,9 @@ logger = logging.getLogger("kira.llm.explainer")
 # Configuration
 # ---------------------------------------------------------------------------
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+def _get_gemini_api_key() -> str:
+    """Fetch Gemini API key at call time so .env updates are picked up after reload."""
+    return os.getenv("GEMINI_API_KEY", "")
 
 # Using Gemma 4 31B for text generation — high rate limits on free tier
 LLM_MODEL = "gemma-4-31b-it"
@@ -123,13 +127,14 @@ async def generate_risk_narrative(
         str: Human-readable risk narrative (3-5 sentences, ~100-200 words).
     """
     try:
-        if not GEMINI_API_KEY:
+        gemini_api_key = _get_gemini_api_key()
+        if not gemini_api_key:
             logger.warning("GEMINI_API_KEY not set, using fallback template")
             return _generate_fallback_narrative(
                 cv_signals, geo_signals, fusion_result, fraud_detection
             )
 
-        client = genai.Client(api_key=GEMINI_API_KEY)
+        client = genai.Client(api_key=gemini_api_key)
 
         # Format the prompt with actual signal values
         prompt = _format_prompt(

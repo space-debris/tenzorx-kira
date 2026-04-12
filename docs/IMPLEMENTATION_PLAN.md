@@ -1,4 +1,4 @@
-uuuuuuuuuuuuuuuuuuuuuuuuuu# KIRA — Implementation Plan
+# KIRA — Implementation Plan
 
 > Phased development roadmap with ownership, sequencing, and dependency tracking.
 
@@ -31,6 +31,7 @@ PHASE 0 ──► PHASE 1 (CV) ────────────────�
 **Prerequisite**: None — this is the starting phase
 
 ### Objectives
+
 - [x] Repository initialized with full folder structure
 - [x] Environment templates (`.env.example`) created
 - [x] Docker compose skeleton defined
@@ -41,13 +42,13 @@ PHASE 0 ──► PHASE 1 (CV) ────────────────�
 
 ### Deliverables
 
-| File | Owner | Description |
-|------|-------|-------------|
-| `backend/models/input_schema.py` | Orchestration Lead | Pydantic models for assessment request |
+| File                              | Owner              | Description                             |
+| --------------------------------- | ------------------ | --------------------------------------- |
+| `backend/models/input_schema.py`  | Orchestration Lead | Pydantic models for assessment request  |
 | `backend/models/output_schema.py` | Orchestration Lead | Pydantic models for assessment response |
-| `docs/API_REFERENCE.md` | Orchestration Lead | Complete API endpoint documentation |
-| `docker-compose.yml` | Orchestration Lead | Multi-container development setup |
-| `.env.example` | Orchestration Lead | Environment variable template |
+| `docs/API_REFERENCE.md`           | Orchestration Lead | Complete API endpoint documentation     |
+| `docker-compose.yml`              | Orchestration Lead | Multi-container development setup       |
+| `.env.example`                    | Orchestration Lead | Environment variable template           |
 
 ### API Contract
 
@@ -68,6 +69,7 @@ Response: AssessmentOutput (see output_schema.py)
 ```
 
 ### Success Criteria
+
 - All three team members have the repo cloned and can build containers
 - Input/output schemas are frozen (breaking changes require all-team discussion)
 - Frontend Lead can begin building against mock API immediately
@@ -84,6 +86,7 @@ Response: AssessmentOutput (see output_schema.py)
 ### Sequence (Order matters — each builds on the previous)
 
 #### 1.1 `image_analyzer.py` — Base Image Analysis
+
 - **Priority**: P0 (blocking for all other CV work)
 - **Task**: Implement Gemini Vision API integration
 - **Input**: Raw image bytes (base64 or file upload)
@@ -96,6 +99,7 @@ Response: AssessmentOutput (see output_schema.py)
 - **Key Decision**: Prompt engineering is critical. The prompt must ask Gemini to extract specific, quantifiable features — not just describe the image.
 
 #### 1.2 `shelf_density.py` — Shelf Occupancy Scoring
+
 - **Priority**: P0
 - **Task**: Extract shelf occupancy metrics from Gemini Vision response
 - **Input**: `ImageAnalysisResult` from `image_analyzer.py`
@@ -107,6 +111,7 @@ Response: AssessmentOutput (see output_schema.py)
 - **Output**: `shelf_density_score: float`, `empty_shelf_ratio: float`
 
 #### 1.3 `sku_diversity.py` — Product Category Detection
+
 - **Priority**: P0
 - **Task**: Identify and score product diversity
 - **Input**: `ImageAnalysisResult`
@@ -118,6 +123,7 @@ Response: AssessmentOutput (see output_schema.py)
 - **Output**: `sku_diversity_score: float`, `category_count: int`, `brand_tier: str`, `category_breakdown: dict`
 
 #### 1.4 `inventory_estimator.py` — Inventory Value Estimation
+
 - **Priority**: P1
 - **Task**: Estimate total visible inventory value in INR
 - **Input**: Shelf density + SKU data + store size estimate
@@ -130,6 +136,7 @@ Response: AssessmentOutput (see output_schema.py)
 - **Key Decision**: Use conservative price bands. Overestimation is a bigger risk than underestimation for credit decisioning.
 
 #### 1.5 `consistency_checker.py` — Multi-Image Validation
+
 - **Priority**: P1
 - **Task**: Cross-validate features across multiple images
 - **Input**: List of `ImageAnalysisResult` objects (3-5 images)
@@ -141,6 +148,7 @@ Response: AssessmentOutput (see output_schema.py)
 - **Output**: `consistency_score: float`, `fraud_flags: list[str]`
 
 ### Phase 1 Validation
+
 - [ ] Can process 3 test images and return structured CV signals
 - [ ] All scores are in [0, 1] range
 - [ ] Inventory value range is plausible for store size
@@ -158,6 +166,7 @@ Response: AssessmentOutput (see output_schema.py)
 ### Sequence
 
 #### 2.1 `geo_analyzer.py` — Base GPS Processing
+
 - **Priority**: P0 (blocking for all other Geo work)
 - **Task**: Validate and enrich GPS coordinates
 - **Input**: `latitude: float`, `longitude: float`, `accuracy: float`
@@ -169,6 +178,7 @@ Response: AssessmentOutput (see output_schema.py)
 - **Output**: `GeoBaseResult` with area type, locality, pin code
 
 #### 2.2 `footfall_proxy.py` — Footfall Estimation
+
 - **Priority**: P0
 - **Task**: Estimate potential customer footfall from location features
 - **Input**: GPS coordinates + area type
@@ -185,6 +195,7 @@ Response: AssessmentOutput (see output_schema.py)
 - **Output**: `footfall_score: float (0-1)`, `poi_breakdown: dict`
 
 #### 2.3 `competition_density.py` — Competitor Mapping
+
 - **Priority**: P1
 - **Task**: Count and map nearby competing stores
 - **Input**: GPS coordinates
@@ -196,6 +207,7 @@ Response: AssessmentOutput (see output_schema.py)
 - **Output**: `competition_count: int`, `competition_score: float (0-1)`, `competitor_types: dict`
 
 #### 2.4 `catchment_estimator.py` — Demand Estimation
+
 - **Priority**: P1
 - **Task**: Estimate serviceable population and demand
 - **Input**: GPS coordinates + area type + competition data
@@ -207,6 +219,7 @@ Response: AssessmentOutput (see output_schema.py)
 - **Output**: `catchment_population: int`, `demand_index: float (0-1)`
 
 ### Phase 2 Validation
+
 - [ ] Correctly identifies area type for known coordinates
 - [ ] Footfall scores correlate intuitively with location quality
 - [ ] Competition density returns sensible counts for urban vs rural
@@ -223,6 +236,7 @@ Response: AssessmentOutput (see output_schema.py)
 ### Sequence
 
 #### 3.1 `fusion_engine.py` — Signal Fusion & Revenue Estimation
+
 - **Priority**: P0
 - **Task**: Combine CV and Geo signals into revenue estimate
 - **Input**: `CVSignals` + `GeoSignals`
@@ -244,6 +258,7 @@ Response: AssessmentOutput (see output_schema.py)
 - **Key Decision**: Weights should be configurable per NBFC. Default weights based on economic reasoning, not ML training.
 
 #### 3.2 `fraud_detector.py` — Cross-Signal Fraud Detection
+
 - **Priority**: P0
 - **Task**: Detect adversarial or inconsistent submissions
 - **Input**: All signals + image metadata
@@ -257,6 +272,7 @@ Response: AssessmentOutput (see output_schema.py)
 - **Output**: `fraud_score`, `is_flagged`, `fraud_flags`, `checks_performed`
 
 #### 3.3 `loan_sizer.py` — Loan Range Estimation
+
 - **Priority**: P0
 - **Task**: Convert revenue estimate to actionable loan recommendation
 - **Input**: Revenue estimate + risk band + fraud score
@@ -269,6 +285,7 @@ Response: AssessmentOutput (see output_schema.py)
 - **Output**: `loan_range`, `suggested_tenure`, `estimated_emi`, `eligible`
 
 #### 3.4 `output_formatter.py` — Final Output Assembly
+
 - **Priority**: P0
 - **Task**: Assemble all upstream results into final API response
 - **Input**: All module outputs
@@ -281,6 +298,7 @@ Response: AssessmentOutput (see output_schema.py)
 - **Output**: Complete `AssessmentOutput` JSON
 
 ### Phase 3 Validation
+
 - [ ] Fusion with mock inputs produces sensible revenue ranges
 - [ ] Fraud detector correctly flags test adversarial scenarios
 - [ ] Loan sizer respects risk band multipliers and caps
@@ -297,6 +315,7 @@ Response: AssessmentOutput (see output_schema.py)
 ### Sequence
 
 #### 4.1 `explainer.py` — Risk Narrative Generation
+
 - **Priority**: P1
 - **Task**: Generate human-readable risk assessment narrative
 - **Input**: Fusion output + raw signals
@@ -310,6 +329,7 @@ Response: AssessmentOutput (see output_schema.py)
 - **Output**: `risk_narrative: str`
 
 #### 4.2 `risk_summarizer.py` — Structured Summary
+
 - **Priority**: P1
 - **Task**: Generate structured strength/concern/recommendation summary
 - **Input**: Full assessment output
@@ -321,6 +341,7 @@ Response: AssessmentOutput (see output_schema.py)
 - **Output**: `summary: {strengths, concerns, recommendation}`
 
 ### Phase 4 Validation
+
 - [ ] Risk narratives are coherent and reference actual store signals
 - [ ] Summaries correctly identify top strengths and concerns
 - [ ] Template fallback works when API is unavailable
@@ -337,12 +358,14 @@ Response: AssessmentOutput (see output_schema.py)
 ### Sequence
 
 #### 5.1 `Home.jsx` — Landing Page
+
 - Product framing and value proposition
 - "Start Assessment" CTA
 - How it works section (3 steps)
 - Clean, professional design
 
 #### 5.2 `Assessment.jsx` — Input Form
+
 - Multi-image upload (3-5 images with preview)
 - Image type selection (interior / exterior / shelf closeup)
 - GPS coordinate input (auto-detect + manual override)
@@ -350,12 +373,14 @@ Response: AssessmentOutput (see output_schema.py)
 - Form validation and submit handling
 
 #### 5.3 `kiraApi.js` — API Integration
+
 - `submitAssessment(formData)` → POST /api/v1/assess
 - `getAssessmentStatus(sessionId)` → GET /api/v1/assess/{id}
 - Mock response functions matching exact output schema
 - Toggle between mock and live API via env variable
 
 #### 5.4 `ResultsDashboard.jsx` — Results Display
+
 - Revenue estimate with range visualization
 - Risk band display with color coding
 - CV signals breakdown
@@ -363,29 +388,34 @@ Response: AssessmentOutput (see output_schema.py)
 - Confidence score indicators
 
 #### 5.5 `RiskScoreCard.jsx` — Risk Visualization
+
 - Circular/gauge risk score display
 - Risk band label (LOW/MEDIUM/HIGH/VERY_HIGH)
 - Confidence indicator
 - Color-coded presentation
 
 #### 5.6 `LoanOfferCard.jsx` — Loan Recommendation
+
 - Loan range display (min-max)
 - Suggested tenure
 - EMI estimate
 - Eligibility status
 
 #### 5.7 `FraudFlagBanner.jsx` — Fraud Warning
+
 - Conditional banner (only shown if `is_flagged: true`)
 - Lists specific fraud flags
 - Professional, non-alarming presentation
 
 #### 5.8 `Results.jsx` — Full Results Page
+
 - Assembles all result components
 - Risk narrative display
 - Summary section (strengths/concerns/recommendation)
 - Assessment metadata
 
 ### Phase 5 Validation
+
 - [ ] All pages render correctly with mock data
 - [ ] Image upload works with preview
 - [ ] GPS auto-detection works in browser
@@ -431,6 +461,7 @@ Response: AssessmentOutput (see output_schema.py)
    - All API calls work through Docker networking
 
 ### Phase 6 Validation
+
 - [ ] Full end-to-end flow works from image upload to results display
 - [ ] All fraud scenarios correctly flagged
 - [ ] Revenue estimates within plausible ranges
@@ -491,15 +522,15 @@ Phase 0 (Foundation)
 
 ## Risk Register
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Gemini Vision API rate limits | CV module blocked | Implement caching; use 3 images not 5 |
-| OSM Overpass API downtime | Geo module incomplete | Cache responses; hardcode test data |
-| Revenue estimates wildly inaccurate | Demo credibility | Use conservative ranges; emphasize methodology over precision |
-| Image upload exceeds API limits | Can't process large images | Resize on frontend before upload; cap at 2MB per image |
-| Team member unavailable | Phase delays | Each phase has clear specs; any member can implement from docs |
+| Risk                                | Impact                     | Mitigation                                                     |
+| ----------------------------------- | -------------------------- | -------------------------------------------------------------- |
+| Gemini Vision API rate limits       | CV module blocked          | Implement caching; use 3 images not 5                          |
+| OSM Overpass API downtime           | Geo module incomplete      | Cache responses; hardcode test data                            |
+| Revenue estimates wildly inaccurate | Demo credibility           | Use conservative ranges; emphasize methodology over precision  |
+| Image upload exceeds API limits     | Can't process large images | Resize on frontend before upload; cap at 2MB per image         |
+| Team member unavailable             | Phase delays               | Each phase has clear specs; any member can implement from docs |
 
 ---
 
-*Implementation Plan v1.0 — KIRA Project*
-*Last Updated: April 2025*
+_Implementation Plan v1.0 — KIRA Project_
+_Last Updated: April 2025_
