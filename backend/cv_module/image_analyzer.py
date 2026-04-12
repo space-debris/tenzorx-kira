@@ -24,7 +24,8 @@ import re
 from collections import Counter
 from typing import Any
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -38,7 +39,9 @@ logger = logging.getLogger("kira.cv.image_analyzer")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 # Model to use for vision analysis
-VISION_MODEL = "gemini-1.5-pro-latest"
+# Using gemma-4-31b-it — free tier: 15 RPM, Unlimited TPM, 1.5K RPD
+# Better multimodal capability and much higher rate limits than gemini-2.5-flash
+VISION_MODEL = "gemma-4-31b-it"
 
 # Maximum retries for API calls
 MAX_RETRIES = 3
@@ -134,8 +137,7 @@ async def analyze_images(
             "Set it in backend/.env or as an environment variable."
         )
 
-    # Configure Gemini API client
-    genai.configure(api_key=GEMINI_API_KEY)
+    # API key will be passed to client in _send_to_gemini_vision
 
     # Process each image through Gemini Vision
     raw_analyses: list[dict[str, Any]] = []
@@ -198,23 +200,25 @@ async def _send_to_gemini_vision(
     Returns:
         dict: Parsed JSON response from Gemini Vision.
     """
-    model = genai.GenerativeModel(VISION_MODEL)
+    # Initialize the new google.genai client
+    client = genai.Client(api_key=GEMINI_API_KEY)
 
     # Decode base64 to bytes for the API
     image_bytes = base64.b64decode(image_base64)
 
     # Build the image part for Gemini
-    image_part = {
-        "mime_type": mime_type,
-        "data": image_bytes,
-    }
+    image_part = types.Part.from_bytes(
+        data=image_bytes,
+        mime_type=mime_type,
+    )
 
     last_error = None
     for attempt in range(1, MAX_RETRIES + 1):
         try:
-            response = model.generate_content(
-                [prompt, image_part],
-                generation_config=genai.types.GenerationConfig(
+            response = client.models.generate_content(
+                model=VISION_MODEL,
+                contents=[prompt, image_part],
+                config=types.GenerateContentConfig(
                     temperature=0.1,  # Low temperature for structured output
                     max_output_tokens=2048,
                 ),

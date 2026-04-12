@@ -31,6 +31,12 @@ from models.output_schema import (
 
 logger = logging.getLogger("kira.output_formatter")
 
+# ---------------------------------------------------------------------------
+# In-memory store (replaces PostgreSQL for hackathon MVP)
+# ---------------------------------------------------------------------------
+
+_assessment_store: dict[str, AssessmentOutput] = {}
+
 
 # ---------------------------------------------------------------------------
 # Public API
@@ -68,42 +74,59 @@ def format_assessment_output(
 
     Returns:
         AssessmentOutput: Complete, validated assessment output.
-
-    Processing Steps:
-        1. Generate assessment_id (UUID v4)
-        2. Set timestamp to current UTC time
-        3. Assemble Explanation from narrative + summary
-        4. Construct AssessmentOutput from all components
-        5. Validate against Pydantic schema (automatic)
-        6. Log output summary for audit
-
-    TODO:
-        - Implement output assembly
-        - Add PostgreSQL persistence
-        - Add assessment versioning
-        - Add output hash for integrity verification
     """
-    # TODO: Implement output formatting and assembly
-    raise NotImplementedError("Output formatter not yet implemented")
+    assessment_id = uuid.uuid4()
+    timestamp = datetime.utcnow()
+
+    # Assemble the explanation block
+    explanation = Explanation(
+        risk_narrative=risk_narrative,
+        summary=summary,
+    )
+
+    # Build the complete output — Pydantic validates automatically
+    output = AssessmentOutput(
+        session_id=session_id,
+        assessment_id=assessment_id,
+        timestamp=timestamp,
+        status=AssessmentStatus.COMPLETED,
+        revenue_estimate=revenue_estimate,
+        risk_assessment=risk_assessment,
+        cv_signals=cv_signals,
+        geo_signals=geo_signals,
+        loan_recommendation=loan_recommendation,
+        fraud_detection=fraud_detection,
+        explanation=explanation,
+    )
+
+    logger.info(
+        f"Assessment output assembled: "
+        f"session_id={session_id}, "
+        f"assessment_id={assessment_id}, "
+        f"risk_band={risk_assessment.risk_band.value}, "
+        f"eligible={loan_recommendation.eligible}"
+    )
+
+    return output
 
 
 async def persist_assessment(
     output: AssessmentOutput,
 ) -> None:
     """
-    Store a completed assessment in PostgreSQL for audit trail.
+    Store a completed assessment in the in-memory store (MVP).
+
+    In production, this would persist to PostgreSQL for audit trail.
 
     Args:
         output: Complete AssessmentOutput to persist.
-
-    TODO:
-        - Implement database connection
-        - Create assessments table schema
-        - Store full JSON output
-        - Add indexing on session_id, timestamp, risk_band
     """
-    # TODO: Implement database persistence
-    raise NotImplementedError
+    key = str(output.session_id)
+    _assessment_store[key] = output
+    logger.info(
+        f"Assessment persisted: session_id={key}, "
+        f"total_stored={len(_assessment_store)}"
+    )
 
 
 async def retrieve_assessment(
@@ -117,10 +140,11 @@ async def retrieve_assessment(
 
     Returns:
         AssessmentOutput if found, None otherwise.
-
-    TODO:
-        - Implement database query
-        - Add caching layer (Redis) for repeated lookups
     """
-    # TODO: Implement database retrieval
-    raise NotImplementedError
+    key = str(session_id)
+    result = _assessment_store.get(key)
+    if result:
+        logger.info(f"Assessment retrieved: session_id={key}")
+    else:
+        logger.info(f"Assessment not found: session_id={key}")
+    return result

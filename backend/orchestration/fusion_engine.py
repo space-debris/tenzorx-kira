@@ -60,12 +60,26 @@ REVENUE_CALIBRATION = {
     (0.8, 1.0): (500000, 1000000),    # Premium / high-traffic
 }
 
+# Area-type revenue multipliers — urban stores earn more than rural
+AREA_REVENUE_MULTIPLIERS = {
+    "urban": 1.2,
+    "semi_urban": 1.0,
+    "rural": 0.75,
+}
+
 # Risk band thresholds (based on inverse of composite score)
 RISK_THRESHOLDS = {
     RiskBand.LOW: (0.6, 1.0),
     RiskBand.MEDIUM: (0.4, 0.6),
     RiskBand.HIGH: (0.2, 0.4),
     RiskBand.VERY_HIGH: (0.0, 0.2),
+}
+
+# Inventory value normalization bounds by area type (INR)
+INVENTORY_NORM_BOUNDS = {
+    "urban": {"min": 20000, "max": 800000},
+    "semi_urban": {"min": 15000, "max": 500000},
+    "rural": {"min": 10000, "max": 300000},
 }
 
 
@@ -87,39 +101,99 @@ async def run_fusion_engine(
 
     Args:
         cv_signals: Computer vision signals from the CV module.
-            Expected fields: shelf_density, sku_diversity_score,
-            inventory_value_range, consistency_score.
         geo_signals: Geo intelligence signals from the Geo module.
-            Expected fields: footfall_score, demand_index,
-            competition_score, area_type.
         weights: Optional custom weight dict. If None, uses DEFAULT_WEIGHTS.
-            Keys must match DEFAULT_WEIGHTS. Values must sum to ~1.0.
 
     Returns:
         dict containing:
             - "composite_score" (float): Overall score 0-1.
             - "revenue_estimate" (RevenueEstimate): Monthly revenue range.
             - "risk_assessment" (RiskAssessment): Risk band and score.
-            - "signal_contributions" (dict): Per-signal weighted contribution
-              for explainability.
-
-    Processing Steps:
-        1. Normalize all signals to [0, 1] range
-        2. Apply weight matrix to compute composite score
-        3. Map composite score to revenue range via calibration table
-        4. Determine risk band from inverse of composite score
-        5. Compute confidence from signal quality and consistency
-
-    TODO:
-        - Implement the full fusion logic
-        - Add area-type-specific calibration (urban vs rural revenue ranges differ)
-        - Add confidence degradation when signals conflict
-        - Add logging for audit trail
-        - Add weight validation (must sum to ~1.0)
+            - "signal_contributions" (dict): Per-signal weighted contribution.
     """
-    # TODO: Implement fusion engine logic
-    raise NotImplementedError("Fusion engine not yet implemented")
+    active_weights = weights if weights is not None else DEFAULT_WEIGHTS
 
+    # Validate weights sum to ~1.0 (allowing 5% tolerance)
+    weight_sum = sum(active_weights.values())
+    if abs(weight_sum - 1.0) > 0.05:
+        logger.warning(
+            f"Weights sum to {weight_sum:.3f}, expected ~1.0. "
+            "Results may be miscalibrated."
+        )
+
+    area_type = geo_signals.area_type.value
+
+    # Step 1: Normalize all signals to [0, 1]
+    inventory_norm = _normalize_inventory_value(
+        inventory_range={
+            "low": cv_signals.inventory_value_range.low,
+            "high": cv_signals.inventory_value_range.high,
+        },
+        area_type=area_type,
+    )
+
+    normalized_signals = {
+        "shelf_density": cv_signals.shelf_density,
+        "sku_diversity": cv_signals.sku_diversity_score,
+        "inventory_value": inventory_norm,
+        "footfall_score": geo_signals.footfall_score,
+        "demand_index": geo_signals.demand_index,
+        "competition_penalty": 1.0 - geo_signals.competition_score,  # Invert: higher competition = penalty
+    }
+
+    logger.info(f"Normalized signals: {normalized_signals}")
+
+    # Step 2: Compute composite score
+    composite_score, signal_contributions = _compute_composite_score(
+        normalized_signals, active_weights
+    )
+
+    logger.info(f"Composite score: {composite_score:.4f}")
+    logger.info(f"Signal contributions: {signal_contributions}")
+
+    # Step 3: Map to revenue range
+    monthly_low, monthly_high = _map_score_to_revenue(composite_score, area_type)
+
+    # Step 4: Determine risk band
+    risk_band = _determine_risk_band(composite_score)
+
+    # Step 5: Compute confidence
+    confidence = _compute_confidence(cv_signals, geo_signals)
+
+    # Step 6: Compute risk score (inverse of composite — higher = riskier)
+    risk_score = max(0.0, min(1.0, 1.0 - composite_score))
+
+    # Build output objects
+    revenue_estimate = RevenueEstimate(
+        monthly_low=round(monthly_low, 2),
+        monthly_high=round(monthly_high, 2),
+        confidence=round(confidence, 4),
+        methodology="inventory_turnover_model",
+    )
+
+    risk_assessment = RiskAssessment(
+        risk_band=risk_band,
+        risk_score=round(risk_score, 4),
+        confidence=round(confidence, 4),
+    )
+
+    logger.info(
+        f"Fusion complete: revenue=[₹{monthly_low:,.0f} - ₹{monthly_high:,.0f}], "
+        f"risk_band={risk_band.value}, confidence={confidence:.2f}"
+    )
+
+    return {
+        "composite_score": round(composite_score, 4),
+        "revenue_estimate": revenue_estimate,
+        "risk_assessment": risk_assessment,
+        "signal_contributions": signal_contributions,
+        "normalized_signals": normalized_signals,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Internal Helpers
+# ---------------------------------------------------------------------------
 
 def _normalize_inventory_value(
     inventory_range: dict[str, float],
@@ -137,36 +211,55 @@ def _normalize_inventory_value(
 
     Returns:
         float: Normalized inventory score (0-1).
-
-    TODO:
-        - Implement normalization with area-type scaling
-        - Define scaling factors for each area type
     """
-    # TODO: Implement normalization
-    raise NotImplementedError
+    bounds = INVENTORY_NORM_BOUNDS.get(area_type, INVENTORY_NORM_BOUNDS["semi_urban"])
+    norm_min = bounds["min"]
+    norm_max = bounds["max"]
+
+    # Use midpoint of the range as the representative value
+    midpoint = (inventory_range.get("low", 0) + inventory_range.get("high", 0)) / 2.0
+
+    if norm_max <= norm_min:
+        return 0.5
+
+    # Linear normalization clamped to [0, 1]
+    normalized = (midpoint - norm_min) / (norm_max - norm_min)
+    return max(0.0, min(1.0, normalized))
 
 
 def _compute_composite_score(
     normalized_signals: dict[str, float],
     weights: dict[str, float],
-) -> float:
+) -> tuple[float, dict[str, float]]:
     """
     Compute weighted composite score from normalized signals.
 
     Args:
         normalized_signals: Dict of signal_name → normalized_value (0-1).
-        weights: Dict of signal_name → weight. Must match signal keys.
+        weights: Dict of signal_name → weight.
 
     Returns:
-        float: Composite score (0-1).
-
-    TODO:
-        - Implement weighted sum
-        - Clamp output to [0, 1]
-        - Log individual contributions
+        tuple: (composite_score, signal_contributions_dict)
     """
-    # TODO: Implement weighted scoring
-    raise NotImplementedError
+    composite = 0.0
+    contributions: dict[str, float] = {}
+
+    for signal_name, weight in weights.items():
+        signal_value = normalized_signals.get(signal_name, 0.0)
+
+        # Competition penalty is subtracted, not added
+        if signal_name == "competition_penalty":
+            contribution = -(weight * signal_value)
+        else:
+            contribution = weight * signal_value
+
+        contributions[signal_name] = round(contribution, 4)
+        composite += contribution
+
+    # Clamp to [0, 1]
+    composite = max(0.0, min(1.0, composite))
+
+    return composite, contributions
 
 
 def _map_score_to_revenue(
@@ -176,20 +269,55 @@ def _map_score_to_revenue(
     """
     Map a composite score to a monthly revenue range using the calibration table.
 
+    Uses linear interpolation within bands for smoother estimates and applies
+    area-type revenue multipliers.
+
     Args:
         composite_score: Overall score (0-1).
         area_type: Area classification for calibration adjustment.
 
     Returns:
         tuple: (monthly_low, monthly_high) in INR.
-
-    TODO:
-        - Implement calibration table lookup
-        - Add area-type revenue multiplier
-        - Interpolate within bands for smoother estimates
     """
-    # TODO: Implement revenue mapping
-    raise NotImplementedError
+    # Find the matching band
+    matched_low = 30000
+    matched_high = 80000
+    band_start = 0.0
+    band_end = 0.2
+
+    for (score_lo, score_hi), (rev_lo, rev_hi) in REVENUE_CALIBRATION.items():
+        if score_lo <= composite_score < score_hi:
+            matched_low = rev_lo
+            matched_high = rev_hi
+            band_start = score_lo
+            band_end = score_hi
+            break
+    else:
+        # Score is exactly 1.0 — use the highest band
+        if composite_score >= 0.8:
+            matched_low = 500000
+            matched_high = 1000000
+            band_start = 0.8
+            band_end = 1.0
+
+    # Linear interpolation within the band for smoother estimates
+    band_width = band_end - band_start
+    if band_width > 0:
+        position_in_band = (composite_score - band_start) / band_width
+    else:
+        position_in_band = 0.5
+
+    # Interpolate revenue within band boundaries
+    rev_range = matched_high - matched_low
+    interpolated_low = matched_low + (position_in_band * rev_range * 0.3)
+    interpolated_high = matched_low + (position_in_band * rev_range * 0.7) + (rev_range * 0.3)
+
+    # Apply area-type multiplier
+    multiplier = AREA_REVENUE_MULTIPLIERS.get(area_type, 1.0)
+    final_low = interpolated_low * multiplier
+    final_high = interpolated_high * multiplier
+
+    return round(final_low, -2), round(final_high, -2)  # Round to nearest 100
 
 
 def _determine_risk_band(composite_score: float) -> RiskBand:
@@ -203,12 +331,16 @@ def _determine_risk_band(composite_score: float) -> RiskBand:
 
     Returns:
         RiskBand: LOW, MEDIUM, HIGH, or VERY_HIGH.
-
-    TODO:
-        - Implement threshold-based classification
     """
-    # TODO: Implement risk band determination
-    raise NotImplementedError
+    for risk_band, (threshold_low, threshold_high) in RISK_THRESHOLDS.items():
+        if threshold_low <= composite_score < threshold_high:
+            return risk_band
+
+    # Edge case: score is exactly 1.0
+    if composite_score >= 1.0:
+        return RiskBand.LOW
+
+    return RiskBand.VERY_HIGH
 
 
 def _compute_confidence(
@@ -220,7 +352,6 @@ def _compute_confidence(
 
     Confidence degrades when:
     - Image consistency is low (possible fraud)
-    - GPS accuracy is poor
     - CV and Geo signals conflict (e.g., high visual score but low geo score)
 
     Args:
@@ -229,11 +360,42 @@ def _compute_confidence(
 
     Returns:
         float: Confidence score (0-1).
-
-    TODO:
-        - Implement confidence computation
-        - Weight consistency_score heavily
-        - Add signal conflict detection
     """
-    # TODO: Implement confidence scoring
-    raise NotImplementedError
+    # Base confidence starts at 1.0 and is degraded by issues
+    confidence = 1.0
+
+    # Factor 1: Image consistency (weight: 40%)
+    # consistency_score < 0.7 starts degrading confidence
+    consistency_factor = min(1.0, cv_signals.consistency_score / 0.7)
+    confidence *= (0.6 + 0.4 * consistency_factor)
+
+    # Factor 2: Signal conflict detection (weight: 30%)
+    # Measure divergence between CV quality and Geo quality
+    cv_avg = (cv_signals.shelf_density + cv_signals.sku_diversity_score) / 2.0
+    geo_avg = (geo_signals.footfall_score + geo_signals.demand_index) / 2.0
+    signal_divergence = abs(cv_avg - geo_avg)
+
+    # High divergence (>0.4) degrades confidence
+    if signal_divergence > 0.4:
+        conflict_penalty = (signal_divergence - 0.4) / 0.6  # 0 at 0.4, 1 at 1.0
+        confidence *= (1.0 - 0.3 * conflict_penalty)
+
+    # Factor 3: Data completeness (weight: 30%)
+    # Penalize if key signals are at extreme defaults (likely missing data)
+    extreme_count = 0
+    all_signals = [
+        cv_signals.shelf_density,
+        cv_signals.sku_diversity_score,
+        geo_signals.footfall_score,
+        geo_signals.competition_score,
+        geo_signals.demand_index,
+    ]
+    for sig in all_signals:
+        if sig <= 0.01 or sig >= 0.99:
+            extreme_count += 1
+
+    if extreme_count > 0:
+        completeness_penalty = extreme_count / len(all_signals)
+        confidence *= (1.0 - 0.3 * completeness_penalty)
+
+    return max(0.1, min(1.0, round(confidence, 4)))

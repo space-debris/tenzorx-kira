@@ -78,34 +78,118 @@ async def compute_loan_recommendation(
 
     Args:
         revenue_estimate: Monthly revenue range from the fusion engine.
-            Uses monthly_low for conservative EMI calculation.
         risk_assessment: Risk band and score from the fusion engine.
-            Determines risk multiplier applied to loan capacity.
         fraud_detection: Fraud detection results.
-            If is_flagged=True, loan is not offered.
 
     Returns:
         LoanRecommendation: Eligibility, loan range, tenure, EMI estimate,
         and EMI-to-income ratio.
-
-    Processing Steps:
-        1. Check eligibility (not fraud-flagged, not VERY_HIGH risk)
-        2. Compute base EMI capacity = monthly_low × MAX_EMI_TO_INCOME_RATIO
-        3. Apply risk band multiplier
-        4. Compute max loan from EMI capacity and tenure
-        5. Apply loan amount caps (₹25K min, ₹5L max)
-        6. Select optimal tenure from TENURE_OPTIONS
-        7. Return complete recommendation
-
-    TODO:
-        - Implement loan sizing logic
-        - Add tenure optimization (find tenure that minimizes EMI while staying within cap)
-        - Add regional interest rate variation
-        - Log recommendation rationale for audit
     """
-    # TODO: Implement loan recommendation computation
-    raise NotImplementedError("Loan sizer not yet implemented")
+    risk_band = risk_assessment.risk_band
 
+    # Step 1: Check eligibility
+    is_eligible = (
+        not fraud_detection.is_flagged
+        and risk_band != RiskBand.VERY_HIGH
+    )
+
+    if not is_eligible:
+        reason = (
+            "fraud flagged" if fraud_detection.is_flagged
+            else f"risk band is {risk_band.value}"
+        )
+        logger.info(f"Loan not eligible: {reason}")
+        return LoanRecommendation(
+            eligible=False,
+            loan_range=ValueRange(low=0, high=0),
+            suggested_tenure_months=DEFAULT_TENURE,
+            estimated_emi=0,
+            emi_to_income_ratio=0,
+        )
+
+    # Step 2: Compute base EMI capacity from conservative (low) revenue
+    base_emi_capacity = revenue_estimate.monthly_low * MAX_EMI_TO_INCOME_RATIO
+    logger.info(
+        f"Base EMI capacity: ₹{base_emi_capacity:,.0f} "
+        f"(15% of ₹{revenue_estimate.monthly_low:,.0f})"
+    )
+
+    # Step 3: Apply risk band multiplier
+    risk_multiplier = RISK_MULTIPLIERS.get(risk_band, 0.6)
+    adjusted_emi_capacity = base_emi_capacity * risk_multiplier
+    logger.info(
+        f"Risk-adjusted EMI capacity: ₹{adjusted_emi_capacity:,.0f} "
+        f"(multiplier={risk_multiplier} for {risk_band.value})"
+    )
+
+    # Step 4: Select optimal tenure
+    optimal_tenure = _select_optimal_tenure(adjusted_emi_capacity, risk_band)
+
+    # Step 5: Compute max loan from EMI capacity
+    max_loan = _compute_max_loan_from_emi(
+        max_emi=adjusted_emi_capacity,
+        monthly_rate=MONTHLY_INTEREST_RATE,
+        tenure_months=optimal_tenure,
+    )
+
+    # Step 6: Compute min loan (using conservative 60% of max)
+    min_loan = max_loan * 0.6
+
+    # Step 7: Apply loan amount caps
+    max_loan = max(MIN_LOAN_AMOUNT, min(MAX_LOAN_AMOUNT, max_loan))
+    min_loan = max(MIN_LOAN_AMOUNT, min(max_loan, min_loan))
+
+    # Round to nearest 1000
+    max_loan = round(max_loan / 1000) * 1000
+    min_loan = round(min_loan / 1000) * 1000
+
+    # Step 8: Compute actual EMI for the midpoint loan
+    midpoint_loan = (min_loan + max_loan) / 2.0
+    estimated_emi = _compute_emi(
+        principal=midpoint_loan,
+        monthly_rate=MONTHLY_INTEREST_RATE,
+        tenure_months=optimal_tenure,
+    )
+
+    # Step 9: Compute EMI-to-income ratio (using conservative revenue)
+    emi_to_income = (
+        estimated_emi / revenue_estimate.monthly_low
+        if revenue_estimate.monthly_low > 0
+        else 1.0
+    )
+    emi_to_income = min(1.0, emi_to_income)
+
+    # Final eligibility check — if computed loan is below minimum
+    if max_loan < MIN_LOAN_AMOUNT:
+        logger.info(
+            f"Loan below minimum (₹{max_loan:,.0f} < ₹{MIN_LOAN_AMOUNT:,.0f})"
+        )
+        return LoanRecommendation(
+            eligible=False,
+            loan_range=ValueRange(low=0, high=0),
+            suggested_tenure_months=DEFAULT_TENURE,
+            estimated_emi=0,
+            emi_to_income_ratio=0,
+        )
+
+    logger.info(
+        f"Loan recommendation: ₹{min_loan:,.0f} - ₹{max_loan:,.0f}, "
+        f"tenure={optimal_tenure}m, EMI=₹{estimated_emi:,.0f}, "
+        f"EMI/income={emi_to_income:.2%}"
+    )
+
+    return LoanRecommendation(
+        eligible=True,
+        loan_range=ValueRange(low=min_loan, high=max_loan),
+        suggested_tenure_months=optimal_tenure,
+        estimated_emi=round(estimated_emi, 2),
+        emi_to_income_ratio=round(emi_to_income, 4),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Internal Helpers
+# ---------------------------------------------------------------------------
 
 def _compute_emi(
     principal: float,
@@ -119,18 +203,28 @@ def _compute_emi(
 
     Args:
         principal: Loan principal amount in INR.
-        monthly_rate: Monthly interest rate (decimal, e.g., 0.015 for 1.5%).
+        monthly_rate: Monthly interest rate (decimal).
         tenure_months: Loan tenure in months.
 
     Returns:
         float: Monthly EMI amount in INR.
-
-    TODO:
-        - Implement EMI formula
-        - Handle edge cases (zero interest, very short tenure)
     """
-    # TODO: Implement EMI calculation
-    raise NotImplementedError
+    if principal <= 0:
+        return 0.0
+
+    if monthly_rate <= 0:
+        # Zero interest — simple division
+        return principal / tenure_months if tenure_months > 0 else principal
+
+    if tenure_months <= 0:
+        return principal
+
+    r = monthly_rate
+    n = tenure_months
+    factor = (1 + r) ** n
+
+    emi = principal * r * factor / (factor - 1)
+    return round(emi, 2)
 
 
 def _compute_max_loan_from_emi(
@@ -150,12 +244,22 @@ def _compute_max_loan_from_emi(
 
     Returns:
         float: Maximum loan principal in INR.
-
-    TODO:
-        - Implement reverse EMI formula
     """
-    # TODO: Implement max loan computation
-    raise NotImplementedError
+    if max_emi <= 0:
+        return 0.0
+
+    if monthly_rate <= 0:
+        return max_emi * tenure_months
+
+    if tenure_months <= 0:
+        return 0.0
+
+    r = monthly_rate
+    n = tenure_months
+    factor = (1 + r) ** n
+
+    principal = max_emi * (factor - 1) / (r * factor)
+    return round(principal, 2)
 
 
 def _select_optimal_tenure(
@@ -165,8 +269,8 @@ def _select_optimal_tenure(
     """
     Select the optimal loan tenure based on EMI capacity and risk band.
 
-    Lower-risk borrowers get longer tenure options.
-    Higher EMI capacity allows shorter tenures.
+    Lower-risk borrowers get longer tenure options (lower monthly burden).
+    Higher-risk borrowers get shorter tenures (reduce exposure duration).
 
     Args:
         emi_capacity: Monthly EMI the borrower can afford (INR).
@@ -174,10 +278,29 @@ def _select_optimal_tenure(
 
     Returns:
         int: Recommended tenure in months.
-
-    TODO:
-        - Implement tenure selection logic
-        - Consider risk band in tenure decision
     """
-    # TODO: Implement tenure selection
-    raise NotImplementedError
+    # Max tenure allowed per risk band
+    max_tenure_by_risk = {
+        RiskBand.LOW: 36,
+        RiskBand.MEDIUM: 24,
+        RiskBand.HIGH: 18,
+        RiskBand.VERY_HIGH: 12,
+    }
+    max_allowed = max_tenure_by_risk.get(risk_band, 18)
+
+    # Filter tenure options to those within risk-allowed maximum
+    available_tenures = [t for t in TENURE_OPTIONS if t <= max_allowed]
+    if not available_tenures:
+        return min(TENURE_OPTIONS)
+
+    # For higher EMI capacity, prefer shorter tenures (faster repayment)
+    # For lower EMI capacity, prefer longer tenures (lower monthly burden)
+    if emi_capacity >= 15000:
+        # High capacity — shortest available tenure
+        return min(available_tenures)
+    elif emi_capacity >= 8000:
+        # Moderate capacity — medium tenure
+        return available_tenures[len(available_tenures) // 2]
+    else:
+        # Low capacity — longest available tenure
+        return max(available_tenures)
