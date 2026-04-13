@@ -38,6 +38,17 @@ from models.output_schema import (
     StoreSizeCategory,
     ValueRange,
 )
+from models.platform_schema import (
+    AssessmentCase,
+    AuditEvent,
+    CaseDetailResponse,
+    CaseStatusUpdateRequest,
+    CreateCaseRequest,
+    KiranaProfile,
+    LenderOrg,
+    OrgDashboardResponse,
+    PlatformSnapshot,
+)
 from orchestration.fusion_engine import run_fusion_engine
 from orchestration.fraud_detector import run_fraud_detection
 from orchestration.loan_sizer import compute_loan_recommendation
@@ -57,6 +68,9 @@ from geo_module.competition_density import analyze_competition
 from geo_module.catchment_estimator import estimate_catchment
 from llm_layer.explainer import generate_risk_narrative
 from llm_layer.risk_summarizer import generate_risk_summary
+from services.audit_service import AuditService
+from services.case_service import CaseService
+from storage.repository import get_platform_repository
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -70,6 +84,10 @@ logging.basicConfig(
     format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
 )
 logger = logging.getLogger("kira.main")
+
+platform_repository = get_platform_repository()
+audit_service = AuditService(platform_repository)
+case_service = CaseService(platform_repository, audit_service)
 
 # ---------------------------------------------------------------------------
 # FastAPI App
@@ -121,6 +139,12 @@ async def health_check() -> dict:
             "database": "in_memory",
             "gemini_api": "configured" if gemini_key else "not_configured",
             "geo_api": "osm_nominatim",
+            "platform_repository": "file_backed",
+        },
+        "platform": {
+            "organizations": len(platform_repository.list_organizations()),
+            "cases": len(platform_repository.list_cases()),
+            "kiranas": len(platform_repository.list_kiranas()),
         },
     }
 
@@ -448,8 +472,117 @@ async def get_assessment(session_id: uuid.UUID) -> AssessmentOutput:
         raise HTTPException(
             status_code=404,
             detail=f"Assessment {session_id} not found"
-        )
+    )
     return result
+
+
+# ---------------------------------------------------------------------------
+# Phase 8 Platform Foundation Endpoints
+# ---------------------------------------------------------------------------
+
+@app.get("/api/v1/platform/demo-snapshot", response_model=PlatformSnapshot)
+async def get_platform_demo_snapshot() -> PlatformSnapshot:
+    """Return the full seeded platform snapshot for frontend prototyping."""
+    return platform_repository.get_platform_snapshot()
+
+
+@app.get("/api/v1/platform/orgs", response_model=list[LenderOrg])
+async def list_platform_organizations() -> list[LenderOrg]:
+    """List available lender organizations."""
+    return platform_repository.list_organizations()
+
+
+@app.get(
+    "/api/v1/platform/orgs/{org_id}/dashboard",
+    response_model=OrgDashboardResponse,
+)
+async def get_platform_dashboard(org_id: uuid.UUID) -> OrgDashboardResponse:
+    """Return dashboard metrics and recent activity for a lender org."""
+    try:
+        return case_service.get_org_dashboard(org_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get("/api/v1/platform/orgs/{org_id}/kiranas", response_model=list[KiranaProfile])
+async def list_platform_kiranas(org_id: uuid.UUID) -> list[KiranaProfile]:
+    """List kirana profiles for a lender organization."""
+    try:
+        return case_service.list_kiranas_for_org(org_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get("/api/v1/platform/orgs/{org_id}/cases", response_model=list[AssessmentCase])
+async def list_platform_cases(org_id: uuid.UUID) -> list[AssessmentCase]:
+    """List cases for a lender organization."""
+    try:
+        return case_service.list_cases_for_org(org_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/api/v1/platform/cases", response_model=CaseDetailResponse)
+async def create_platform_case(payload: CreateCaseRequest) -> CaseDetailResponse:
+    """Create a kirana profile and lender case inside the platform layer."""
+    try:
+        return case_service.create_case(payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/api/v1/platform/cases/{case_id}", response_model=CaseDetailResponse)
+async def get_platform_case(case_id: uuid.UUID) -> CaseDetailResponse:
+    """Return case detail including latest assessment and audit history."""
+    try:
+        return case_service.get_case_detail(case_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post(
+    "/api/v1/platform/cases/{case_id}/status",
+    response_model=CaseDetailResponse,
+)
+async def update_platform_case_status(
+    case_id: uuid.UUID,
+    payload: CaseStatusUpdateRequest,
+) -> CaseDetailResponse:
+    """Change the lifecycle status of a lender case."""
+    try:
+        return case_service.update_case_status(case_id, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post(
+    "/api/v1/platform/cases/{case_id}/assessments/{session_id}/link",
+    response_model=CaseDetailResponse,
+)
+async def link_assessment_to_platform_case(
+    case_id: uuid.UUID,
+    session_id: uuid.UUID,
+    actor_user_id: Optional[uuid.UUID] = Form(default=None),
+) -> CaseDetailResponse:
+    """Attach an existing assessment output to a persistent lender case."""
+    try:
+        return case_service.link_assessment_to_case(
+            case_id,
+            session_id,
+            actor_user_id=actor_user_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/api/v1/platform/cases/{case_id}/audit", response_model=list[AuditEvent])
+async def list_platform_case_audit(case_id: uuid.UUID) -> list[AuditEvent]:
+    """Return audit events associated with a case."""
+    try:
+        detail = case_service.get_case_detail(case_id)
+        return detail.audit_events
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 # ---------------------------------------------------------------------------

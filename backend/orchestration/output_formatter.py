@@ -184,6 +184,14 @@ async def persist_assessment(
             f"total_stored={len(_assessment_store)}"
         )
 
+    # Phase 8 platform repository index
+    try:
+        from storage.repository import get_platform_repository
+
+        get_platform_repository().upsert_assessment_summary(output)
+    except Exception as e:
+        logger.warning(f"Failed to index assessment in platform repository: {e}")
+
 
 async def retrieve_assessment(
     session_id: uuid.UUID,

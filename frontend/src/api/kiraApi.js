@@ -12,6 +12,7 @@
  */
 
 import axios from 'axios';
+import demoPortfolio from '../data/demoPortfolio';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
 const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === 'true';
@@ -187,8 +188,97 @@ export async function checkHealth() {
   return apiClient.get('/health');
 }
 
+export async function getPlatformDemoSnapshot() {
+  if (USE_MOCK) {
+    return { data: demoPortfolio };
+  }
+
+  return apiClient.get('/platform/demo-snapshot');
+}
+
+export async function listOrganizations() {
+  if (USE_MOCK) {
+    return { data: demoPortfolio.organizations };
+  }
+
+  return apiClient.get('/platform/orgs');
+}
+
+export async function getOrganizationDashboard(orgId) {
+  if (USE_MOCK) {
+    return {
+      data: {
+        organization: demoPortfolio.organizations.find((org) => org.id === orgId),
+        summary: demoPortfolio.dashboard,
+        recent_cases: demoPortfolio.cases,
+        open_alerts: demoPortfolio.alerts,
+      },
+    };
+  }
+
+  return apiClient.get(`/platform/orgs/${orgId}/dashboard`);
+}
+
+export async function listOrganizationCases(orgId) {
+  if (USE_MOCK) {
+    return { data: demoPortfolio.cases };
+  }
+
+  return apiClient.get(`/platform/orgs/${orgId}/cases`);
+}
+
+export async function createPlatformCase(payload) {
+  if (USE_MOCK) {
+    const matchingKirana =
+      demoPortfolio.kiranas.find((kirana) => kirana.store_name === payload.store_name) ||
+      demoPortfolio.kiranas[0];
+    const matchingCase =
+      demoPortfolio.cases.find((caseItem) => caseItem.kirana_id === matchingKirana.id) ||
+      demoPortfolio.cases[0];
+
+    return {
+      data: {
+        case: matchingCase,
+        kirana: matchingKirana,
+        latest_assessment: null,
+        alerts: [],
+        audit_events: [],
+      },
+    };
+  }
+
+  return apiClient.post('/platform/cases', payload);
+}
+
+export async function getPlatformCase(caseId) {
+  if (USE_MOCK) {
+    const matchingCase = demoPortfolio.cases.find((caseItem) => caseItem.id === caseId);
+    const matchingKirana = demoPortfolio.kiranas.find(
+      (kirana) => kirana.id === matchingCase?.kirana_id
+    );
+
+    return {
+      data: {
+        case: matchingCase,
+        kirana: matchingKirana,
+        latest_assessment: null,
+        alerts: demoPortfolio.alerts.filter((alert) => alert.case_id === caseId),
+        audit_events: [],
+      },
+    };
+  }
+
+  return apiClient.get(`/platform/cases/${caseId}`);
+}
+
 export default {
   submitAssessment,
   getAssessmentStatus,
   checkHealth,
+  getPlatformDemoSnapshot,
+  listOrganizations,
+  getOrganizationDashboard,
+  listOrganizationCases,
+  createPlatformCase,
+  getPlatformCase,
 };

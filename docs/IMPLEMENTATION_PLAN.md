@@ -1,10 +1,36 @@
 # KIRA — Implementation Plan
 
-> Phased development roadmap with ownership, sequencing, and dependency tracking.
+> Phased development roadmap with ownership, sequencing, dependencies, and expansion from a single-assessment underwriting tool into a lender-facing Kirana Lending Intelligence Platform.
 
 ---
 
-## Phase Overview
+## Team Ownership
+
+| Role | Person | Core Responsibility |
+| --- | --- | --- |
+| Orchestration Lead | You | Backend workflow, domain model, APIs, loan lifecycle, audit trail, document generation |
+| Analytics Lead | Abhishek | CV and geo signals, underwriting logic, monitoring logic, forecasting, portfolio analytics |
+| Frontend Lead | Ayush | Dashboard UX, onboarding flow, case pages, monitoring views, portfolio command center |
+
+---
+
+## Planning Principles
+
+The original KIRA scope was a remote underwriting engine based on images and GPS. The new scope keeps that engine, but expands KIRA into a lender-facing operating system.
+
+Non-negotiable product decisions for the next build:
+
+1. Preserve the current assessment pipeline as the underwriting core. Do not rebuild from scratch.
+2. Build lender workflow first: onboarding, underwriting, approval, monitoring, portfolio.
+3. For MVP, use manual lender-side statement upload for fresh UPI or bank data.
+4. Treat Account Aggregator as a later integration, not a blocker for product progress.
+5. Use deterministic templates plus LLM-written narratives for reports. Do not depend on RAG for core compliance documents.
+6. Keep embedded value-adds like khata, insurance, and POS out of the MVP.
+7. Every lender override must be captured with a reason and stored in the audit trail.
+
+---
+
+## Phase Overview (Original MVP Track)
 
 ```
 PHASE 0 ──► PHASE 1 (CV) ──────────────────────┐
@@ -496,7 +522,472 @@ Response: AssessmentOutput (see output_schema.py)
 
 ---
 
-## Dependency Graph Summary
+## PHASE 8 - PLATFORM FOUNDATION
+
+**Owner**: Orchestration Lead  
+**Duration**: Sprint 3  
+**Prerequisite**: Phase 6 complete
+
+This phase transforms KIRA from a stateless assessment tool into a persistent lender platform.
+
+### Objectives
+
+- Introduce multi-entity persistence beyond `AssessmentOutput`
+- Create lender-side domain model for kiranas, cases, loan offers, loans, monitoring runs, and documents
+- Add role-aware account structure for lender organizations
+- Establish audit logging as a first-class capability
+- Seed realistic demo data for portfolio development
+
+### Deliverables
+
+| File or Module | Owner | Description |
+| --- | --- | --- |
+| `backend/models/platform_schema.py` | Orchestration Lead | Domain entities for lender orgs, kiranas, cases, offers, loans, alerts |
+| `backend/services/case_service.py` | Orchestration Lead | Case lifecycle management |
+| `backend/services/audit_service.py` | Orchestration Lead | Immutable audit-event recording |
+| `backend/storage/repository.py` | Orchestration Lead | Persistence abstraction for assessments, kiranas, and loans |
+| `frontend/src/data/demoPortfolio.js` | Frontend Lead | Seeded lender demo data |
+| `docs/API_REFERENCE.md` | Orchestration Lead | Expanded platform endpoint plan |
+
+### Domain Model to Introduce
+
+- `LenderOrg`
+- `User`
+- `KiranaProfile`
+- `AssessmentCase`
+- `LoanRecommendation`
+- `LoanDecision`
+- `LoanAccount`
+- `StatementUpload`
+- `MonitoringRun`
+- `RiskAlert`
+- `DocumentBundle`
+- `AuditEvent`
+
+### Sequence
+
+#### 8.1 Persistence Design
+
+- Decide storage strategy for the next phase of the app
+- Separate assessment snapshot data from living loan records
+- Ensure every entity is linked by stable IDs
+
+#### 8.2 Role and Workspace Model
+
+- Support `admin` and `loan_officer` roles
+- Scope data by lender organization
+- Avoid cross-tenant data leakage by design
+
+#### 8.3 Case State Machine
+
+- Define statuses: `draft`, `submitted`, `under_review`, `approved`, `disbursed`, `monitoring`, `restructured`, `closed`
+- Capture transitions with timestamps and actor IDs
+
+#### 8.4 Audit Foundation
+
+- Record create, update, approve, override, upload, and export events
+- Make audit data queryable for UI and reports
+
+### Phase 8 Validation
+
+- Domain entities exist with clean ownership boundaries
+- Case and loan records persist independently of assessment response payloads
+- Audit events are written for all major actions
+- Demo data can support frontend platform screens before full backend completion
+
+---
+
+## PHASE 9 - LENDER WORKSPACE
+
+**Owner**: Frontend Lead  
+**Duration**: Sprint 3-4  
+**Prerequisite**: Phase 8 complete  
+**Parallel**: Can run with Phase 10
+
+### Objectives
+
+- Replace the single-flow MVP UI with a lender dashboard experience
+- Let lenders view kiranas, cases, assessments, and active loans in one workspace
+- Keep the current assessment flow available, but embed it inside case management
+
+### Deliverables
+
+| File or Module | Owner | Description |
+| --- | --- | --- |
+| `frontend/src/pages/Login.jsx` | Frontend Lead | Lender login screen or auth placeholder |
+| `frontend/src/pages/Dashboard.jsx` | Frontend Lead | Main lender landing page |
+| `frontend/src/pages/KiranaList.jsx` | Frontend Lead | List view of all kiranas and cases |
+| `frontend/src/pages/KiranaDetail.jsx` | Frontend Lead | Full borrower record with timeline |
+| `frontend/src/pages/NewCase.jsx` | Frontend Lead | Guided onboarding and assessment launch |
+| `frontend/src/components/layout/LenderShell.jsx` | Frontend Lead | Persistent nav, header, and workspace layout |
+| `frontend/src/components/CaseTimeline.jsx` | Frontend Lead | Full activity history for a borrower |
+
+### Sequence
+
+#### 9.1 Authentication Shell
+
+- Add login screen or mocked auth entry
+- Route users into lender workspace rather than public landing only
+
+#### 9.2 Dashboard Navigation
+
+- Left navigation for dashboard, kiranas, active loans, portfolio, documents
+- Header context for organization and user role
+
+#### 9.3 Kirana and Case List Views
+
+- Search by store name, owner, district, pin code
+- Filter by case status and risk tier
+- Show latest assessment and next action
+
+#### 9.4 Borrower Detail View
+
+- Basic profile
+- Assessment history
+- Loan history
+- Statement uploads
+- Risk alert timeline
+
+### Phase 9 Validation
+
+- Lender can navigate from dashboard to case to borrower detail
+- Demo data supports realistic end-to-end walkthrough
+- Existing assessment pages still function or are cleanly absorbed into the new shell
+
+---
+
+## PHASE 10 - UNDERWRITING 2.0
+
+**Owner**: Analytics Lead with Orchestration Lead support  
+**Duration**: Sprint 3-4  
+**Prerequisite**: Phase 8 complete  
+**Parallel**: Can run with Phase 9
+
+This phase upgrades KIRA from a "yes/no plus loan range" engine into an actionable underwriting assistant.
+
+### Objectives
+
+- Recommend a concrete loan amount, not only a range
+- Recommend repayment structure based on observed cash-flow rhythm
+- Add pricing guidance tied to risk
+- Generate explainable decision support for loan officers
+- Support lender override with reason capture
+
+### Deliverables
+
+| File or Module | Owner | Description |
+| --- | --- | --- |
+| `backend/orchestration/loan_sizer.py` | Orchestration Lead | Extend from range output to concrete recommendation |
+| `backend/orchestration/repayment_recommender.py` | Analytics Lead | Daily, weekly, or monthly repayment suggestion |
+| `backend/orchestration/pricing_engine.py` | Analytics Lead | Dynamic pricing and fee suggestion |
+| `backend/llm_layer/explainer.py` | Orchestration Lead | Expand into officer-friendly explainability |
+| `frontend/src/components/UnderwritingDecisionPanel.jsx` | Frontend Lead | Decision summary for officer review |
+| `frontend/src/components/OverrideDecisionForm.jsx` | Frontend Lead | Override amount, tenure, pricing with reason |
+
+### Sequence
+
+#### 10.1 Concrete Loan Recommendation
+
+- Move from broad range to `recommended_amount`
+- Keep `loan_range` as policy guardrail
+- Base recommendation on conservative revenue estimate and policy cap
+
+#### 10.2 Repayment Structure Suggestion
+
+- Infer whether daily, weekly, or monthly collection fits the merchant best
+- Use observed inflow regularity and seasonality markers where available
+- Default to simple heuristics when data is incomplete
+
+#### 10.3 Pricing Recommendation
+
+- Suggest rate and fee band based on risk, confidence, and utilization assumptions
+- Keep lender override mandatory for any exception outside policy
+
+#### 10.4 Explainable Decision Pack
+
+- Generate officer-facing explanation:
+  - why this amount
+  - why this tenure
+  - why this repayment cadence
+  - key strengths
+  - key concerns
+
+#### 10.5 Override Logging
+
+- Record original recommendation
+- Record officer override values
+- Capture reason text and timestamp
+
+### Phase 10 Validation
+
+- System recommends a concrete amount and cadence for each assessment
+- Officer can override decision inputs without breaking auditability
+- Explanations align with model outputs and policy logic
+
+---
+
+## PHASE 11 - LOAN LIFECYCLE AND MONITORING
+
+**Owner**: Orchestration Lead with Analytics Lead support  
+**Duration**: Sprint 4-5  
+**Prerequisite**: Phase 9 and Phase 10 complete
+
+This is the phase that turns KIRA into a live lender product after approval.
+
+### Objectives
+
+- Convert approved cases into real loan accounts inside the system
+- Allow fresh statement uploads after disbursement
+- Re-score borrowers periodically
+- Flag early stress and suspicious usage
+- Surface restructuring suggestions before severe delinquency
+
+### Deliverables
+
+| File or Module | Owner | Description |
+| --- | --- | --- |
+| `backend/services/loan_service.py` | Orchestration Lead | Loan creation, status changes, booking, closure |
+| `backend/services/statement_parser.py` | Orchestration Lead | Parse uploaded PDF or CSV bank and UPI data |
+| `backend/services/monitoring_service.py` | Orchestration Lead | Scheduled or manual re-assessment pipeline |
+| `backend/orchestration/utilization_tracker.py` | Analytics Lead | Post-disbursement spend categorization heuristics |
+| `backend/orchestration/restructuring_advisor.py` | Analytics Lead | Early restructuring recommendation logic |
+| `frontend/src/components/StatementUploadCard.jsx` | Frontend Lead | Upload refreshed statements |
+| `frontend/src/components/RiskTimeline.jsx` | Frontend Lead | Monitoring history and alerts |
+| `frontend/src/pages/LoanAccount.jsx` | Frontend Lead | Active loan detail view |
+
+### Sequence
+
+#### 11.1 Approval to Loan Booking Flow
+
+- When lender approves a case, create a `LoanDecision`
+- On disbursement confirmation, create `LoanAccount`
+- Freeze the original assessment snapshot for traceability
+
+#### 11.2 Statement Upload Pipeline
+
+- Support manual upload for fresh UPI or bank statements
+- Store source file metadata and parsed transaction summaries
+- Handle malformed files gracefully
+
+#### 11.3 Monitoring Re-Score
+
+- Recompute risk using latest statement-derived features plus prior assessment context
+- Record each monitoring run separately from the original underwriting run
+
+#### 11.4 Loan Utilization Tracking
+
+- Classify post-disbursement outflows:
+  - supplier or inventory-like
+  - transfer or wallet-like
+  - personal or cash-withdrawal-like
+  - unknown
+- Flag unusual diversion patterns conservatively
+
+#### 11.5 Early Stress and Restructuring
+
+- Detect meaningful drops in inflow velocity
+- Generate alerts for potential stress
+- Suggest tenor extension or temporary relief when appropriate
+
+### Phase 11 Validation
+
+- Approved borrowers become persistent loan accounts
+- Fresh statement upload triggers a new monitoring run
+- Alerts appear for deteriorating cash-flow patterns
+- Utilization tracker produces usable categories, even if heuristic-based
+
+---
+
+## PHASE 12 - PORTFOLIO COMMAND CENTER
+
+**Owner**: Frontend Lead with Analytics Lead support  
+**Duration**: Sprint 5  
+**Prerequisite**: Phase 11 complete
+
+### Objectives
+
+- Give the lender a true portfolio dashboard rather than isolated case pages
+- Show risk concentration, loan counts, and stress distribution across the book
+- Support geographic and status-based drilldown
+
+### Deliverables
+
+| File or Module | Owner | Description |
+| --- | --- | --- |
+| `backend/analytics/portfolio_metrics.py` | Analytics Lead | KPI aggregation and summary metrics |
+| `backend/analytics/cohort_analysis.py` | Analytics Lead | Cohort, segmentation, and benchmark logic |
+| `frontend/src/pages/Portfolio.jsx` | Frontend Lead | Main portfolio screen |
+| `frontend/src/components/PortfolioKpiStrip.jsx` | Frontend Lead | Summary KPI cards |
+| `frontend/src/components/LoanTable.jsx` | Frontend Lead | Filterable loan and kirana list |
+| `frontend/src/components/RiskHeatmap.jsx` | Frontend Lead | Risk concentration by geography or segment |
+| `frontend/src/components/CohortChart.jsx` | Frontend Lead | Cohort and trend visualization |
+
+### Sequence
+
+#### 12.1 Portfolio KPIs
+
+- Total kiranas onboarded
+- Total approved and disbursed
+- Active exposure
+- High-risk count
+- Stress-alert count
+- Restructured count
+
+#### 12.2 Filter and Drilldown
+
+- Filter by state, district, pin code, status, risk tier, product type
+- Search by borrower or store name
+
+#### 12.3 Risk Distribution Views
+
+- Heatmap by geography
+- Breakdown by case stage
+- Monitoring status and alert severity
+
+#### 12.4 Cohort and Benchmark Analytics
+
+- Compare vintages, regions, and merchant segments
+- Start with internal cohort comparisons
+- Add external benchmark placeholders for later data integration
+
+### Phase 12 Validation
+
+- Lender can answer "where is my risk?" from one screen
+- Filters and drilldowns match underlying loan data
+- Portfolio metrics remain stable and reproducible
+
+---
+
+## PHASE 13 - COMPLIANCE AND LOAN FILE AUTOMATION
+
+**Owner**: Orchestration Lead  
+**Duration**: Sprint 5  
+**Prerequisite**: Phase 11 complete  
+**Parallel**: Can run with Phase 12
+
+### Objectives
+
+- Turn platform activity into exportable loan files
+- Make every important action auditable
+- Reduce manual preparation for sanction and review packets
+
+### Deliverables
+
+| File or Module | Owner | Description |
+| --- | --- | --- |
+| `backend/services/document_builder.py` | Orchestration Lead | Deterministic loan and case file generation |
+| `backend/services/compliance_exporter.py` | Orchestration Lead | Export audit and reporting bundles |
+| `backend/templates/` | Orchestration Lead | Sanction, case summary, and monitoring templates |
+| `frontend/src/components/DocumentCenter.jsx` | Frontend Lead | Download and export center |
+| `frontend/src/components/AuditLogTable.jsx` | Frontend Lead | Human-readable audit log view |
+
+### Sequence
+
+#### 13.1 Document Bundle Definitions
+
+- Underwriting summary
+- Sanction note
+- Decision override sheet
+- Monitoring history summary
+- Audit event export
+
+#### 13.2 Deterministic File Generation
+
+- Use structured templates with inserted values
+- Use LLM only for narrative sections where helpful
+- Avoid free-form generation for policy-critical fields
+
+#### 13.3 Audit Log UI and Exports
+
+- Filter by entity, user, event type, and date
+- Export PDF or structured machine-readable formats where appropriate
+
+### Phase 13 Validation
+
+- Every loan can generate a complete file packet
+- Override reasons and approval actions appear in audit exports
+- Reports are reproducible and not dependent on live model calls
+
+---
+
+## PHASE 14 - ADVANCED INTELLIGENCE
+
+**Owner**: Shared - Analytics Lead drives models, Orchestration Lead owns integration, Frontend Lead owns surfacing  
+**Duration**: Sprint 6+  
+**Prerequisite**: Phases 12 and 13 complete
+
+This phase contains the higher-ambition features that should only be built after the lender workflow is real and persistent.
+
+### Objectives
+
+- Add forecasting and richer stress prediction
+- Introduce Account Aggregator integration points
+- Strengthen fraud checks using longitudinal behavior
+- Improve benchmark analytics and scenario testing
+
+### Deliverables
+
+| File or Module | Owner | Description |
+| --- | --- | --- |
+| `backend/analytics/forecasting.py` | Analytics Lead | 30-day and 90-day liquidity forecasting |
+| `backend/integrations/account_aggregator.py` | Orchestration Lead | AA connector abstraction and consent flow placeholder |
+| `backend/orchestration/enhanced_fraud.py` | Analytics Lead | Statement anomaly and behavioral fraud rules |
+| `backend/analytics/stress_testing.py` | Analytics Lead | Scenario analysis such as monsoon or locality demand shock |
+| `frontend/src/components/ForecastPanel.jsx` | Frontend Lead | Liquidity gap and stress outlook UI |
+| `frontend/src/components/ScenarioSimulator.jsx` | Frontend Lead | What-if simulation interface |
+
+### Sequence
+
+#### 14.1 Forecasting
+
+- Predict near-term inflow and outflow patterns
+- Surface projected liquidity gaps
+
+#### 14.2 Restructuring Intelligence Upgrade
+
+- Move from heuristic alerts to stronger recommendation logic
+- Prioritize intervention timing and expected impact
+
+#### 14.3 Account Aggregator Path
+
+- Add consent request placeholder
+- Support future automated data refresh without redesigning the platform
+
+#### 14.4 Longitudinal Fraud and Benchmarking
+
+- Flag sudden supplier spikes
+- Detect suspicious statement changes across cycles
+- Compare regions and merchant types across lender portfolio
+
+### Phase 14 Validation
+
+- Forecast outputs are consistent with stored history
+- Advanced fraud checks improve recall without overwhelming reviewers
+- AA integration can be enabled later without breaking current workflows
+
+---
+
+## Recommended Build Order From Today
+
+If the team starts the next round of implementation immediately, the recommended order is:
+
+1. Finish or stabilize anything missing in Phases 6 and 7
+2. Execute Phase 8 first
+3. Split work between Phase 9 and Phase 10 in parallel
+4. Rejoin on Phase 11 because it depends on both tracks
+5. Split again across Phase 12 and Phase 13
+6. Leave Phase 14 for after the workflow is already demoable
+
+This gives the team the fastest route to a convincing product:
+
+- first: lender workspace and persistent records
+- then: richer underwriting decisions
+- then: live monitoring and portfolio intelligence
+- finally: advanced forecasting and integrations
+
+---
+
+## Legacy Dependency Graph Summary
 
 ```
 Phase 0 (Foundation)
@@ -518,19 +1009,45 @@ Phase 0 (Foundation)
                      Phase 7 (Presentation)
 ```
 
+The full lender-platform dependency path is shown below in **Updated Dependency Graph Summary**.
+
+---
+
+## Updated Dependency Graph Summary
+
+```text
+Phase 0 -> Phase 1
+Phase 0 -> Phase 2
+Phase 0 -> Phase 5
+Phase 1 + Phase 2 -> Phase 3
+Phase 3 -> Phase 4
+Phase 3 + Phase 4 + Phase 5 -> Phase 6
+Phase 6 -> Phase 7
+Phase 6 -> Phase 8
+Phase 8 -> Phase 9
+Phase 8 -> Phase 10
+Phase 9 + Phase 10 -> Phase 11
+Phase 11 -> Phase 12
+Phase 11 -> Phase 13
+Phase 12 + Phase 13 -> Phase 14
+```
+
 ---
 
 ## Risk Register
 
-| Risk                                | Impact                     | Mitigation                                                     |
-| ----------------------------------- | -------------------------- | -------------------------------------------------------------- |
-| Gemini Vision API rate limits       | CV module blocked          | Implement caching; use 3 images not 5                          |
-| OSM Overpass API downtime           | Geo module incomplete      | Cache responses; hardcode test data                            |
-| Revenue estimates wildly inaccurate | Demo credibility           | Use conservative ranges; emphasize methodology over precision  |
-| Image upload exceeds API limits     | Can't process large images | Resize on frontend before upload; cap at 2MB per image         |
-| Team member unavailable             | Phase delays               | Each phase has clear specs; any member can implement from docs |
+| Risk | Impact | Mitigation |
+| --- | --- | --- |
+| Image and geo signals remain too noisy for confident loan sizing | Weak underwriting credibility | Keep outputs conservative and explainable; preserve manual override |
+| Multi-tenant model is added too late | Painful refactor across the whole app | Introduce tenant-aware IDs and role model in Phase 8 |
+| Statement parsing is brittle across PDF formats | Monitoring flow becomes unreliable | Support PDF plus CSV; store parse confidence and allow manual correction |
+| Fraud rules become too aggressive | Review team loses trust in alerts | Separate soft alerts from hard flags; tune thresholds with demo data |
+| Dashboard work starts before persistent entities exist | Frontend velocity stalls on unstable contracts | Finish Phase 8 before major portfolio UI work |
+| Compliance docs depend too much on LLM output | Inconsistent exports | Use deterministic templates for policy-critical sections |
+| Team parallel work conflicts | Merge delays and unclear ownership | Keep files and modules phase-owned; freeze interfaces before parallel implementation |
 
 ---
 
 _Implementation Plan v1.0 — KIRA Project_
-_Last Updated: April 2025_
+_(Expanded with Phase 8-14 lender-platform roadmap)_  
+_Last Updated: April 13, 2026_
