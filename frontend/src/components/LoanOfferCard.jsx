@@ -8,24 +8,30 @@
  *
  * Props:
  *   eligible (boolean) — Whether the store qualifies
- *   loanRange (object) — { min, max } in INR
+ *   loanRange (object) — { low, high } in INR
  *   suggestedTenure (number) — Months
  *   estimatedEmi (number) — Monthly EMI in INR
  *   emiToIncomeRatio (number) — 0-1
  */
 
-import { CheckCircle2, XCircle, CreditCard, Calendar, Wallet } from 'lucide-react';
+import { CheckCircle2, XCircle, Calendar, Wallet } from 'lucide-react';
+
+const HEALTHY_EMI_RATIO_THRESHOLD = 0.15;
 
 export default function LoanOfferCard({ eligible, loanRange, suggestedTenure, estimatedEmi, emiToIncomeRatio }) {
   
   const formatCurrency = (num) => {
-    if (!num) return '₹0';
+    if (num == null || Number.isNaN(Number(num))) return '₹0';
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
       maximumFractionDigits: 0
-    }).format(num);
+    }).format(Number(num));
   };
+
+  const ratio = Number.isFinite(emiToIncomeRatio) ? emiToIncomeRatio : 0;
+  const ratioPercent = Math.round(ratio * 100);
+  const ratioIsHealthy = ratio <= HEALTHY_EMI_RATIO_THRESHOLD;
 
   if (!eligible) {
     return (
@@ -57,7 +63,7 @@ export default function LoanOfferCard({ eligible, loanRange, suggestedTenure, es
         <div className="mb-8">
           <p className="text-indigo-200 text-sm font-medium mb-1">Recommended Credit Line</p>
           <div className="text-4xl font-black text-white tracking-tight">
-            {formatCurrency(loanRange?.min ?? loanRange?.low)} - {formatCurrency(loanRange?.max ?? loanRange?.high)}
+            {formatCurrency(loanRange?.low)} - {formatCurrency(loanRange?.high)}
           </div>
         </div>
 
@@ -67,15 +73,15 @@ export default function LoanOfferCard({ eligible, loanRange, suggestedTenure, es
             <span className="text-xl font-bold text-white">{suggestedTenure} Months</span>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-indigo-300 text-xs font-semibold flex items-center gap-1"><CreditCard className="w-3.5 h-3.5"/> Est. Max EMI</span>
+            <span className="text-indigo-300 text-xs font-semibold flex items-center gap-1"><Wallet className="w-3.5 h-3.5"/> Est. Max EMI</span>
             <span className="text-xl font-bold text-white">{formatCurrency(estimatedEmi)}</span>
           </div>
         </div>
         
         <div className="mt-4 flex items-center justify-between text-xs font-medium">
           <span className="text-indigo-300">EMI to Income Ratio</span>
-          <span className={`px-2 py-1 rounded-md ${emiToIncomeRatio < 0.25 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>
-            {Math.round(emiToIncomeRatio * 100)}% (Healthy)
+          <span className={`px-2 py-1 rounded-md ${ratioIsHealthy ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>
+            {ratioPercent}% ({ratioIsHealthy ? 'Healthy' : 'Caution'})
           </span>
         </div>
       </div>

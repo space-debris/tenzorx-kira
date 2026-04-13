@@ -25,6 +25,7 @@ export default function Assessment() {
   const [yearsInOperation, setYearsInOperation] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const gpsValidationError = gpsData.validationError;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,6 +40,11 @@ export default function Assessment() {
     
     if (!gpsData.latitude || !gpsData.longitude) {
       setError("GPS Coordinates are required. Please auto-detect or enter them manually.");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    if (gpsValidationError) {
+      setError(gpsValidationError);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -83,7 +89,7 @@ export default function Assessment() {
       // Successfully processed, redirect format depends on response struct
       // using the sessionId created via API wrapper
       const sessionId = response.data.session_id;
-      navigate(`/results/${sessionId}`);
+      navigate(`/results/${sessionId}`, { state: { assessment: response.data } });
       
     } catch (err) {
       console.error(err);
@@ -188,13 +194,13 @@ export default function Assessment() {
           <div className="pt-4 border-t border-slate-200 flex justify-end">
             <button
               type="submit"
-              disabled={isSubmitting || images.length < 3 || !gpsData.latitude}
+              disabled={isSubmitting || images.length < 3 || !gpsData.latitude || !gpsData.longitude || Boolean(gpsValidationError)}
               className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-md w-full sm:w-auto min-w-[200px]"
             >
               {isSubmitting ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Running Analysis Engine (≈3 mins)...
+                  Running Analysis Engine...
                 </>
               ) : (
                 <>

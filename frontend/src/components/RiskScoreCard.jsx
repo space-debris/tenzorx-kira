@@ -26,6 +26,7 @@ export default function RiskScoreCard({ riskBand, riskScore, confidence }) {
           bg: 'bg-emerald-50', 
           border: 'border-emerald-200',
           gradient: 'from-emerald-500 to-emerald-400',
+          ringColor: '#10b981',
           Icon: ShieldCheck,
           label: 'Low Risk'
         };
@@ -35,6 +36,7 @@ export default function RiskScoreCard({ riskBand, riskScore, confidence }) {
           bg: 'bg-blue-50', 
           border: 'border-blue-200',
           gradient: 'from-blue-500 to-blue-400',
+          ringColor: '#3b82f6',
           Icon: Activity,
           label: 'Medium Risk'
         };
@@ -44,6 +46,7 @@ export default function RiskScoreCard({ riskBand, riskScore, confidence }) {
           bg: 'bg-amber-50', 
           border: 'border-amber-200',
           gradient: 'from-amber-500 to-amber-400',
+          ringColor: '#f59e0b',
           Icon: ShieldAlert,
           label: 'High Risk'
         };
@@ -54,6 +57,7 @@ export default function RiskScoreCard({ riskBand, riskScore, confidence }) {
           bg: 'bg-red-50', 
           border: 'border-red-200',
           gradient: 'from-red-600 to-red-500',
+          ringColor: '#dc2626',
           Icon: AlertOctagon,
           label: 'Very High Risk'
         };
@@ -63,6 +67,7 @@ export default function RiskScoreCard({ riskBand, riskScore, confidence }) {
           bg: 'bg-slate-50', 
           border: 'border-slate-200',
           gradient: 'from-slate-400 to-slate-300',
+          ringColor: '#94a3b8',
           Icon: Activity,
           label: 'Unknown'
         };
@@ -71,8 +76,8 @@ export default function RiskScoreCard({ riskBand, riskScore, confidence }) {
 
   const styles = getBandStyles(riskBand);
   const Icon = styles.Icon;
-  const scorePercent = Math.round(riskScore * 100);
-  const confPercent = Math.round((confidence || 0) * 100);
+  const scorePercent = Math.max(0, Math.min(100, Math.round((riskScore ?? 0) * 100)));
+  const confPercent = Math.max(0, Math.min(100, Math.round((confidence ?? 0) * 100)));
 
   return (
     <div className={`border rounded-2xl p-6 shadow-sm flex flex-col justify-between ${styles.bg} ${styles.border}`}>
@@ -89,10 +94,11 @@ export default function RiskScoreCard({ riskBand, riskScore, confidence }) {
         <div className="relative w-20 h-20 flex items-center justify-center rounded-full bg-white shadow-sm border border-slate-100">
           <div className="absolute inset-0 rounded-full" 
                style={{
-                 background: `conic-gradient(var(--tw-gradient-from) ${scorePercent}%, transparent ${scorePercent}%)`,
-                 opacity: 0.2
+                 background: `conic-gradient(${styles.ringColor} ${scorePercent}%, #e2e8f0 ${scorePercent}%)`,
+                 opacity: 0.25
                }}>
           </div>
+          <div className="absolute inset-[8px] rounded-full bg-white"></div>
           <div className="relative z-10 flex flex-col items-center">
             <span className={`text-xl font-black leading-none ${styles.color}`}>{scorePercent}</span>
             <span className="text-[10px] font-bold text-slate-400">SCORE</span>

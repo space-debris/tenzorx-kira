@@ -27,12 +27,12 @@ import os
 from pathlib import Path
 from typing import Any
 
+from dotenv import load_dotenv
 from google import genai
 from google.genai import types
-from dotenv import load_dotenv
 
-# Load backend/.env explicitly so key resolution does not depend on launch cwd.
-load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
+# Load repo-root .env explicitly so key resolution does not depend on launch cwd.
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env")
 logger = logging.getLogger("kira.llm.explainer")
 
 

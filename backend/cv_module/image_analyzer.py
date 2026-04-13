@@ -25,12 +25,12 @@ from pathlib import Path
 from collections import Counter
 from typing import Any
 
+from dotenv import load_dotenv
 from google import genai
 from google.genai import types
-from dotenv import load_dotenv
 
-# Load backend/.env explicitly so key resolution does not depend on launch cwd.
-load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
+# Load repo-root .env explicitly so key resolution does not depend on launch cwd.
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env")
 logger = logging.getLogger("kira.cv.image_analyzer")
 
 
@@ -139,7 +139,7 @@ async def analyze_images(
     if not gemini_api_key:
         raise RuntimeError(
             "GEMINI_API_KEY is not configured. "
-            "Set it in backend/.env or as an environment variable."
+            "Set it in the repo root .env or as an environment variable."
         )
 
     # API key will be passed to client in _send_to_gemini_vision

@@ -78,7 +78,7 @@ Every numeric output in KIRA is expressed as a **range, not a point estimate**:
 |--------|--------|---------|
 | Monthly Revenue | `{monthly_low, monthly_high}` | ₹1.5L — ₹2.8L |
 | Inventory Value | `{low, high}` | ₹3L — ₹5L |
-| Loan Amount | `{min, max}` | ₹1L — ₹2.5L |
+| Loan Amount | `{low, high}` | ₹1L — ₹2.5L |
 | Risk Score | `float (0-1)` with `confidence: float` | 0.45 (confidence: 0.68) |
 
 Additionally:

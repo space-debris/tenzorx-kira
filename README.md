@@ -92,8 +92,7 @@ cd kira-underwriting
 
 # Configure environment
 cp .env.example .env
-cp backend/.env.example backend/.env
-# Edit .env files with your API keys
+# Edit .env with your API keys
 
 # Start all services
 docker-compose up --build
@@ -175,11 +174,11 @@ All outputs are **ranges with explicit uncertainty** — never false-precision p
 
 ## Hackathon Context
 
-**Event**: Poonawalla Fincorp — Punavalia Hackathon
+**Event**: Poonawalla Fincorp — Poonawalla Hackathon
 **Problem Statement**: PS4C — Remote Cash Flow Underwriting for Kirana Stores using Vision & Geo Intelligence
 
 **Core Insight**: Physical stores leak information visually and spatially. KIRA systematically extracts, quantifies, and fuses these signals into a creditworthiness assessment — no GST, no bank statements, no bureau scores required.
 
 ---
 
-*Built for the Punavalia Hackathon 2025*
+*Built for the Poonawalla Hackathon 2025*

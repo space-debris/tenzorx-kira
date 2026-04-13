@@ -31,6 +31,7 @@ logger = logging.getLogger("kira.fraud")
 
 # Fraud score threshold — above this, assessment is flagged for manual review
 FRAUD_THRESHOLD = 0.5
+SEVERE_CHECK_THRESHOLD = 0.5
 
 # Weights for combining individual check scores into aggregate fraud score
 CHECK_WEIGHTS = {
@@ -146,7 +147,12 @@ async def run_fraud_detection(
     )
     aggregate_score = max(0.0, min(1.0, aggregate_score))
 
-    is_flagged = aggregate_score > FRAUD_THRESHOLD
+    severe_signal_detected = any(
+        check_scores.get(check_name, 0.0) >= SEVERE_CHECK_THRESHOLD
+        for check_name in check_scores
+    )
+    is_flagged = aggregate_score >= FRAUD_THRESHOLD or severe_signal_detected
+    all_flags = list(dict.fromkeys(all_flags))
 
     logger.info(
         f"Fraud detection complete: aggregate_score={aggregate_score:.3f}, "
@@ -202,6 +208,14 @@ async def _check_image_consistency(
 
     # Metadata-based checks (if available)
     if image_metadata:
+        consistency_flags = image_metadata.get("consistency_flags", [])
+        if consistency_flags:
+            flags.extend(consistency_flags)
+            score += min(0.4, 0.1 * len(consistency_flags))
+
+        if image_metadata.get("consistency_suspicious"):
+            score += 0.2
+
         # Check for duplicate image hashes
         hashes = image_metadata.get("file_hashes", [])
         if hashes and len(hashes) != len(set(hashes)):
@@ -230,7 +244,7 @@ async def _check_image_consistency(
                         "Image timestamps span more than 7 days: possibly collected from different visits"
                     )
 
-    return min(1.0, score), flags
+    return min(1.0, score), list(dict.fromkeys(flags))
 
 
 async def _check_gps_visual_mismatch(

@@ -145,7 +145,7 @@ Response: AssessmentOutput (see output_schema.py)
   2. Check for impossible combinations (e.g., two images showing different store sizes)
   3. Detect potential stock photo usage (unusually high quality, generic composition)
   4. Score consistency as confidence multiplier
-- **Output**: `consistency_score: float`, `fraud_flags: list[str]`
+- **Output**: `consistency_score: float`, `flags: list[str]`
 
 ### Phase 1 Validation
 
@@ -268,8 +268,8 @@ Response: AssessmentOutput (see output_schema.py)
   3. **Signal Cross-Validation**: Flag impossible signal combinations
   4. **Statistical Outlier**: Compare against area-type distributions
   5. Compute aggregate fraud score (0-1)
-  6. Flag if fraud_score > 0.5
-- **Output**: `fraud_score`, `is_flagged`, `fraud_flags`, `checks_performed`
+  6. Flag if `fraud_score >= 0.5` or any individual fraud check reaches the severe-review threshold
+- **Output**: `fraud_score`, `is_flagged`, `flags`, `checks_performed`
 
 #### 3.3 `loan_sizer.py` — Loan Range Estimation
 

@@ -18,9 +18,12 @@ export default function GeoInput({ gpsData = {}, onGpsChange }) {
   const [isDetecting, setIsDetecting] = useState(false);
   const [error, setError] = useState(null);
 
-  const validateIndiaBounds = (lat, lng) => {
+  const validateGps = (lat, lng, accuracy) => {
     if (lat < 6.5 || lat > 37.5) return 'Latitude must be within India (6.5°N - 37.5°N)';
     if (lng < 68.0 || lng > 97.5) return 'Longitude must be within India (68.0°E - 97.5°E)';
+    if (accuracy !== undefined && accuracy !== null && accuracy !== '' && Number(accuracy) > 100) {
+      return 'GPS accuracy must be 100 meters or better.';
+    }
     return null;
   };
 
@@ -37,13 +40,15 @@ export default function GeoInput({ gpsData = {}, onGpsChange }) {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude, accuracy } = position.coords;
-        const validationError = validateIndiaBounds(latitude, longitude);
-        
-        if (validationError) {
-          setError(validationError);
-        } else {
-          onGpsChange({ latitude: latitude.toFixed(6), longitude: longitude.toFixed(6), accuracy: accuracy.toFixed(1) });
-        }
+        const nextGpsData = {
+          latitude: latitude.toFixed(6),
+          longitude: longitude.toFixed(6),
+          accuracy: accuracy.toFixed(1),
+        };
+        const validationError = validateGps(latitude, longitude, accuracy);
+
+        setError(validationError);
+        onGpsChange({ ...nextGpsData, validationError });
         setIsDetecting(false);
       },
       (err) => {
@@ -57,14 +62,18 @@ export default function GeoInput({ gpsData = {}, onGpsChange }) {
   const handleManualChange = (e) => {
     const { name, value } = e.target;
     const newGpsData = { ...gpsData, [name]: value };
-    onGpsChange(newGpsData);
-    
+
+    let validationError = null;
     if (newGpsData.latitude && newGpsData.longitude) {
-      const err = validateIndiaBounds(parseFloat(newGpsData.latitude), parseFloat(newGpsData.longitude));
-      setError(err);
-    } else {
-      setError(null);
+      validationError = validateGps(
+        parseFloat(newGpsData.latitude),
+        parseFloat(newGpsData.longitude),
+        newGpsData.accuracy,
+      );
     }
+
+    setError(validationError);
+    onGpsChange({ ...newGpsData, validationError });
   };
 
   return (
@@ -111,6 +120,21 @@ export default function GeoInput({ gpsData = {}, onGpsChange }) {
             required
           />
         </div>
+      </div>
+
+      <div className="mb-4">
+        <label className="block text-sm font-semibold text-slate-700 mb-1">GPS Accuracy (meters)</label>
+        <input
+          type="number"
+          step="0.1"
+          min="0"
+          name="accuracy"
+          value={gpsData.accuracy || ''}
+          onChange={handleManualChange}
+          placeholder="e.g. 12.5"
+          className="w-full border border-slate-300 rounded-lg p-3 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono"
+        />
+        <p className="mt-1 text-xs text-slate-500">Optional, but values above 100m are rejected by the underwriting API.</p>
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-6 pt-4 border-t border-slate-100">

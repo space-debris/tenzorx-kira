@@ -104,8 +104,8 @@ curl -X POST http://localhost:8000/api/v1/assess \
   "loan_recommendation": {
     "eligible": true,
     "loan_range": {
-      "min": 100000,
-      "max": 250000
+      "low": 100000,
+      "high": 250000
     },
     "suggested_tenure_months": 18,
     "estimated_emi": 6500,

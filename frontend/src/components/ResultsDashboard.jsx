@@ -15,41 +15,43 @@
 
 import { BarChart, Map, Camera, Box, MoveDiagonal, Tag, Store, Navigation } from 'lucide-react';
 
-export default function ResultsDashboard({ revenueEstimate, cvSignals, geoSignals }) {
-  
-  const formatCurrency = (num) => {
-    if (!num) return '₹0';
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(num);
-  };
+function formatCurrency(num) {
+  if (num == null || Number.isNaN(Number(num))) return '₹0';
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0
+  }).format(Number(num));
+}
 
-  // Helper to render a progress bar for 0-1 scores
-  const SignalBar = ({ label, score, icon: Icon, desc }) => {
-    const pct = Math.round((score || 0) * 100);
-    // Color coding logic: >0.7 green, 0.4-0.7 yellow, <0.4 red
-    let colorClass = 'bg-emerald-500';
-    if (pct < 40) colorClass = 'bg-red-500';
-    else if (pct < 70) colorClass = 'bg-amber-500';
+function SignalBar({ label, score, icon: Icon, desc }) {
+  const pct = Math.round((score || 0) * 100);
+  let colorClass = 'bg-emerald-500';
+  if (pct < 40) colorClass = 'bg-red-500';
+  else if (pct < 70) colorClass = 'bg-amber-500';
 
-    return (
-      <div className="mb-5 last:mb-0">
-        <div className="flex justify-between items-end mb-1.5">
-          <div className="flex items-center gap-2">
-            {Icon && <Icon className="w-4 h-4 text-slate-500" />}
-            <span className="text-sm font-bold text-slate-700">{label}</span>
-          </div>
-          <span className="text-sm font-black text-slate-800">{pct}%</span>
+  return (
+    <div className="mb-5 last:mb-0">
+      <div className="flex justify-between items-end mb-1.5">
+        <div className="flex items-center gap-2">
+          {Icon && <Icon className="w-4 h-4 text-slate-500" />}
+          <span className="text-sm font-bold text-slate-700">{label}</span>
         </div>
-        <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-          <div className={`h-full rounded-full ${colorClass} transition-all duration-1000`} style={{ width: `${pct}%` }}></div>
-        </div>
-        {desc && <p className="text-xs text-slate-500 mt-1">{desc}</p>}
+        <span className="text-sm font-black text-slate-800">{pct}%</span>
       </div>
-    );
-  };
+      <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+        <div className={`h-full rounded-full ${colorClass} transition-all duration-1000`} style={{ width: `${pct}%` }}></div>
+      </div>
+      {desc && <p className="text-xs text-slate-500 mt-1">{desc}</p>}
+    </div>
+  );
+}
+
+function formatEnumLabel(value) {
+  return value ? value.replace(/_/g, ' ') : 'Unknown';
+}
+
+export default function ResultsDashboard({ revenueEstimate, cvSignals, geoSignals }) {
 
   return (
     <div className="space-y-6">
@@ -134,13 +136,13 @@ export default function ResultsDashboard({ revenueEstimate, cvSignals, geoSignal
             label="Competition Saturation" 
             score={geoSignals?.competition_score} 
             icon={Map} // using map as generic
-            desc="Density of similar stores in a 500m radius. (Lower represents less saturation/better position)"
+            desc="Density of similar stores in a 500m radius. Higher scores indicate less saturation and a stronger local position."
           />
 
           <div className="mt-6 pt-4 border-t border-slate-100 grid grid-cols-2 gap-4">
             <div>
               <div className="text-xs text-slate-500 font-medium uppercase mb-1">Area Type</div>
-              <div className="font-bold text-slate-800 capitalize">{geoSignals?.area_type || 'Unknown'}</div>
+              <div className="font-bold text-slate-800 capitalize">{formatEnumLabel(geoSignals?.area_type)}</div>
             </div>
             <div>
               <div className="text-xs text-slate-500 font-medium uppercase mb-1">Catchment Pop.</div>

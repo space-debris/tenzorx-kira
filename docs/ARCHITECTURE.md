@@ -230,8 +230,8 @@ This is not a prediction — it's an accounting identity observed through comput
 | Submodule | Input | Processing | Output |
 |-----------|-------|------------|--------|
 | `fusion_engine.py` | CV signals + Geo signals | Normalize all signals to [0, 1]; apply calibrated weight matrix; compute composite scores | `revenue_estimate: {monthly_low, monthly_high}`, `risk_band: str`, `confidence: float` |
-| `fraud_detector.py` | All signals + raw images metadata | Run 4 cross-signal fraud checks (see Section 6) | `fraud_score: float (0-1)`, `fraud_flags: list[str]`, `is_flagged: bool` |
-| `loan_sizer.py` | Revenue estimate + risk band + fraud score | Apply EMI-to-income ratio, risk multipliers; compute sustainable loan range | `loan_range: {min, max}`, `suggested_tenure: int`, `emi_estimate: float` |
+| `fraud_detector.py` | All signals + raw images metadata | Run 4 cross-signal fraud checks (see Section 6) | `fraud_score: float (0-1)`, `flags: list[str]`, `is_flagged: bool` |
+| `loan_sizer.py` | Revenue estimate + risk band + fraud score | Apply EMI-to-income ratio, risk multipliers; compute sustainable loan range | `loan_range: {low, high}`, `suggested_tenure: int`, `emi_estimate: float` |
 | `output_formatter.py` | All upstream outputs | Assemble final output JSON with all fields, ranges, and confidence scores | Complete `AssessmentOutput` schema |
 
 ### 4.4 LLM Explanation Layer
@@ -313,7 +313,7 @@ This is not a prediction — it's an accounting identity observed through comput
 
   "loan_recommendation": {
     "eligible": true,
-    "loan_range": {"min": 100000, "max": 250000},
+    "loan_range": {"low": 100000, "high": 250000},
     "suggested_tenure_months": 18,
     "estimated_emi": 6500,
     "emi_to_income_ratio": 0.15

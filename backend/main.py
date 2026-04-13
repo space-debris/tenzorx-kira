@@ -13,16 +13,19 @@ Usage:
 from __future__ import annotations
 
 import base64
+import hashlib
 import logging
 import os
 import uuid
 from datetime import datetime
+from io import BytesIO
 from pathlib import Path
 from typing import Optional
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from PIL import Image
 
 from models.input_schema import AssessmentRequest, GPSInput, ImageInput, ImageType
 from models.output_schema import (
@@ -59,7 +62,8 @@ from llm_layer.risk_summarizer import generate_risk_summary
 # Configuration
 # ---------------------------------------------------------------------------
 
-load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
+REPO_ROOT = Path(__file__).resolve().parents[1]
+load_dotenv(dotenv_path=REPO_ROOT / ".env")
 
 logging.basicConfig(
     level=getattr(logging, os.getenv("LOG_LEVEL", "INFO")),
@@ -88,7 +92,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://localhost:3000",
-        os.getenv("FRONTEND_URL", ""),
+        *([os.getenv("FRONTEND_URL")] if os.getenv("FRONTEND_URL") else []),
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -187,6 +191,15 @@ async def submit_assessment(
             detail="image_types count must match images count"
         )
 
+    try:
+        validated_image_types = [ImageType(image_type) for image_type in image_types]
+    except ValueError as exc:
+        allowed_types = ", ".join(image_type.value for image_type in ImageType)
+        raise HTTPException(
+            status_code=400,
+            detail=f"image_types must be one of: {allowed_types}"
+        ) from exc
+
     # Validate GPS coordinates are within India
     if not (6.5 <= gps_latitude <= 37.5):
         raise HTTPException(
@@ -198,11 +211,23 @@ async def submit_assessment(
             status_code=400,
             detail="Longitude must be within India (68°E - 97.5°E)"
         )
+    if gps_accuracy < 0:
+        raise HTTPException(
+            status_code=400,
+            detail="GPS accuracy must be zero or greater"
+        )
+    if gps_accuracy > 100:
+        raise HTTPException(
+            status_code=400,
+            detail="GPS accuracy must be 100 meters or better"
+        )
 
     try:
         # ---- Step 1: Read image data ----
         image_data_list = []
-        for img_file, img_type in zip(images, image_types):
+        file_hashes: list[str] = []
+        resolutions: list[str] = []
+        for img_file, img_type in zip(images, validated_image_types):
             content = await img_file.read()
 
             # Validate file size (max 2MB)
@@ -213,13 +238,29 @@ async def submit_assessment(
                 )
 
             # Determine MIME type
-            mime_type = img_file.content_type or "image/jpeg"
+            mime_type = img_file.content_type or ""
             if mime_type not in ("image/jpeg", "image/png"):
-                mime_type = "image/jpeg"
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        f"Image {img_file.filename} must be JPEG or PNG, "
+                        f"got {mime_type or 'unknown'}"
+                    ),
+                )
+
+            file_hashes.append(hashlib.sha256(content).hexdigest())
+            try:
+                with Image.open(BytesIO(content)) as image:
+                    resolutions.append(f"{image.width}x{image.height}")
+            except Exception:
+                logger.warning(
+                    "Could not read image dimensions for %s",
+                    img_file.filename,
+                )
 
             image_data_list.append({
                 "image_data": base64.b64encode(content).decode("utf-8"),
-                "image_type": img_type,
+                "image_type": img_type.value,
                 "mime_type": mime_type,
             })
 
@@ -314,7 +355,15 @@ async def submit_assessment(
         # ---- Step 5: Fraud Detection ----
         logger.info("Running fraud detection...")
         fraud_result = await run_fraud_detection(
-            cv_signals, geo_signals, fusion_result
+            cv_signals,
+            geo_signals,
+            fusion_result,
+            image_metadata={
+                "file_hashes": file_hashes,
+                "resolutions": resolutions,
+                "consistency_flags": consistency_result.get("fraud_flags", []),
+                "consistency_suspicious": consistency_result.get("is_suspicious", False),
+            },
         )
 
         logger.info(

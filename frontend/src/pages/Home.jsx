@@ -89,7 +89,7 @@ export default function Home() {
               <div className="text-indigo-100 font-medium">Kirana Stores</div>
             </div>
             <div>
-              <div className="text-4xl font-extrabold text-indigo-300 mb-2">&lt;30s</div>
+              <div className="text-4xl font-extrabold text-indigo-300 mb-2">~3 min</div>
               <div className="text-indigo-100 font-medium">Processing Time</div>
             </div>
             <div>
@@ -106,7 +106,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-8 text-center text-slate-500 font-medium">
-        <p>Built for the Punavalia Hackathon 2025</p>
+        <p>Built for the Poonawalla Hackathon 2025</p>
       </footer>
     </div>
   );

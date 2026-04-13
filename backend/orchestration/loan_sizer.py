@@ -126,13 +126,27 @@ async def compute_loan_recommendation(
     optimal_tenure = _select_optimal_tenure(adjusted_emi_capacity, risk_band)
 
     # Step 5: Compute max loan from EMI capacity
-    max_loan = _compute_max_loan_from_emi(
+    uncapped_max_loan = _compute_max_loan_from_emi(
         max_emi=adjusted_emi_capacity,
         monthly_rate=MONTHLY_INTEREST_RATE,
         tenure_months=optimal_tenure,
     )
 
+    # Do not force the minimum ticket size onto stores that cannot sustain it.
+    if uncapped_max_loan < MIN_LOAN_AMOUNT:
+        logger.info(
+            f"Loan below minimum (₹{uncapped_max_loan:,.0f} < ₹{MIN_LOAN_AMOUNT:,.0f})"
+        )
+        return LoanRecommendation(
+            eligible=False,
+            loan_range=ValueRange(low=0, high=0),
+            suggested_tenure_months=DEFAULT_TENURE,
+            estimated_emi=0,
+            emi_to_income_ratio=0,
+        )
+
     # Step 6: Compute min loan (using conservative 60% of max)
+    max_loan = uncapped_max_loan
     min_loan = max_loan * 0.6
 
     # Step 7: Apply loan amount caps
@@ -158,19 +172,6 @@ async def compute_loan_recommendation(
         else 1.0
     )
     emi_to_income = min(1.0, emi_to_income)
-
-    # Final eligibility check — if computed loan is below minimum
-    if max_loan < MIN_LOAN_AMOUNT:
-        logger.info(
-            f"Loan below minimum (₹{max_loan:,.0f} < ₹{MIN_LOAN_AMOUNT:,.0f})"
-        )
-        return LoanRecommendation(
-            eligible=False,
-            loan_range=ValueRange(low=0, high=0),
-            suggested_tenure_months=DEFAULT_TENURE,
-            estimated_emi=0,
-            emi_to_income_ratio=0,
-        )
 
     logger.info(
         f"Loan recommendation: ₹{min_loan:,.0f} - ₹{max_loan:,.0f}, "

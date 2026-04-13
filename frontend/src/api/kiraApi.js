@@ -73,7 +73,7 @@ const MOCK_ASSESSMENT_RESPONSE = {
 
   loan_recommendation: {
     eligible: true,
-    loan_range: { min: 100000, max: 250000 },
+    loan_range: { low: 100000, high: 250000 },
     suggested_tenure_months: 18,
     estimated_emi: 6500,
     emi_to_income_ratio: 0.15,
@@ -178,7 +178,7 @@ export async function checkHealth() {
         services: {
           database: 'mock',
           gemini_api: 'mock',
-          maps_api: 'mock',
+          geo_api: 'mock',
         },
       },
     };
