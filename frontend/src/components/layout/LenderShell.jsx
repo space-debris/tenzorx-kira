@@ -8,12 +8,13 @@
  * Phase: 9.2
  */
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/useAuth';
 import {
   Store, LayoutDashboard, Users, Briefcase, PlusCircle,
-  LogOut, Menu, X, CreditCard, User, Wallet, LineChart, FolderKanban
+  LogOut, Menu, X, CreditCard, User, Wallet, LineChart, FolderKanban,
+  ChevronDown, Mail, ShieldCheck
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -34,13 +35,38 @@ export default function LenderShell() {
   const { user, org, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef(null);
 
   const handleLogout = () => {
+    setProfileMenuOpen(false);
     logout();
     navigate('/', { replace: true });
   };
 
   const closeSidebar = () => setSidebarOpen(false);
+
+  useEffect(() => {
+    function handlePointerDown(event) {
+      if (!profileMenuRef.current?.contains(event.target)) {
+        setProfileMenuOpen(false);
+      }
+    }
+
+    function handleEscape(event) {
+      if (event.key === 'Escape') {
+        setProfileMenuOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
 
   const navLinkClasses = ({ isActive }) =>
     `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 group ${
@@ -153,8 +179,66 @@ export default function LenderShell() {
             >
               <PlusCircle className="w-4 h-4" /> New Case
             </NavLink>
-            <div className="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center text-slate-500">
-              <User className="w-4 h-4" />
+            <div className="relative" ref={profileMenuRef}>
+              <button
+                type="button"
+                onClick={() => setProfileMenuOpen((open) => !open)}
+                className={`flex items-center gap-2 rounded-full border px-1.5 py-1.5 transition-all ${
+                  profileMenuOpen
+                    ? 'border-primary-200 bg-primary-50 shadow-sm'
+                    : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                }`}
+                aria-haspopup="menu"
+                aria-expanded={profileMenuOpen}
+                aria-label="Open account menu"
+              >
+                <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                  {user?.full_name?.split(' ').map((name) => name[0]).join('') || 'U'}
+                </div>
+                <ChevronDown
+                  className={`hidden sm:block w-4 h-4 text-slate-500 transition-transform ${
+                    profileMenuOpen ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+
+              {profileMenuOpen && (
+                <div className="absolute right-0 top-[calc(100%+10px)] w-72 rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-900/10 overflow-hidden z-40 animate-scale-in">
+                  <div className="bg-gradient-to-r from-primary-900 via-primary-800 to-primary-700 px-4 py-4 text-white">
+                    <div className="flex items-start gap-3">
+                      <div className="w-11 h-11 rounded-full bg-white/15 border border-white/20 flex items-center justify-center font-bold text-sm">
+                        {user?.full_name?.split(' ').map((name) => name[0]).join('') || 'U'}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-bold text-sm truncate">{user?.full_name || 'User'}</div>
+                        <div className="text-primary-100 text-xs mt-1 truncate">{org?.name || 'Workspace'}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-3">
+                    <div className="rounded-xl bg-slate-50 border border-slate-100 px-3 py-3 space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-slate-700">
+                        <Mail className="w-4 h-4 text-slate-400" />
+                        <span className="truncate">{user?.email || 'No email available'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-slate-700">
+                        <ShieldCheck className="w-4 h-4 text-slate-400" />
+                        <span className="capitalize">{user?.role?.replace('_', ' ') || 'Role'}</span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="mt-3 flex items-center gap-2 w-full rounded-xl px-3 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition-all"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </header>

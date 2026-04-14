@@ -113,7 +113,7 @@
     "kirana_id": "55221cc0-c36b-4620-81d3-1bd441366f1d",
     "created_by_user_id": "21111111-1111-1111-1111-111111111111",
     "assigned_to_user_id": "21111111-1111-1111-1111-111111111111",
-    "status": "under_review",
+    "status": "monitoring",
     "latest_assessment_session_id": "2d272bb3-6d27-472b-bcec-41a73d554fc2",
     "latest_assessment_id": "6208c0f9-4421-4a2f-9546-7c74cfefaa29",
     "latest_risk_band": "MEDIUM",
@@ -123,6 +123,6 @@
     },
     "notes": null,
     "created_at": "2026-04-14T15:48:50.193493",
-    "updated_at": "2026-04-14T16:21:13.742093"
+    "updated_at": "2026-04-14T18:11:49.667418"
   }
 ]
