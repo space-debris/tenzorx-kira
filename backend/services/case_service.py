@@ -7,6 +7,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
+from models.output_schema import RepaymentCadence, ValueRange
 from models.platform_schema import (
     AlertStatus,
     AssessmentCase,
@@ -23,6 +24,9 @@ from models.platform_schema import (
     LoanHistoryEntry,
     OrgDashboardResponse,
     StatementUploadRecord,
+    UnderwritingDecision,
+    UnderwritingOverrideRequest,
+    UnderwritingTerms,
 )
 from services.audit_service import AuditService
 from storage.repository import PlatformRepository
@@ -248,6 +252,7 @@ class CaseService:
             case=case,
             kirana=kirana,
             latest_assessment=latest_assessment,
+            underwriting_decision=self._resolve_underwriting_decision(case, latest_assessment),
             alerts=alerts,
             audit_events=audit_events,
         )
@@ -469,3 +474,246 @@ class CaseService:
             recent_cases=recent_cases,
             open_alerts=open_alerts,
         )
+
+    def override_underwriting_decision(
+        self,
+        case_id: uuid.UUID,
+        payload: UnderwritingOverrideRequest,
+    ) -> CaseDetailResponse:
+        case = self.repository.get_case(case_id)
+        if case is None:
+            raise ValueError("Case not found")
+
+        actor = self.repository.get_user(payload.actor_user_id)
+        if actor is None or actor.org_id != case.org_id:
+            raise ValueError("Actor is invalid for this organization")
+
+        if case.latest_assessment_session_id is None:
+            raise ValueError("Case has no assessment to override")
+
+        latest_summary = self.repository.get_assessment_summary(case.latest_assessment_session_id)
+        if latest_summary is None:
+            raise ValueError("Latest assessment summary could not be found")
+
+        recommended_terms = self._build_underwriting_terms(latest_summary)
+        if recommended_terms is None:
+            raise ValueError("Latest assessment does not include an eligible underwriting recommendation")
+
+        final_terms = UnderwritingTerms(
+            amount=payload.override_amount if payload.override_amount is not None else recommended_terms.amount,
+            tenure_months=(
+                payload.override_tenure_months
+                if payload.override_tenure_months is not None
+                else recommended_terms.tenure_months
+            ),
+            repayment_cadence=(
+                payload.override_repayment_cadence
+                if payload.override_repayment_cadence is not None
+                else recommended_terms.repayment_cadence
+            ),
+            estimated_installment=self._estimate_override_installment(
+                latest_summary=latest_summary,
+                recommended_terms=recommended_terms,
+                amount=payload.override_amount if payload.override_amount is not None else recommended_terms.amount,
+                tenure_months=(
+                    payload.override_tenure_months
+                    if payload.override_tenure_months is not None
+                    else recommended_terms.tenure_months
+                ),
+                cadence=(
+                    payload.override_repayment_cadence
+                    if payload.override_repayment_cadence is not None
+                    else recommended_terms.repayment_cadence
+                ),
+            ),
+            annual_interest_rate_pct=(
+                payload.override_annual_interest_rate_pct
+                if payload.override_annual_interest_rate_pct is not None
+                else recommended_terms.annual_interest_rate_pct
+            ),
+            processing_fee_pct=(
+                payload.override_processing_fee_pct
+                if payload.override_processing_fee_pct is not None
+                else recommended_terms.processing_fee_pct
+            ),
+        )
+
+        if final_terms == recommended_terms:
+            raise ValueError("Override must change at least one underwriting input")
+
+        policy_flags = self._derive_policy_exception_flags(
+            latest_summary=latest_summary,
+            recommended_terms=recommended_terms,
+            final_terms=final_terms,
+        )
+        now = datetime.utcnow()
+        decision = UnderwritingDecision(
+            case_id=case.id,
+            org_id=case.org_id,
+            assessment_session_id=latest_summary.session_id,
+            assessment_id=latest_summary.assessment_id,
+            eligible=bool(latest_summary.eligible),
+            recommended_terms=recommended_terms,
+            final_terms=final_terms,
+            loan_range_guardrail=latest_summary.loan_range or ValueRange(low=0, high=0),
+            pricing_recommendation=latest_summary.pricing_recommendation,
+            policy_exception_flags=policy_flags,
+            has_override=True,
+            override_reason=payload.reason,
+            overridden_by_user_id=payload.actor_user_id,
+            overridden_at=now,
+            created_at=now,
+            updated_at=now,
+        )
+        self.repository.save_underwriting_decision(decision)
+
+        self.audit_service.record_event(
+            org_id=case.org_id,
+            entity_type=AuditEntityType.CASE,
+            entity_id=case.id,
+            action=AuditAction.UNDERWRITING_OVERRIDDEN,
+            description="Captured underwriting override for latest assessment",
+            actor_user_id=payload.actor_user_id,
+            metadata={
+                "assessment_session_id": str(latest_summary.session_id),
+                "reason": payload.reason,
+                "policy_exception_flags": policy_flags,
+                "recommended_terms": recommended_terms.model_dump(mode="json"),
+                "final_terms": final_terms.model_dump(mode="json"),
+            },
+        )
+
+        return self.get_case_detail(case_id)
+
+    def _resolve_underwriting_decision(
+        self,
+        case: AssessmentCase,
+        latest_summary: AssessmentSummary | None,
+    ) -> UnderwritingDecision | None:
+        if latest_summary is None:
+            return None
+
+        persisted = self.repository.get_latest_underwriting_decision(
+            case.id,
+            latest_summary.session_id,
+        )
+        if persisted is not None:
+            return persisted
+
+        recommended_terms = self._build_underwriting_terms(latest_summary)
+
+        return UnderwritingDecision(
+            case_id=case.id,
+            org_id=case.org_id,
+            assessment_session_id=latest_summary.session_id,
+            assessment_id=latest_summary.assessment_id,
+            eligible=bool(latest_summary.eligible),
+            recommended_terms=recommended_terms,
+            final_terms=recommended_terms,
+            loan_range_guardrail=latest_summary.loan_range or ValueRange(low=0, high=0),
+            pricing_recommendation=latest_summary.pricing_recommendation,
+            policy_exception_flags=[],
+            has_override=False,
+            created_at=latest_summary.completed_at,
+            updated_at=latest_summary.completed_at,
+        )
+
+    def _build_underwriting_terms(
+        self,
+        summary: AssessmentSummary,
+    ) -> UnderwritingTerms | None:
+        if not summary.eligible or summary.loan_range is None:
+            return None
+
+        pricing = summary.pricing_recommendation
+        amount = summary.recommended_amount
+        if amount is None:
+            amount = (summary.loan_range.low + summary.loan_range.high) / 2.0
+
+        cadence = summary.repayment_cadence or RepaymentCadence.WEEKLY
+        installment = summary.estimated_installment
+        if installment is None:
+            installment = summary.estimated_emi or 0.0
+
+        return UnderwritingTerms(
+            amount=round(amount, 2),
+            tenure_months=summary.suggested_tenure_months or 18,
+            repayment_cadence=cadence,
+            estimated_installment=round(installment, 2),
+            annual_interest_rate_pct=(
+                pricing.annual_interest_rate_pct if pricing is not None else 18.0
+            ),
+            processing_fee_pct=(
+                pricing.processing_fee_pct if pricing is not None else 1.5
+            ),
+        )
+
+    def _estimate_override_installment(
+        self,
+        *,
+        latest_summary: AssessmentSummary,
+        recommended_terms: UnderwritingTerms,
+        amount: float,
+        tenure_months: int,
+        cadence: RepaymentCadence,
+    ) -> float:
+        base_amount = recommended_terms.amount if recommended_terms.amount > 0 else 1.0
+        base_installment = recommended_terms.estimated_installment
+        amount_scale = amount / base_amount
+        tenure_scale = recommended_terms.tenure_months / max(tenure_months, 1)
+        installment = max(0.0, base_installment * amount_scale * tenure_scale)
+
+        cadence_scale = {
+            RepaymentCadence.DAILY: 1 / 30,
+            RepaymentCadence.WEEKLY: 1 / 4.33,
+            RepaymentCadence.MONTHLY: 1.0,
+        }
+        base_cadence_scale = cadence_scale.get(recommended_terms.repayment_cadence, 1.0)
+        target_cadence_scale = cadence_scale.get(cadence, 1.0)
+        if target_cadence_scale > 0:
+            installment = installment * (target_cadence_scale / base_cadence_scale)
+
+        fallback = latest_summary.estimated_installment or latest_summary.estimated_emi or 0.0
+        return round(installment or fallback, 2)
+
+    def _derive_policy_exception_flags(
+        self,
+        *,
+        latest_summary: AssessmentSummary,
+        recommended_terms: UnderwritingTerms,
+        final_terms: UnderwritingTerms,
+    ) -> list[str]:
+        flags: list[str] = []
+
+        if latest_summary.loan_range is not None:
+            if (
+                final_terms.amount < latest_summary.loan_range.low
+                or final_terms.amount > latest_summary.loan_range.high
+            ):
+                flags.append("amount_outside_policy_range")
+
+        pricing = latest_summary.pricing_recommendation
+        if pricing is not None:
+            if (
+                final_terms.annual_interest_rate_pct < pricing.annual_interest_rate_band.low
+                or final_terms.annual_interest_rate_pct > pricing.annual_interest_rate_band.high
+            ):
+                flags.append("interest_rate_outside_policy_band")
+            if (
+                final_terms.processing_fee_pct < pricing.processing_fee_band.low
+                or final_terms.processing_fee_pct > pricing.processing_fee_band.high
+            ):
+                flags.append("processing_fee_outside_policy_band")
+
+        if final_terms.amount != recommended_terms.amount:
+            flags.append("amount_changed_from_recommendation")
+        if final_terms.tenure_months != recommended_terms.tenure_months:
+            flags.append("tenure_changed_from_recommendation")
+        if final_terms.repayment_cadence != recommended_terms.repayment_cadence:
+            flags.append("repayment_cadence_changed_from_recommendation")
+        if final_terms.annual_interest_rate_pct != recommended_terms.annual_interest_rate_pct:
+            flags.append("interest_rate_changed_from_recommendation")
+        if final_terms.processing_fee_pct != recommended_terms.processing_fee_pct:
+            flags.append("processing_fee_changed_from_recommendation")
+
+        return flags

@@ -36,6 +36,7 @@ from models.output_schema import (
     LoanRecommendation,
     RevenueEstimate,
     RiskAssessment,
+    UnderwritingDecisionPack,
 )
 
 logger = logging.getLogger("kira.output_formatter")
@@ -92,6 +93,7 @@ def format_assessment_output(
     fraud_detection: FraudDetection,
     risk_narrative: str,
     summary: ExplanationSummary,
+    decision_pack: UnderwritingDecisionPack | None = None,
 ) -> AssessmentOutput:
     """
     Assemble all upstream outputs into a complete AssessmentOutput.
@@ -122,6 +124,7 @@ def format_assessment_output(
     explanation = Explanation(
         risk_narrative=risk_narrative,
         summary=summary,
+        decision_pack=decision_pack,
     )
 
     # Build the complete output — Pydantic validates automatically

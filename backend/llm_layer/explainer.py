@@ -30,9 +30,17 @@ from typing import Any
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from models.output_schema import (
+    ExplanationSummary,
+    LoanRecommendation,
+    UnderwritingDecisionPack,
+)
 
-# Load repo-root .env explicitly so key resolution does not depend on launch cwd.
-load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env")
+# Load repo-root or workspace-root .env so key resolution does not depend on launch cwd.
+_ENV_ROOT = Path(__file__).resolve().parents[2]
+for env_path in (_ENV_ROOT / ".env", _ENV_ROOT.parent / ".env"):
+    if env_path.exists():
+        load_dotenv(dotenv_path=env_path, override=False)
 logger = logging.getLogger("kira.llm.explainer")
 
 
@@ -75,6 +83,10 @@ ASSESSMENT RESULTS:
 - Risk Band: {risk_band}
 - Confidence: {confidence:.0%}
 - Fraud Flagged: {fraud_flagged}
+- Recommended Loan Amount: ₹{recommended_amount:,.0f}
+- Suggested Tenure: {tenure_months} months
+- Suggested Repayment Cadence: {repayment_cadence}
+- Suggested Annual Rate: {interest_rate:.2f}%
 
 Write the narrative focusing on:
 1. Overall store health and inventory quality
@@ -109,6 +121,7 @@ async def generate_risk_narrative(
     geo_signals: dict[str, Any],
     fusion_result: dict[str, Any],
     fraud_detection: dict[str, Any],
+    loan_recommendation: LoanRecommendation | dict[str, Any] | None = None,
 ) -> str:
     """
     Generate a human-readable risk narrative using Gemma 4 31B.
@@ -131,14 +144,22 @@ async def generate_risk_narrative(
         if not gemini_api_key:
             logger.warning("GEMINI_API_KEY not set, using fallback template")
             return _generate_fallback_narrative(
-                cv_signals, geo_signals, fusion_result, fraud_detection
+                cv_signals,
+                geo_signals,
+                fusion_result,
+                fraud_detection,
+                loan_recommendation,
             )
 
         client = genai.Client(api_key=gemini_api_key)
 
         # Format the prompt with actual signal values
         prompt = _format_prompt(
-            cv_signals, geo_signals, fusion_result, fraud_detection
+            cv_signals,
+            geo_signals,
+            fusion_result,
+            fraud_detection,
+            loan_recommendation,
         )
 
         response = client.models.generate_content(
@@ -159,7 +180,11 @@ async def generate_risk_narrative(
                 "using fallback"
             )
             return _generate_fallback_narrative(
-                cv_signals, geo_signals, fusion_result, fraud_detection
+                cv_signals,
+                geo_signals,
+                fusion_result,
+                fraud_detection,
+                loan_recommendation,
             )
 
         logger.info(
@@ -171,7 +196,11 @@ async def generate_risk_narrative(
     except Exception as e:
         logger.warning(f"LLM narrative generation failed: {e}. Using fallback.")
         return _generate_fallback_narrative(
-            cv_signals, geo_signals, fusion_result, fraud_detection
+            cv_signals,
+            geo_signals,
+            fusion_result,
+            fraud_detection,
+            loan_recommendation,
         )
 
 
@@ -180,6 +209,7 @@ def _format_prompt(
     geo_signals: dict[str, Any],
     fusion_result: dict[str, Any],
     fraud_detection: dict[str, Any],
+    loan_recommendation: LoanRecommendation | dict[str, Any] | None = None,
 ) -> str:
     """
     Format all signal data into the explanation prompt template.
@@ -219,6 +249,10 @@ def _format_prompt(
     else:
         fraud_flagged = "Yes" if fraud_detection.get("is_flagged", False) else "No"
 
+    recommended_amount, tenure_months, repayment_cadence, interest_rate = _extract_loan_fields(
+        loan_recommendation
+    )
+
     return EXPLANATION_PROMPT_TEMPLATE.format(
         shelf_density=cv_signals.get("shelf_density", 0),
         sku_diversity=cv_signals.get("sku_diversity_score", 0),
@@ -238,6 +272,10 @@ def _format_prompt(
         risk_band=risk_band,
         confidence=confidence,
         fraud_flagged=fraud_flagged,
+        recommended_amount=recommended_amount,
+        tenure_months=tenure_months,
+        repayment_cadence=repayment_cadence,
+        interest_rate=interest_rate,
     )
 
 
@@ -246,6 +284,7 @@ def _generate_fallback_narrative(
     geo_signals: dict[str, Any],
     fusion_result: dict[str, Any],
     fraud_detection: dict[str, Any] | None = None,
+    loan_recommendation: LoanRecommendation | dict[str, Any] | None = None,
 ) -> str:
     """
     Generate a template-based narrative when Gemini API is unavailable.
@@ -293,6 +332,17 @@ def _generate_fallback_narrative(
         if is_flagged:
             fraud_note = "Note: This assessment has been flagged for additional review due to potential inconsistencies."
 
+    recommended_amount, tenure_months, repayment_cadence, interest_rate = _extract_loan_fields(
+        loan_recommendation
+    )
+    recommendation_note = (
+        f" The recommended structure is ₹{recommended_amount:,.0f} over "
+        f"{tenure_months} months with {repayment_cadence} collections at "
+        f"an annual rate of {interest_rate:.2f}%."
+        if recommended_amount > 0
+        else ""
+    )
+
     return FALLBACK_TEMPLATE.format(
         store_size=store_size,
         area_type=area_type.replace("_", "-"),
@@ -305,7 +355,123 @@ def _generate_fallback_narrative(
         revenue_high=rev_high,
         risk_band=risk_band,
         confidence=confidence,
-        fraud_note=fraud_note,
+        fraud_note=f"{fraud_note}{recommendation_note}".strip(),
+    ).strip()
+
+
+def generate_underwriting_decision_pack(
+    *,
+    fusion_result: dict[str, Any],
+    loan_recommendation: LoanRecommendation,
+    summary: ExplanationSummary,
+) -> UnderwritingDecisionPack:
+    """Generate an officer-friendly explanation pack from structured outputs."""
+    revenue_est = fusion_result.get("revenue_estimate", {})
+    if hasattr(revenue_est, "monthly_low"):
+        rev_low = revenue_est.monthly_low
+        rev_high = revenue_est.monthly_high
+    else:
+        rev_low = revenue_est.get("monthly_low", 0)
+        rev_high = revenue_est.get("monthly_high", 0)
+
+    risk_assessment = fusion_result.get("risk_assessment", {})
+    if hasattr(risk_assessment, "risk_band"):
+        risk_band = risk_assessment.risk_band.value
+    else:
+        risk_band = getattr(risk_assessment, "risk_band", "MEDIUM")
+        if hasattr(risk_band, "value"):
+            risk_band = risk_band.value
+
+    strengths = "; ".join(summary.strengths[:2]) or "signal quality and store economics remain acceptable"
+    concerns = "; ".join(summary.concerns[:2]) or "no major concerns were surfaced"
+    cadence = (
+        loan_recommendation.repayment_cadence.value
+        if loan_recommendation.repayment_cadence
+        else "weekly"
+    )
+    pricing = loan_recommendation.pricing_recommendation
+    recommended_amount = loan_recommendation.recommended_amount or 0.0
+    loan_range_low = loan_recommendation.loan_range.low if loan_recommendation.loan_range else 0.0
+    loan_range_high = loan_recommendation.loan_range.high if loan_recommendation.loan_range else 0.0
+
+    if not loan_recommendation.eligible or recommended_amount <= 0:
+        return UnderwritingDecisionPack(
+            amount_rationale=(
+                f"No lendable amount is recommended because the current assessment does not "
+                f"clear the eligibility checks for a {risk_band} risk posture."
+            ),
+            tenure_rationale=(
+                "Tenure remains advisory only until the assessment clears manual review and policy checks."
+            ),
+            repayment_rationale=(
+                f"Repayment cadence is not activated for lending. Key concerns: {concerns}."
+            ),
+            pricing_rationale=(
+                "Pricing guidance is withheld because the case is not currently eligible for a standard offer."
+            ),
+        )
+
+    amount_rationale = (
+        f"The recommended amount of ₹{recommended_amount:,.0f} sits "
+        f"inside the approved guardrail of ₹{loan_range_low:,.0f} "
+        f"to ₹{loan_range_high:,.0f}, using the conservative revenue "
+        f"view of ₹{rev_low:,.0f} to ₹{rev_high:,.0f} and a {risk_band} risk posture."
+    )
+    tenure_rationale = (
+        f"The {loan_recommendation.suggested_tenure_months}-month tenure keeps the monthly "
+        f"equivalent payment near ₹{loan_recommendation.estimated_emi:,.0f}, preserving an "
+        f"EMI-to-income ratio of {loan_recommendation.emi_to_income_ratio:.0%}."
+    )
+    repayment_rationale = (
+        f"{cadence.capitalize()} repayment is recommended to match the observed operating "
+        f"pattern while balancing lender control. Key strengths: {strengths}. Key concerns: {concerns}."
+    )
+    pricing_rationale = (
+        pricing.rationale
+        if pricing is not None
+        else "Pricing falls back to standard policy because no dynamic pricing output was available."
+    )
+
+    return UnderwritingDecisionPack(
+        amount_rationale=amount_rationale,
+        tenure_rationale=tenure_rationale,
+        repayment_rationale=repayment_rationale,
+        pricing_rationale=pricing_rationale,
+    )
+
+
+def _extract_loan_fields(
+    loan_recommendation: LoanRecommendation | dict[str, Any] | None,
+) -> tuple[float, int, str, float]:
+    """Read key loan recommendation fields from either a model or dict."""
+    if loan_recommendation is None:
+        return 0.0, 18, "weekly", 18.0
+
+    if hasattr(loan_recommendation, "recommended_amount"):
+        pricing = getattr(loan_recommendation, "pricing_recommendation", None)
+        interest_rate = (
+            getattr(pricing, "annual_interest_rate_pct", 18.0)
+            if pricing is not None
+            else 18.0
+        )
+        cadence = getattr(loan_recommendation, "repayment_cadence", None)
+        cadence_value = cadence.value if hasattr(cadence, "value") else cadence or "weekly"
+        return (
+            float(getattr(loan_recommendation, "recommended_amount", 0) or 0),
+            int(getattr(loan_recommendation, "suggested_tenure_months", 18) or 18),
+            str(cadence_value),
+            float(interest_rate),
+        )
+
+    pricing = loan_recommendation.get("pricing_recommendation") or {}
+    cadence = loan_recommendation.get("repayment_cadence", "weekly")
+    if hasattr(cadence, "value"):
+        cadence = cadence.value
+    return (
+        float(loan_recommendation.get("recommended_amount", 0) or 0),
+        int(loan_recommendation.get("suggested_tenure_months", 18) or 18),
+        str(cadence),
+        float(pricing.get("annual_interest_rate_pct", 18.0) or 18.0),
     )
 
 

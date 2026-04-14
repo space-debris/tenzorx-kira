@@ -222,9 +222,13 @@ export default function Results() {
           <LoanOfferCard 
             eligible={assessment.loan_recommendation?.eligible}
             loanRange={assessment.loan_recommendation?.loan_range}
+            recommendedAmount={assessment.loan_recommendation?.recommended_amount}
             suggestedTenure={assessment.loan_recommendation?.suggested_tenure_months}
             estimatedEmi={assessment.loan_recommendation?.estimated_emi}
             emiToIncomeRatio={assessment.loan_recommendation?.emi_to_income_ratio}
+            repaymentCadence={assessment.loan_recommendation?.repayment_cadence}
+            estimatedInstallment={assessment.loan_recommendation?.estimated_installment}
+            pricingRecommendation={assessment.loan_recommendation?.pricing_recommendation}
           />
         </div>
 

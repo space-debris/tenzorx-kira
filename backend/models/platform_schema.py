@@ -15,7 +15,15 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
-from models.output_schema import AssessmentStatus, RiskBand, ValueRange
+from models.output_schema import (
+    AssessmentStatus,
+    ExplanationSummary,
+    PricingRecommendation,
+    RepaymentCadence,
+    RiskBand,
+    UnderwritingDecisionPack,
+    ValueRange,
+)
 
 
 class UserRole(str, Enum):
@@ -73,6 +81,7 @@ class AuditAction(str, Enum):
     CREATED = "created"
     UPDATED = "updated"
     STATUS_CHANGED = "status_changed"
+    UNDERWRITING_OVERRIDDEN = "underwriting_overridden"
     ASSESSMENT_LINKED = "assessment_linked"
     ASSIGNED = "assigned"
     SEEDED = "seeded"
@@ -135,8 +144,66 @@ class AssessmentSummary(BaseModel):
     risk_score: Optional[float] = Field(default=None, ge=0, le=1)
     revenue_range: Optional[ValueRange] = Field(default=None)
     loan_range: Optional[ValueRange] = Field(default=None)
+    recommended_amount: Optional[float] = Field(default=None, ge=0)
+    suggested_tenure_months: Optional[int] = Field(default=None, ge=6, le=60)
+    estimated_emi: Optional[float] = Field(default=None, ge=0)
+    emi_to_income_ratio: Optional[float] = Field(default=None, ge=0, le=1)
+    repayment_cadence: Optional[RepaymentCadence] = Field(default=None)
+    estimated_installment: Optional[float] = Field(default=None, ge=0)
+    pricing_recommendation: Optional[PricingRecommendation] = Field(default=None)
+    explanation_summary: Optional[ExplanationSummary] = Field(default=None)
+    decision_pack: Optional[UnderwritingDecisionPack] = Field(default=None)
     eligible: Optional[bool] = Field(default=None)
     fraud_flagged: bool = Field(default=False)
+
+
+class UnderwritingTerms(BaseModel):
+    """Concrete underwriting terms used for recommendation and final approval."""
+
+    amount: float = Field(..., ge=0)
+    tenure_months: int = Field(..., ge=6, le=60)
+    repayment_cadence: RepaymentCadence
+    estimated_installment: float = Field(..., ge=0)
+    annual_interest_rate_pct: float = Field(..., ge=0, le=60)
+    processing_fee_pct: float = Field(..., ge=0, le=10)
+
+
+class UnderwritingDecision(BaseModel):
+    """Synthesized or persisted underwriting decision for a case."""
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    case_id: uuid.UUID
+    org_id: uuid.UUID
+    assessment_session_id: uuid.UUID
+    assessment_id: uuid.UUID
+    eligible: bool = Field(default=True)
+    recommended_terms: Optional[UnderwritingTerms] = Field(default=None)
+    final_terms: Optional[UnderwritingTerms] = Field(default=None)
+    loan_range_guardrail: ValueRange = Field(...)
+    pricing_recommendation: Optional[PricingRecommendation] = Field(default=None)
+    policy_exception_flags: list[str] = Field(default_factory=list)
+    has_override: bool = Field(default=False)
+    override_reason: Optional[str] = Field(default=None, max_length=1000)
+    overridden_by_user_id: Optional[uuid.UUID] = Field(default=None)
+    overridden_at: Optional[datetime] = Field(default=None)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class UnderwritingOverrideRequest(BaseModel):
+    """Payload for lender-side override of recommended underwriting terms."""
+
+    actor_user_id: uuid.UUID
+    override_amount: Optional[float] = Field(default=None, ge=0)
+    override_tenure_months: Optional[int] = Field(default=None, ge=6, le=60)
+    override_repayment_cadence: Optional[RepaymentCadence] = Field(default=None)
+    override_annual_interest_rate_pct: Optional[float] = Field(
+        default=None,
+        ge=0,
+        le=60,
+    )
+    override_processing_fee_pct: Optional[float] = Field(default=None, ge=0, le=10)
+    reason: str = Field(..., min_length=3, max_length=500)
 
 
 class AssessmentCase(BaseModel):
@@ -261,6 +328,7 @@ class CaseDetailResponse(BaseModel):
     case: AssessmentCase
     kirana: KiranaProfile
     latest_assessment: Optional[AssessmentSummary] = Field(default=None)
+    underwriting_decision: Optional[UnderwritingDecision] = Field(default=None)
     alerts: list[RiskAlert] = Field(default_factory=list)
     audit_events: list[AuditEvent] = Field(default_factory=list)
 
@@ -297,3 +365,4 @@ class PlatformSnapshot(BaseModel):
     audit_events: list[AuditEvent] = Field(default_factory=list)
     assessment_summaries: list[AssessmentSummary] = Field(default_factory=list)
     document_bundles: list[DocumentBundle] = Field(default_factory=list)
+    underwriting_decisions: list[UnderwritingDecision] = Field(default_factory=list)

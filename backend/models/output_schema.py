@@ -60,6 +60,13 @@ class AssessmentStatus(str, Enum):
     FAILED = "failed"
 
 
+class RepaymentCadence(str, Enum):
+    """Repayment collection cadence for the recommended loan."""
+    DAILY = "daily"
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+
+
 # =============================================================================
 # Sub-schemas
 # =============================================================================
@@ -157,15 +164,37 @@ class LoanRecommendation(BaseModel):
     Attributes:
         eligible: Whether the store qualifies for a loan.
         loan_range: Recommended loan amount range (INR).
+        recommended_amount: Concrete recommended loan amount (INR).
         suggested_tenure_months: Recommended loan tenure in months.
         estimated_emi: Estimated monthly EMI at suggested tenure (INR).
         emi_to_income_ratio: EMI as fraction of estimated monthly revenue.
+        repayment_cadence: Recommended repayment cadence for collections.
+        estimated_installment: Estimated amount per collection cycle.
+        pricing_recommendation: Dynamic rate and fee recommendation.
     """
     eligible: bool = Field(..., description="Loan eligibility flag")
     loan_range: ValueRange = Field(..., description="Recommended loan range (INR)")
+    recommended_amount: Optional[float] = Field(
+        default=None,
+        ge=0,
+        description="Concrete recommended loan amount within the guardrail range",
+    )
     suggested_tenure_months: int = Field(..., ge=6, le=60, description="Suggested tenure in months")
     estimated_emi: float = Field(..., ge=0, description="Estimated monthly EMI (INR)")
     emi_to_income_ratio: float = Field(..., ge=0, le=1, description="EMI-to-income ratio")
+    repayment_cadence: Optional[RepaymentCadence] = Field(
+        default=None,
+        description="Recommended repayment cadence",
+    )
+    estimated_installment: Optional[float] = Field(
+        default=None,
+        ge=0,
+        description="Estimated payment amount for the recommended cadence",
+    )
+    pricing_recommendation: Optional["PricingRecommendation"] = Field(
+        default=None,
+        description="Dynamic pricing guidance tied to the risk profile",
+    )
 
 
 class FraudDetection(BaseModel):
@@ -201,6 +230,42 @@ class ExplanationSummary(BaseModel):
     recommendation: str = Field(..., description="Overall recommendation")
 
 
+class PricingRecommendation(BaseModel):
+    """
+    Pricing guidance generated for the recommended loan.
+
+    Attributes:
+        annual_interest_rate_pct: Exact recommended annualized rate.
+        processing_fee_pct: Exact recommended upfront processing fee.
+        annual_interest_rate_band: Policy band for allowed interest rates.
+        processing_fee_band: Policy band for allowed processing fees.
+        pricing_tier: Human-readable pricing tier label.
+        rationale: Short explanation for the recommended pricing.
+    """
+    annual_interest_rate_pct: float = Field(..., ge=0, le=60)
+    processing_fee_pct: float = Field(..., ge=0, le=10)
+    annual_interest_rate_band: ValueRange = Field(
+        ...,
+        description="Allowed annual interest rate band in percentage points",
+    )
+    processing_fee_band: ValueRange = Field(
+        ...,
+        description="Allowed processing fee band in percentage points",
+    )
+    pricing_tier: str = Field(..., min_length=1, max_length=80)
+    rationale: str = Field(..., min_length=1, max_length=500)
+
+
+class UnderwritingDecisionPack(BaseModel):
+    """
+    Officer-facing explanation for how the final recommendation was derived.
+    """
+    amount_rationale: str = Field(..., min_length=1, max_length=500)
+    tenure_rationale: str = Field(..., min_length=1, max_length=500)
+    repayment_rationale: str = Field(..., min_length=1, max_length=500)
+    pricing_rationale: str = Field(..., min_length=1, max_length=500)
+
+
 class Explanation(BaseModel):
     """
     LLM-generated explanation layer output.
@@ -214,6 +279,10 @@ class Explanation(BaseModel):
         description="Human-readable risk narrative (3-5 sentences)"
     )
     summary: ExplanationSummary = Field(..., description="Structured assessment summary")
+    decision_pack: Optional[UnderwritingDecisionPack] = Field(
+        default=None,
+        description="Officer-friendly explanation for the underwriting recommendation",
+    )
 
 
 # =============================================================================

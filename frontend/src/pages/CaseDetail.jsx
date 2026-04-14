@@ -12,8 +12,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { getPlatformCase, updateCaseStatus } from '../api/kiraApi';
+import { getPlatformCase, overrideUnderwritingDecision, updateCaseStatus } from '../api/kiraApi';
 import CaseTimeline from '../components/CaseTimeline';
+import OverrideDecisionForm from '../components/OverrideDecisionForm';
+import UnderwritingDecisionPanel from '../components/UnderwritingDecisionPanel';
 import {
   ArrowLeft, Loader2, AlertTriangle, Store, MapPin,
   Phone, User, Briefcase, ShieldCheck, ShieldAlert,
@@ -79,6 +81,7 @@ export default function CaseDetail() {
   const [error, setError] = useState(null);
   const [transitionLoading, setTransitionLoading] = useState(null);
   const [transitionNote, setTransitionNote] = useState('');
+  const [overrideLoading, setOverrideLoading] = useState(false);
 
   const loadCase = useCallback(async () => {
     try {
@@ -122,6 +125,23 @@ export default function CaseDetail() {
     }
   };
 
+  const handleOverrideSubmit = async (payload) => {
+    if (!user?.id) return;
+    try {
+      setOverrideLoading(true);
+      const res = await overrideUnderwritingDecision(caseId, {
+        actor_user_id: user.id,
+        ...payload,
+      });
+      setCaseData(res.data);
+    } catch (err) {
+      console.error('Underwriting override failed:', err);
+      alert(err?.response?.data?.detail || 'Failed to save override. Please review the values and try again.');
+    } finally {
+      setOverrideLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
@@ -143,6 +163,7 @@ export default function CaseDetail() {
   const c = caseData.case || {};
   const kirana = caseData.kirana || {};
   const assessment = caseData.latest_assessment;
+  const underwritingDecision = caseData.underwriting_decision;
   const alerts = caseData.alerts || [];
   const auditEvents = caseData.audit_events || [];
   const allowedTransitions = STATUS_TRANSITIONS[c.status] || [];
@@ -310,17 +331,61 @@ export default function CaseDetail() {
                     </div>
                   </div>
                 )}
+                {assessment.recommended_amount != null && (
+                  <div>
+                    <div className="text-xs text-slate-400 font-semibold uppercase mb-1">Recommended</div>
+                    <div className="text-sm font-bold text-slate-700">{formatCurrency(assessment.recommended_amount)}</div>
+                  </div>
+                )}
                 <div>
                   <div className="text-xs text-slate-400 font-semibold uppercase mb-1">Completed</div>
                   <div className="text-sm font-medium text-slate-700">{formatDate(assessment.completed_at)}</div>
                 </div>
               </div>
+              {(assessment.repayment_cadence || assessment.pricing_recommendation) && (
+                <div className="grid sm:grid-cols-3 gap-3 mt-4">
+                  <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Cadence</div>
+                    <div className="text-sm font-semibold text-slate-700 capitalize">
+                      {String(assessment.repayment_cadence || 'weekly').replace('_', ' ')}
+                    </div>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Installment</div>
+                    <div className="text-sm font-semibold text-slate-700">
+                      {formatCurrency(assessment.estimated_installment ?? assessment.estimated_emi)}
+                    </div>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Annual Rate</div>
+                    <div className="text-sm font-semibold text-slate-700">
+                      {assessment.pricing_recommendation?.annual_interest_rate_pct != null
+                        ? `${Number(assessment.pricing_recommendation.annual_interest_rate_pct).toFixed(2)}%`
+                        : '—'}
+                    </div>
+                  </div>
+                </div>
+              )}
               {assessment.fraud_flagged && (
                 <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2 text-sm font-medium text-amber-800">
                   <AlertTriangle className="w-4 h-4" /> Fraud flags detected on this assessment
                 </div>
               )}
             </div>
+          )}
+
+          {assessment && underwritingDecision && (
+            <>
+              <UnderwritingDecisionPanel
+                assessment={assessment}
+                decision={underwritingDecision}
+              />
+              <OverrideDecisionForm
+                decision={underwritingDecision}
+                isSubmitting={overrideLoading}
+                onSubmit={handleOverrideSubmit}
+              />
+            </>
           )}
 
           {/* Alerts */}

@@ -49,6 +49,7 @@ from models.platform_schema import (
     LenderOrg,
     OrgDashboardResponse,
     PlatformSnapshot,
+    UnderwritingOverrideRequest,
 )
 from orchestration.fusion_engine import run_fusion_engine
 from orchestration.fraud_detector import run_fraud_detection
@@ -67,7 +68,10 @@ from geo_module.geo_analyzer import analyze_location
 from geo_module.footfall_proxy import estimate_footfall
 from geo_module.competition_density import analyze_competition
 from geo_module.catchment_estimator import estimate_catchment
-from llm_layer.explainer import generate_risk_narrative
+from llm_layer.explainer import (
+    generate_risk_narrative,
+    generate_underwriting_decision_pack,
+)
 from llm_layer.risk_summarizer import generate_risk_summary
 from services.audit_service import AuditService
 from services.case_service import CaseService
@@ -78,7 +82,9 @@ from storage.repository import get_platform_repository
 # ---------------------------------------------------------------------------
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-load_dotenv(dotenv_path=REPO_ROOT / ".env")
+for env_path in (REPO_ROOT / ".env", REPO_ROOT.parent / ".env"):
+    if env_path.exists():
+        load_dotenv(dotenv_path=env_path, override=False)
 
 logging.basicConfig(
     level=getattr(logging, os.getenv("LOG_LEVEL", "INFO")),
@@ -422,7 +428,11 @@ async def submit_assessment(
         # ---- Step 6: Loan Sizing ----
         logger.info("Computing loan recommendation...")
         loan_rec = await compute_loan_recommendation(
-            revenue_estimate, risk_assessment, fraud_result
+            revenue_estimate,
+            risk_assessment,
+            fraud_result,
+            cv_signals=cv_signals,
+            geo_signals=geo_signals,
         )
 
         logger.info(
@@ -439,11 +449,20 @@ async def submit_assessment(
         fraud_dict = fraud_result.model_dump()
 
         risk_narrative = await generate_risk_narrative(
-            cv_dict, geo_dict, fusion_result, fraud_dict
+            cv_dict,
+            geo_dict,
+            fusion_result,
+            fraud_dict,
+            loan_rec,
         )
 
         summary = await generate_risk_summary(
             cv_dict, geo_dict, fusion_result, fraud_dict
+        )
+        decision_pack = generate_underwriting_decision_pack(
+            fusion_result=fusion_result,
+            loan_recommendation=loan_rec,
+            summary=summary,
         )
 
         logger.info(f"Explanation generated: {len(risk_narrative)} chars")
@@ -459,6 +478,7 @@ async def submit_assessment(
             fraud_detection=fraud_result,
             risk_narrative=risk_narrative,
             summary=summary,
+            decision_pack=decision_pack,
         )
 
         # Persist for later retrieval (JSON and in-memory cache)
@@ -722,6 +742,21 @@ async def list_platform_case_audit(case_id: uuid.UUID) -> list[AuditEvent]:
         return detail.audit_events
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post(
+    "/api/v1/platform/cases/{case_id}/underwriting/override",
+    response_model=CaseDetailResponse,
+)
+async def override_platform_underwriting_decision(
+    case_id: uuid.UUID,
+    payload: UnderwritingOverrideRequest,
+) -> CaseDetailResponse:
+    """Capture an officer override for the latest case underwriting decision."""
+    try:
+        return case_service.override_underwriting_decision(case_id, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 # ---------------------------------------------------------------------------

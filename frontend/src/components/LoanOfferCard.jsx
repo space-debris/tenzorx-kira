@@ -14,11 +14,29 @@
  *   emiToIncomeRatio (number) — 0-1
  */
 
-import { CheckCircle2, XCircle, Calendar, Wallet } from 'lucide-react';
+import { CheckCircle2, XCircle, Calendar, Wallet, Repeat, Percent } from 'lucide-react';
 
 const HEALTHY_EMI_RATIO_THRESHOLD = 0.15;
 
-export default function LoanOfferCard({ eligible, loanRange, suggestedTenure, estimatedEmi, emiToIncomeRatio }) {
+function titleize(value) {
+  if (!value) return '—';
+  return String(value)
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+export default function LoanOfferCard({
+  eligible,
+  loanRange,
+  recommendedAmount,
+  suggestedTenure,
+  estimatedEmi,
+  emiToIncomeRatio,
+  repaymentCadence,
+  estimatedInstallment,
+  pricingRecommendation,
+}) {
   
   const formatCurrency = (num) => {
     if (num == null || Number.isNaN(Number(num))) return '₹0';
@@ -61,13 +79,18 @@ export default function LoanOfferCard({ eligible, loanRange, suggestedTenure, es
         </div>
 
         <div className="mb-8">
-          <p className="text-indigo-200 text-sm font-medium mb-1">Recommended Credit Line</p>
+          <p className="text-indigo-200 text-sm font-medium mb-1">
+            {recommendedAmount ? 'Concrete Recommendation' : 'Recommended Credit Line'}
+          </p>
           <div className="text-4xl font-black text-white tracking-tight">
-            {formatCurrency(loanRange?.low)} - {formatCurrency(loanRange?.high)}
+            {formatCurrency(recommendedAmount ?? loanRange?.high)}
+          </div>
+          <div className="text-indigo-200 text-sm mt-2">
+            Policy Range: {formatCurrency(loanRange?.low)} - {formatCurrency(loanRange?.high)}
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 bg-indigo-800/50 rounded-xl p-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 bg-indigo-800/50 rounded-xl p-4">
           <div className="flex flex-col gap-1">
             <span className="text-indigo-300 text-xs font-semibold flex items-center gap-1"><Calendar className="w-3.5 h-3.5"/> Recommended Tenure</span>
             <span className="text-xl font-bold text-white">{suggestedTenure} Months</span>
@@ -76,13 +99,36 @@ export default function LoanOfferCard({ eligible, loanRange, suggestedTenure, es
             <span className="text-indigo-300 text-xs font-semibold flex items-center gap-1"><Wallet className="w-3.5 h-3.5"/> Est. Max EMI</span>
             <span className="text-xl font-bold text-white">{formatCurrency(estimatedEmi)}</span>
           </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-indigo-300 text-xs font-semibold flex items-center gap-1"><Repeat className="w-3.5 h-3.5"/> Repayment</span>
+            <span className="text-xl font-bold text-white">{titleize(repaymentCadence)}</span>
+          </div>
         </div>
         
-        <div className="mt-4 flex items-center justify-between text-xs font-medium">
-          <span className="text-indigo-300">EMI to Income Ratio</span>
-          <span className={`px-2 py-1 rounded-md ${ratioIsHealthy ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>
-            {ratioPercent}% ({ratioIsHealthy ? 'Healthy' : 'Caution'})
-          </span>
+        <div className="mt-4 grid sm:grid-cols-3 gap-3 text-xs font-medium">
+          <div className="rounded-lg border border-indigo-700 bg-indigo-950/30 px-3 py-2">
+            <div className="text-indigo-300 mb-1">EMI to Income Ratio</div>
+            <span className={`inline-flex px-2 py-1 rounded-md ${ratioIsHealthy ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>
+              {ratioPercent}% ({ratioIsHealthy ? 'Healthy' : 'Caution'})
+            </span>
+          </div>
+          <div className="rounded-lg border border-indigo-700 bg-indigo-950/30 px-3 py-2">
+            <div className="text-indigo-300 mb-1">Installment by Cadence</div>
+            <div className="text-white font-bold">{formatCurrency(estimatedInstallment ?? estimatedEmi)}</div>
+          </div>
+          <div className="rounded-lg border border-indigo-700 bg-indigo-950/30 px-3 py-2">
+            <div className="text-indigo-300 mb-1 flex items-center gap-1"><Percent className="w-3.5 h-3.5"/> Pricing</div>
+            <div className="text-white font-bold">
+              {pricingRecommendation?.annual_interest_rate_pct != null
+                ? `${Number(pricingRecommendation.annual_interest_rate_pct).toFixed(2)}%`
+                : '—'}
+            </div>
+            {pricingRecommendation?.processing_fee_pct != null && (
+              <div className="text-indigo-200 mt-1">
+                Fee {Number(pricingRecommendation.processing_fee_pct).toFixed(2)}%
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

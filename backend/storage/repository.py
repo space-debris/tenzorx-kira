@@ -36,6 +36,7 @@ from models.platform_schema import (
     PlatformSnapshot,
     PlatformUser,
     RiskAlert,
+    UnderwritingDecision,
     UserRole,
 )
 
@@ -64,6 +65,7 @@ class PlatformRepository:
             "audit_events": self._data_dir / "audit_events.json",
             "assessment_summaries": self._data_dir / "assessment_summaries.json",
             "document_bundles": self._data_dir / "document_bundles.json",
+            "underwriting_decisions": self._data_dir / "underwriting_decisions.json",
         }
 
         self.organizations = self._load_collection("organizations", LenderOrg, "id")
@@ -80,6 +82,11 @@ class PlatformRepository:
         self.document_bundles = self._load_collection(
             "document_bundles",
             DocumentBundle,
+            "id",
+        )
+        self.underwriting_decisions = self._load_collection(
+            "underwriting_decisions",
+            UnderwritingDecision,
             "id",
         )
 
@@ -127,6 +134,7 @@ class PlatformRepository:
         self._save_collection("audit_events", self.audit_events)
         self._save_collection("assessment_summaries", self.assessment_summaries)
         self._save_collection("document_bundles", self.document_bundles)
+        self._save_collection("underwriting_decisions", self.underwriting_decisions)
 
     def _seed_demo_data_if_empty(self) -> None:
         if self.organizations:
@@ -436,6 +444,40 @@ class PlatformRepository:
         self._save_collection("audit_events", self.audit_events)
         return event
 
+    def save_underwriting_decision(
+        self,
+        decision: UnderwritingDecision,
+    ) -> UnderwritingDecision:
+        self.underwriting_decisions[str(decision.id)] = decision
+        self._save_collection("underwriting_decisions", self.underwriting_decisions)
+        return decision
+
+    def list_underwriting_decisions(
+        self,
+        case_id: uuid.UUID | None = None,
+        assessment_session_id: uuid.UUID | None = None,
+    ) -> list[UnderwritingDecision]:
+        decisions = list(self.underwriting_decisions.values())
+        if case_id is not None:
+            decisions = [item for item in decisions if item.case_id == case_id]
+        if assessment_session_id is not None:
+            decisions = [
+                item for item in decisions
+                if item.assessment_session_id == assessment_session_id
+            ]
+        return sorted(decisions, key=lambda item: item.updated_at, reverse=True)
+
+    def get_latest_underwriting_decision(
+        self,
+        case_id: uuid.UUID,
+        assessment_session_id: uuid.UUID | None = None,
+    ) -> UnderwritingDecision | None:
+        decisions = self.list_underwriting_decisions(
+            case_id=case_id,
+            assessment_session_id=assessment_session_id,
+        )
+        return decisions[0] if decisions else None
+
     def list_audit_events(
         self,
         org_id: uuid.UUID | None = None,
@@ -461,6 +503,15 @@ class PlatformRepository:
                 high=output.revenue_estimate.monthly_high,
             ),
             loan_range=output.loan_recommendation.loan_range,
+            recommended_amount=output.loan_recommendation.recommended_amount,
+            suggested_tenure_months=output.loan_recommendation.suggested_tenure_months,
+            estimated_emi=output.loan_recommendation.estimated_emi,
+            emi_to_income_ratio=output.loan_recommendation.emi_to_income_ratio,
+            repayment_cadence=output.loan_recommendation.repayment_cadence,
+            estimated_installment=output.loan_recommendation.estimated_installment,
+            pricing_recommendation=output.loan_recommendation.pricing_recommendation,
+            explanation_summary=output.explanation.summary,
+            decision_pack=output.explanation.decision_pack,
             eligible=output.loan_recommendation.eligible,
             fraud_flagged=output.fraud_detection.is_flagged,
         )
@@ -511,6 +562,7 @@ class PlatformRepository:
                 reverse=True,
             ),
             document_bundles=self.list_document_bundles(),
+            underwriting_decisions=self.list_underwriting_decisions(),
         )
 
 

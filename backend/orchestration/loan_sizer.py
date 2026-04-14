@@ -19,15 +19,21 @@ Loan Sizing Logic:
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from models.output_schema import (
+    CVSignals,
     FraudDetection,
+    GeoSignals,
     LoanRecommendation,
     RevenueEstimate,
     RiskAssessment,
     RiskBand,
     ValueRange,
+)
+from orchestration.pricing_engine import recommend_pricing
+from orchestration.repayment_recommender import (
+    estimate_installment_from_monthly_equivalent,
+    recommend_repayment_cadence,
 )
 
 logger = logging.getLogger("kira.loan_sizer")
@@ -68,6 +74,8 @@ async def compute_loan_recommendation(
     revenue_estimate: RevenueEstimate,
     risk_assessment: RiskAssessment,
     fraud_detection: FraudDetection,
+    cv_signals: CVSignals | None = None,
+    geo_signals: GeoSignals | None = None,
 ) -> LoanRecommendation:
     """
     Compute a loan recommendation from revenue estimate and risk assessment.
@@ -82,8 +90,8 @@ async def compute_loan_recommendation(
         fraud_detection: Fraud detection results.
 
     Returns:
-        LoanRecommendation: Eligibility, loan range, tenure, EMI estimate,
-        and EMI-to-income ratio.
+        LoanRecommendation: Eligibility, policy range, concrete amount,
+        cadence, pricing guidance, and affordability metrics.
     """
     risk_band = risk_assessment.risk_band
 
@@ -157,15 +165,22 @@ async def compute_loan_recommendation(
     max_loan = round(max_loan / 1000) * 1000
     min_loan = round(min_loan / 1000) * 1000
 
-    # Step 8: Compute actual EMI for the midpoint loan
-    midpoint_loan = (min_loan + max_loan) / 2.0
+    # Step 8: Pick a concrete recommendation within the approved range
+    recommended_amount = _select_recommended_amount(
+        min_loan=min_loan,
+        max_loan=max_loan,
+        confidence=risk_assessment.confidence,
+        risk_band=risk_band,
+    )
+
+    # Step 9: Compute EMI for the concrete recommended loan
     estimated_emi = _compute_emi(
-        principal=midpoint_loan,
+        principal=recommended_amount,
         monthly_rate=MONTHLY_INTEREST_RATE,
         tenure_months=optimal_tenure,
     )
 
-    # Step 9: Compute EMI-to-income ratio (using conservative revenue)
+    # Step 10: Compute EMI-to-income ratio (using conservative revenue)
     emi_to_income = (
         estimated_emi / revenue_estimate.monthly_low
         if revenue_estimate.monthly_low > 0
@@ -173,18 +188,46 @@ async def compute_loan_recommendation(
     )
     emi_to_income = min(1.0, emi_to_income)
 
+    # Step 11: Recommend cadence and convert monthly equivalent into collection-size
+    cadence_result = recommend_repayment_cadence(
+        revenue_estimate=revenue_estimate,
+        risk_assessment=risk_assessment,
+        cv_signals=cv_signals,
+        geo_signals=geo_signals,
+    )
+    repayment_cadence = cadence_result["cadence"]
+    estimated_installment = estimate_installment_from_monthly_equivalent(
+        estimated_emi,
+        repayment_cadence,
+    )
+
+    # Step 12: Recommend pricing
+    pricing_recommendation = recommend_pricing(
+        risk_assessment=risk_assessment,
+        revenue_estimate=revenue_estimate,
+        recommended_amount=recommended_amount,
+        loan_range=ValueRange(low=min_loan, high=max_loan),
+        repayment_cadence=repayment_cadence,
+        emi_to_income_ratio=emi_to_income,
+    )
+
     logger.info(
-        f"Loan recommendation: ₹{min_loan:,.0f} - ₹{max_loan:,.0f}, "
-        f"tenure={optimal_tenure}m, EMI=₹{estimated_emi:,.0f}, "
+        f"Loan recommendation: range=₹{min_loan:,.0f}-₹{max_loan:,.0f}, "
+        f"recommended=₹{recommended_amount:,.0f}, tenure={optimal_tenure}m, "
+        f"cadence={repayment_cadence.value}, EMI=₹{estimated_emi:,.0f}, "
         f"EMI/income={emi_to_income:.2%}"
     )
 
     return LoanRecommendation(
         eligible=True,
         loan_range=ValueRange(low=min_loan, high=max_loan),
+        recommended_amount=recommended_amount,
         suggested_tenure_months=optimal_tenure,
         estimated_emi=round(estimated_emi, 2),
         emi_to_income_ratio=round(emi_to_income, 4),
+        repayment_cadence=repayment_cadence,
+        estimated_installment=estimated_installment,
+        pricing_recommendation=pricing_recommendation,
     )
 
 
@@ -305,3 +348,33 @@ def _select_optimal_tenure(
     else:
         # Low capacity — longest available tenure
         return max(available_tenures)
+
+
+def _select_recommended_amount(
+    *,
+    min_loan: float,
+    max_loan: float,
+    confidence: float,
+    risk_band: RiskBand,
+) -> float:
+    """
+    Select a concrete recommended amount within the policy guardrail range.
+
+    Higher confidence and lower risk push the recommendation closer to the
+    upper end of the approved range. Higher-risk cases stay more conservative.
+    """
+    if max_loan <= min_loan:
+        return round(max_loan / 1000) * 1000
+
+    base_position = {
+        RiskBand.LOW: 0.72,
+        RiskBand.MEDIUM: 0.58,
+        RiskBand.HIGH: 0.42,
+        RiskBand.VERY_HIGH: 0.25,
+    }.get(risk_band, 0.5)
+
+    confidence_adjustment = (confidence - 0.5) * 0.2
+    position = min(0.85, max(0.25, base_position + confidence_adjustment))
+
+    recommended_amount = min_loan + ((max_loan - min_loan) * position)
+    return round(recommended_amount / 1000) * 1000

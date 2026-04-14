@@ -29,8 +29,11 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
-# Load repo-root .env explicitly so key resolution does not depend on launch cwd.
-load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env")
+# Load repo-root or workspace-root .env so key resolution does not depend on launch cwd.
+_ENV_ROOT = Path(__file__).resolve().parents[2]
+for env_path in (_ENV_ROOT / ".env", _ENV_ROOT.parent / ".env"):
+    if env_path.exists():
+        load_dotenv(dotenv_path=env_path, override=False)
 logger = logging.getLogger("kira.cv.image_analyzer")
 
 

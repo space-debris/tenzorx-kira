@@ -70,3 +70,7 @@ export async function getCaseAuditTrail(caseId) {
 export async function getCasePrefillData(caseId) {
   return apiClient.get(`/platform/cases/${caseId}/prefill`);
 }
+
+export async function overrideUnderwritingDecision(caseId, payload) {
+  return apiClient.post(`/platform/cases/${caseId}/underwriting/override`, payload);
+}
