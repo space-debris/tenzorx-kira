@@ -8,6 +8,8 @@ pipeline with mock CV and Geo signals. Does NOT call external APIs.
 import asyncio
 import uuid
 
+import pytest
+
 from models.output_schema import (
     AreaType, BrandTierMix, CVSignals, GeoSignals,
     StoreSizeCategory, ValueRange,
@@ -21,6 +23,7 @@ from llm_layer.risk_summarizer import generate_risk_summary
 from llm_layer.explainer import _generate_fallback_narrative, _score_to_descriptor
 
 
+@pytest.mark.asyncio
 async def test_full_pipeline():
     """Test the complete Phase 3 pipeline with mock signals."""
     print("=" * 60)

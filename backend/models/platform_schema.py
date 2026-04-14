@@ -182,6 +182,27 @@ class DocumentBundle(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
+class LoanHistoryEntry(BaseModel):
+    """Derived loan-history row for borrower detail and workspace views."""
+
+    case_id: uuid.UUID
+    status: CaseStatus
+    risk_band: Optional[RiskBand] = Field(default=None)
+    loan_range: Optional[ValueRange] = Field(default=None)
+    updated_at: datetime
+    notes: Optional[str] = Field(default=None, max_length=2000)
+
+
+class StatementUploadRecord(BaseModel):
+    """Placeholder record until Phase 11 statement ingestion is implemented."""
+
+    id: str
+    label: str
+    status: str
+    created_at: datetime
+    note: str
+
+
 class AuditEvent(BaseModel):
     """Immutable audit event."""
 
@@ -244,6 +265,18 @@ class CaseDetailResponse(BaseModel):
     audit_events: list[AuditEvent] = Field(default_factory=list)
 
 
+class KiranaDetailResponse(BaseModel):
+    """Detailed borrower record returned for kirana detail pages."""
+
+    kirana: KiranaProfile
+    cases: list[AssessmentCase] = Field(default_factory=list)
+    assessment_history: list[AssessmentSummary] = Field(default_factory=list)
+    loan_history: list[LoanHistoryEntry] = Field(default_factory=list)
+    statement_uploads: list[StatementUploadRecord] = Field(default_factory=list)
+    alerts: list[RiskAlert] = Field(default_factory=list)
+    audit_events: list[AuditEvent] = Field(default_factory=list)
+
+
 class OrgDashboardResponse(BaseModel):
     """Dashboard payload for a lender organization."""
 
@@ -263,3 +296,4 @@ class PlatformSnapshot(BaseModel):
     alerts: list[RiskAlert] = Field(default_factory=list)
     audit_events: list[AuditEvent] = Field(default_factory=list)
     assessment_summaries: list[AssessmentSummary] = Field(default_factory=list)
+    document_bundles: list[DocumentBundle] = Field(default_factory=list)

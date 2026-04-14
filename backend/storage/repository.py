@@ -406,6 +406,7 @@ class PlatformRepository:
         org_id: uuid.UUID | None = None,
         status: AlertStatus | None = None,
         case_id: uuid.UUID | None = None,
+        kirana_id: uuid.UUID | None = None,
     ) -> list[RiskAlert]:
         alerts = list(self.alerts.values())
         if org_id is not None:
@@ -414,7 +415,21 @@ class PlatformRepository:
             alerts = [alert for alert in alerts if alert.status == status]
         if case_id is not None:
             alerts = [alert for alert in alerts if alert.case_id == case_id]
+        if kirana_id is not None:
+            alerts = [alert for alert in alerts if alert.kirana_id == kirana_id]
         return sorted(alerts, key=lambda item: item.created_at, reverse=True)
+
+    def list_document_bundles(
+        self,
+        org_id: uuid.UUID | None = None,
+        case_id: uuid.UUID | None = None,
+    ) -> list[DocumentBundle]:
+        bundles = list(self.document_bundles.values())
+        if org_id is not None:
+            bundles = [bundle for bundle in bundles if bundle.org_id == org_id]
+        if case_id is not None:
+            bundles = [bundle for bundle in bundles if bundle.case_id == case_id]
+        return sorted(bundles, key=lambda item: item.created_at, reverse=True)
 
     def create_audit_event(self, event: AuditEvent) -> AuditEvent:
         self.audit_events[str(event.id)] = event
@@ -495,6 +510,7 @@ class PlatformRepository:
                 key=lambda item: item.completed_at,
                 reverse=True,
             ),
+            document_bundles=self.list_document_bundles(),
         )
 
 

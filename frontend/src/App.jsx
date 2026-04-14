@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './context/useAuth';
 
 // Public pages
 import Home from './pages/Home';
@@ -15,6 +16,9 @@ import KiranaDetail from './pages/KiranaDetail';
 import CaseList from './pages/CaseList';
 import CaseDetail from './pages/CaseDetail';
 import NewCase from './pages/NewCase';
+import ActiveLoans from './pages/ActiveLoans';
+import Portfolio from './pages/Portfolio';
+import Documents from './pages/Documents';
 
 /**
  * KIRA — Main Application Component
@@ -81,6 +85,9 @@ function App() {
             <Route path="kiranas/:kiranaId" element={<KiranaDetail />} />
             <Route path="cases" element={<CaseList />} />
             <Route path="cases/:caseId" element={<CaseDetail />} />
+            <Route path="active-loans" element={<ActiveLoans />} />
+            <Route path="portfolio" element={<Portfolio />} />
+            <Route path="documents" element={<Documents />} />
             <Route path="new-case" element={<NewCase />} />
             {/* Tools → Run Assessment — same component, inside lender shell */}
             <Route path="tools/assessment" element={<Assessment />} />

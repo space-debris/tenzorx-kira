@@ -5,7 +5,7 @@
  * Fetches real org data from the backend on login.
  */
 
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useState, useCallback } from 'react';
 import { getPlatformDemoSnapshot } from '../api/kiraApi';
 
 const AuthContext = createContext(null);
@@ -39,21 +39,12 @@ function clearSession() {
 }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [org, setOrg] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Restore session on mount
-  useEffect(() => {
-    const session = loadSession();
-    if (session?.user && session?.org) {
-      setUser(session.user);
-      setOrg(session.org);
-      setIsAuthenticated(true);
-    }
-    setIsLoading(false);
-  }, []);
+  const initialSession = loadSession();
+  const hasInitialSession = Boolean(initialSession?.user && initialSession?.org);
+  const [user, setUser] = useState(initialSession?.user ?? null);
+  const [org, setOrg] = useState(initialSession?.org ?? null);
+  const [isAuthenticated, setIsAuthenticated] = useState(hasInitialSession);
+  const [isLoading] = useState(false);
 
   const login = useCallback(async (email) => {
     try {
@@ -117,12 +108,6 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within <AuthProvider>');
-  return ctx;
 }
 
 export default AuthContext;

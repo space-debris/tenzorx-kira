@@ -10,17 +10,19 @@
 
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
 import {
   Store, LayoutDashboard, Users, Briefcase, PlusCircle,
-  LogOut, Menu, X, ChevronRight, CreditCard, FileText,
-  Bell, User
+  LogOut, Menu, X, CreditCard, User, Wallet, LineChart, FolderKanban
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { to: '/app/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/app/kiranas', label: 'Kiranas', icon: Users },
   { to: '/app/cases', label: 'Cases', icon: Briefcase },
+  { to: '/app/active-loans', label: 'Active Loans', icon: Wallet },
+  { to: '/app/portfolio', label: 'Portfolio', icon: LineChart },
+  { to: '/app/documents', label: 'Documents', icon: FolderKanban },
   { to: '/app/new-case', label: 'New Case', icon: PlusCircle },
 ];
 

@@ -10,6 +10,7 @@ from datetime import datetime
 from models.platform_schema import (
     AlertStatus,
     AssessmentCase,
+    AssessmentSummary,
     AuditAction,
     AuditEntityType,
     CaseDetailResponse,
@@ -17,8 +18,11 @@ from models.platform_schema import (
     CaseStatusUpdateRequest,
     CreateCaseRequest,
     KiranaLocation,
+    KiranaDetailResponse,
     KiranaProfile,
+    LoanHistoryEntry,
     OrgDashboardResponse,
+    StatementUploadRecord,
 )
 from services.audit_service import AuditService
 from storage.repository import PlatformRepository
@@ -244,6 +248,88 @@ class CaseService:
             case=case,
             kirana=kirana,
             latest_assessment=latest_assessment,
+            alerts=alerts,
+            audit_events=audit_events,
+        )
+
+    def get_kirana_detail(
+        self,
+        org_id: uuid.UUID,
+        kirana_id: uuid.UUID,
+    ) -> KiranaDetailResponse:
+        org = self.repository.get_organization(org_id)
+        if org is None:
+            raise ValueError("Organization not found")
+
+        kirana = self.repository.get_kirana(kirana_id)
+        if kirana is None or kirana.org_id != org_id:
+            raise ValueError("Kirana not found")
+
+        cases = [
+            case for case in self.repository.list_cases(org_id)
+            if case.kirana_id == kirana_id
+        ]
+
+        assessment_history: list[AssessmentSummary] = []
+        for case in cases:
+            if case.latest_assessment_session_id is None:
+                continue
+            summary = self.repository.get_assessment_summary(case.latest_assessment_session_id)
+            if summary is not None:
+                assessment_history.append(summary)
+        assessment_history.sort(key=lambda item: item.completed_at, reverse=True)
+
+        alerts = self.repository.list_alerts(org_id=org_id, kirana_id=kirana_id)
+
+        loan_statuses = {
+            CaseStatus.APPROVED,
+            CaseStatus.DISBURSED,
+            CaseStatus.MONITORING,
+            CaseStatus.RESTRUCTURED,
+            CaseStatus.CLOSED,
+        }
+        loan_history = [
+            LoanHistoryEntry(
+                case_id=case.id,
+                status=case.status,
+                risk_band=case.latest_risk_band,
+                loan_range=case.latest_loan_range,
+                updated_at=case.updated_at,
+                notes=case.notes,
+            )
+            for case in cases
+            if case.status in loan_statuses or case.latest_loan_range is not None
+        ]
+        loan_history.sort(key=lambda item: item.updated_at, reverse=True)
+
+        statement_uploads: list[StatementUploadRecord] = []
+        for case in cases:
+            if case.status in {CaseStatus.DISBURSED, CaseStatus.MONITORING, CaseStatus.RESTRUCTURED}:
+                statement_uploads.append(
+                    StatementUploadRecord(
+                        id=f"pending-{case.id}",
+                        label="Manual statement refresh",
+                        status="pending",
+                        created_at=case.updated_at,
+                        note="Statement upload workflow is scheduled for Phase 11.",
+                    )
+                )
+
+        audit_events = self.repository.list_audit_events(entity_id=kirana.id)
+        for case in cases:
+            audit_events.extend(self.repository.list_audit_events(entity_id=case.id))
+        audit_events = sorted(
+            {str(event.id): event for event in audit_events}.values(),
+            key=lambda item: item.created_at,
+            reverse=True,
+        )
+
+        return KiranaDetailResponse(
+            kirana=kirana,
+            cases=cases,
+            assessment_history=assessment_history,
+            loan_history=loan_history,
+            statement_uploads=statement_uploads,
             alerts=alerts,
             audit_events=audit_events,
         )

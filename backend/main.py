@@ -44,6 +44,7 @@ from models.platform_schema import (
     CaseDetailResponse,
     CaseStatusUpdateRequest,
     CreateCaseRequest,
+    KiranaDetailResponse,
     KiranaProfile,
     LenderOrg,
     OrgDashboardResponse,
@@ -609,6 +610,21 @@ async def list_platform_kiranas(org_id: uuid.UUID) -> list[KiranaProfile]:
     """List kirana profiles for a lender organization."""
     try:
         return case_service.list_kiranas_for_org(org_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get(
+    "/api/v1/platform/orgs/{org_id}/kiranas/{kirana_id}",
+    response_model=KiranaDetailResponse,
+)
+async def get_platform_kirana_detail(
+    org_id: uuid.UUID,
+    kirana_id: uuid.UUID,
+) -> KiranaDetailResponse:
+    """Return the full borrower record for a kirana inside one lender workspace."""
+    try:
+        return case_service.get_kirana_detail(org_id, kirana_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 

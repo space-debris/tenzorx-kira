@@ -18,7 +18,7 @@ import ImageUploader from '../components/ImageUploader';
 import GeoInput from '../components/GeoInput';
 import { submitAssessment, getCasePrefillData } from '../api/kiraApi';
 import { adjustGpsAccuracy } from '../utils/gpsUtils';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 
 export default function Assessment() {
   const navigate = useNavigate();

@@ -13,7 +13,7 @@
 
 import { useState } from 'react';
 import { useNavigate, useLocation, Link, Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { Store, LogIn, ArrowLeft, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 
 export default function Login() {
@@ -47,7 +47,7 @@ export default function Login() {
       } else {
         setError(result.error || 'Login failed. Please try again.');
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred.');
     } finally {
       setIsLoggingIn(false);

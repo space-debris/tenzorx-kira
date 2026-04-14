@@ -49,6 +49,10 @@ export async function listOrganizationKiranas(orgId) {
   return apiClient.get(`/platform/orgs/${orgId}/kiranas`);
 }
 
+export async function getPlatformKiranaDetail(orgId, kiranaId) {
+  return apiClient.get(`/platform/orgs/${orgId}/kiranas/${kiranaId}`);
+}
+
 export async function updateCaseStatus(caseId, payload) {
   return apiClient.post(`/platform/cases/${caseId}/status`, payload);
 }

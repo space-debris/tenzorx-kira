@@ -10,16 +10,18 @@
 
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { listOrganizationKiranas } from '../api/kiraApi';
+import { useAuth } from '../context/useAuth';
+import { listOrganizationCases, listOrganizationKiranas } from '../api/kiraApi';
 import {
   Users, Search, MapPin, Store, ArrowRight,
   Loader2, AlertTriangle, Filter
 } from 'lucide-react';
+import { getCaseNextAction } from '../utils/caseUtils';
 
 export default function KiranaList() {
   const { org } = useAuth();
   const [kiranas, setKiranas] = useState([]);
+  const [latestCaseMap, setLatestCaseMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,8 +33,22 @@ export default function KiranaList() {
     async function load() {
       try {
         setLoading(true);
-        const res = await listOrganizationKiranas(org.id);
-        setKiranas(res.data || []);
+        const [kiranaRes, caseRes] = await Promise.all([
+          listOrganizationKiranas(org.id),
+          listOrganizationCases(org.id),
+        ]);
+        const nextKiranas = kiranaRes.data || [];
+        const nextCases = caseRes.data || [];
+        setKiranas(nextKiranas);
+
+        const caseMap = {};
+        nextCases.forEach((caseItem) => {
+          const existing = caseMap[caseItem.kirana_id];
+          if (!existing || new Date(caseItem.updated_at) > new Date(existing.updated_at)) {
+            caseMap[caseItem.kirana_id] = caseItem;
+          }
+        });
+        setLatestCaseMap(caseMap);
       } catch (err) {
         console.error('Failed to load kiranas:', err);
         setError('Failed to load kirana directory');
@@ -120,6 +136,10 @@ export default function KiranaList() {
               to={`/app/kiranas/${k.id}`}
               className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md hover:border-primary-200 transition-all group"
             >
+              {(() => {
+                const latestCase = latestCaseMap[k.id];
+                return (
+                  <>
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="w-11 h-11 bg-primary-50 rounded-lg flex items-center justify-center text-primary-600">
@@ -143,6 +163,18 @@ export default function KiranaList() {
                   <span className="bg-primary-50 text-primary-600 px-2 py-0.5 rounded font-semibold capitalize">{k.metadata.shop_size}</span>
                 )}
               </div>
+              {latestCase && (
+                <div className="mt-4 pt-4 border-t border-slate-100">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs font-bold uppercase tracking-wide text-slate-400">Latest Case</span>
+                    <span className="text-xs font-semibold text-primary-600 capitalize">{latestCase.status.replace('_', ' ')}</span>
+                  </div>
+                  <p className="text-sm text-slate-600 mt-2">{getCaseNextAction(latestCase)}</p>
+                </div>
+              )}
+                  </>
+                );
+              })()}
             </Link>
           ))}
         </div>
