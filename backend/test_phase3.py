@@ -8,10 +8,13 @@ pipeline with mock CV and Geo signals. Does NOT call external APIs.
 import asyncio
 import uuid
 
+import pytest
+
 from models.output_schema import (
     AreaType, BrandTierMix, CVSignals, GeoSignals,
     StoreSizeCategory, ValueRange,
 )
+from cv_module.sku_diversity import compute_sku_diversity
 from orchestration.fusion_engine import run_fusion_engine
 from orchestration.fraud_detector import run_fraud_detection
 from orchestration.loan_sizer import compute_loan_recommendation
@@ -20,6 +23,7 @@ from llm_layer.risk_summarizer import generate_risk_summary
 from llm_layer.explainer import _generate_fallback_narrative, _score_to_descriptor
 
 
+@pytest.mark.asyncio
 async def test_full_pipeline():
     """Test the complete Phase 3 pipeline with mock signals."""
     print("=" * 60)
@@ -75,6 +79,7 @@ async def test_full_pipeline():
 
     assert 0 <= fraud_result.fraud_score <= 1
     assert len(fraud_result.checks_performed) == 4
+    assert fraud_result.is_flagged is False, "Clean store should not be auto-flagged"
     print("  ✅ PASSED")
 
     # --- Test 3: Fraud Detection (adversarial case) ---
@@ -175,8 +180,32 @@ async def test_full_pipeline():
     assert len(narrative) > 50
     print("  ✅ PASSED")
 
-    # --- Test 8: Output Formatter ---
-    print("\n[TEST 8] Output Formatter")
+    # --- Test 8: SKU Diversity category normalization ---
+    print("\n[TEST 8] SKU Diversity category normalization")
+    sku_result = compute_sku_diversity(
+        {
+            "product_categories": [
+                "Soft Drinks",
+                "Dairy Products",
+                "Personal Hygiene",
+                "Cleaning Supplies",
+                "Biscuits and Confectionery",
+                "Cooking Essentials",
+            ],
+            "sku_count_estimate": 180,
+            "brand_tier": "mixed",
+        }
+    )
+
+    print(f"  Category Count: {sku_result['category_count']}")
+    print(f"  Diversity Score: {sku_result['sku_diversity_score']}")
+
+    assert sku_result["category_count"] >= 5
+    assert sku_result["sku_diversity_score"] > 0.3
+    print("  âœ… PASSED")
+
+    # --- Test 9: Output Formatter ---
+    print("\n[TEST 9] Output Formatter")
     session_id = uuid.uuid4()
     output = format_assessment_output(
         session_id=session_id,
@@ -203,8 +232,8 @@ async def test_full_pipeline():
     assert output.session_id == session_id
     print("  ✅ PASSED")
 
-    # --- Test 9: Score descriptor helper ---
-    print("\n[TEST 9] Score-to-Descriptor")
+    # --- Test 10: Score descriptor helper ---
+    print("\n[TEST 10] Score-to-Descriptor")
     assert _score_to_descriptor(0.9) == "very strong"
     assert _score_to_descriptor(0.65) == "strong"
     assert _score_to_descriptor(0.5) == "moderate"

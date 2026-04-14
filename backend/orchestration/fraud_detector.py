@@ -31,7 +31,12 @@ logger = logging.getLogger("kira.fraud")
 
 # Fraud score threshold — above this, assessment is flagged for manual review
 FRAUD_THRESHOLD = 0.5
-SEVERE_CHECK_THRESHOLD = 0.5
+SEVERE_CHECK_THRESHOLD = 0.75
+SEVERE_CHECKS = {
+    "image_consistency",
+    "gps_visual_mismatch",
+    "signal_cross_validation",
+}
 
 # Weights for combining individual check scores into aggregate fraud score
 CHECK_WEIGHTS = {
@@ -149,7 +154,7 @@ async def run_fraud_detection(
 
     severe_signal_detected = any(
         check_scores.get(check_name, 0.0) >= SEVERE_CHECK_THRESHOLD
-        for check_name in check_scores
+        for check_name in SEVERE_CHECKS
     )
     is_flagged = aggregate_score >= FRAUD_THRESHOLD or severe_signal_detected
     all_flags = list(dict.fromkeys(all_flags))

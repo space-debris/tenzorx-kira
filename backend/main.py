@@ -44,6 +44,7 @@ from models.platform_schema import (
     CaseDetailResponse,
     CaseStatusUpdateRequest,
     CreateCaseRequest,
+    KiranaDetailResponse,
     KiranaProfile,
     LenderOrg,
     OrgDashboardResponse,
@@ -100,18 +101,21 @@ app = FastAPI(
         "using smartphone images and GPS coordinates."
     ),
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    contact={
+        "name": "TenzorX",
+        "url": "https://github.com/space-debris/tenzorx-kira",
+        "email": "contact@tenzorx.com",
+    },
+    license_info={
+        "name": "MIT License",
+        "url": "https://opensource.org/licenses/MIT",
+    },
 )
 
-# CORS — allow frontend dev server
+# Allow all origins for development purposes
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:3000",
-        *([os.getenv("FRONTEND_URL")] if os.getenv("FRONTEND_URL") else []),
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -153,7 +157,7 @@ async def health_check() -> dict:
 # Primary Assessment Endpoint
 # ---------------------------------------------------------------------------
 
-@app.post("/api/v1/assess", response_model=AssessmentOutput)
+@app.post("/api/v1/assess")
 async def submit_assessment(
     images: list[UploadFile] = File(
         ...,
@@ -191,7 +195,27 @@ async def submit_assessment(
         default=None,
         description="Optional years in operation"
     ),
-) -> AssessmentOutput:
+    case_id: Optional[str] = Form(
+        default=None,
+        description="Optional case ID to link assessment to"
+    ),
+    org_id: Optional[str] = Form(
+        default=None,
+        description="Optional org ID for auto-creating case (standalone flow)"
+    ),
+    created_by_user_id: Optional[str] = Form(
+        default=None,
+        description="Optional user ID for auto-creating case (standalone flow)"
+    ),
+    owner_name: Optional[str] = Form(
+        default=None,
+        description="Optional owner name for kirana profile"
+    ),
+    owner_mobile: Optional[str] = Form(
+        default=None,
+        description="Optional owner mobile for kirana profile"
+    ),
+):
     """
     Submit a kirana store assessment.
 
@@ -437,8 +461,11 @@ async def submit_assessment(
             summary=summary,
         )
 
-        # Persist for later retrieval
+        # Persist for later retrieval (JSON and in-memory cache)
         await persist_assessment(output)
+
+        # Upsert the summary into the platform repository (so it shows in cases/kiranas)
+        platform_repository.upsert_assessment_summary(output)
 
         logger.info(
             f"Assessment complete: session_id={session_id}, "
@@ -446,7 +473,81 @@ async def submit_assessment(
             f"eligible={loan_rec.eligible}"
         )
 
-        return output
+        # --- Case lifecycle integration ---
+        response_data = output.model_dump(mode="json")
+        linked_case_id = None
+
+        try:
+            # Resolve geo location for kirana profile
+            geo_state = geo_base.get("state", None)
+            geo_district = geo_base.get("district", None)
+            geo_locality = geo_base.get("locality", None)
+            geo_pin_code = geo_base.get("pin_code", None)
+
+            if case_id:
+                # Flow 1: Link assessment to existing case
+                parsed_case_id = uuid.UUID(case_id)
+                case_service.link_assessment_to_case(
+                    parsed_case_id, session_id
+                )
+                linked_case_id = case_id
+                logger.info(f"Assessment linked to existing case: {case_id}")
+
+                # Also upsert kirana metadata from assessment
+                existing_case = platform_repository.get_case(parsed_case_id)
+                if existing_case and store_name:
+                    case_service.upsert_kirana_from_assessment(
+                        org_id=existing_case.org_id,
+                        store_name=store_name,
+                        owner_name=owner_name,
+                        owner_mobile=owner_mobile,
+                        state=geo_state,
+                        district=geo_district,
+                        pin_code=geo_pin_code,
+                        locality=geo_locality,
+                        shop_size=shop_size,
+                        rent=rent,
+                        years_in_operation=years_in_operation,
+                    )
+
+            elif org_id and created_by_user_id:
+                # Flow 2: Auto-create case + kirana (standalone assessment)
+                parsed_org_id = uuid.UUID(org_id)
+                parsed_user_id = uuid.UUID(created_by_user_id)
+
+                kirana = case_service.upsert_kirana_from_assessment(
+                    org_id=parsed_org_id,
+                    store_name=store_name or f"Store-{str(session_id)[:8]}",
+                    owner_name=owner_name,
+                    owner_mobile=owner_mobile,
+                    state=geo_state,
+                    district=geo_district,
+                    pin_code=geo_pin_code,
+                    locality=geo_locality,
+                    shop_size=shop_size,
+                    rent=rent,
+                    years_in_operation=years_in_operation,
+                )
+
+                new_case = case_service.create_case_from_assessment(
+                    org_id=parsed_org_id,
+                    created_by_user_id=parsed_user_id,
+                    kirana_id=kirana.id,
+                    session_id=session_id,
+                )
+                linked_case_id = str(new_case.id)
+                logger.info(
+                    f"Auto-created case {new_case.id} + kirana {kirana.id} "
+                    f"from standalone assessment"
+                )
+
+        except Exception as e:
+            logger.warning(f"Case lifecycle integration failed (non-fatal): {e}")
+
+        if linked_case_id:
+            response_data["case_id"] = linked_case_id
+
+        return response_data
 
     except HTTPException:
         raise
@@ -513,6 +614,21 @@ async def list_platform_kiranas(org_id: uuid.UUID) -> list[KiranaProfile]:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
+@app.get(
+    "/api/v1/platform/orgs/{org_id}/kiranas/{kirana_id}",
+    response_model=KiranaDetailResponse,
+)
+async def get_platform_kirana_detail(
+    org_id: uuid.UUID,
+    kirana_id: uuid.UUID,
+) -> KiranaDetailResponse:
+    """Return the full borrower record for a kirana inside one lender workspace."""
+    try:
+        return case_service.get_kirana_detail(org_id, kirana_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
 @app.get("/api/v1/platform/orgs/{org_id}/cases", response_model=list[AssessmentCase])
 async def list_platform_cases(org_id: uuid.UUID) -> list[AssessmentCase]:
     """List cases for a lender organization."""
@@ -553,6 +669,29 @@ async def update_platform_case_status(
         return case_service.update_case_status(case_id, payload)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/api/v1/platform/cases/{case_id}/prefill")
+async def get_case_prefill_data(case_id: uuid.UUID) -> dict:
+    """Return case + kirana data formatted for pre-filling the assessment form."""
+    try:
+        detail = case_service.get_case_detail(case_id)
+        kirana = detail.kirana
+        return {
+            "case_id": str(detail.case.id),
+            "store_name": kirana.store_name,
+            "owner_name": kirana.owner_name,
+            "owner_mobile": kirana.owner_mobile,
+            "state": kirana.location.state,
+            "district": kirana.location.district,
+            "pin_code": kirana.location.pin_code,
+            "locality": kirana.location.locality,
+            "shop_size": kirana.metadata.get("shop_size"),
+            "rent": kirana.metadata.get("rent"),
+            "years_in_operation": kirana.metadata.get("years_in_operation"),
+        }
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @app.post(

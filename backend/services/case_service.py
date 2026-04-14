@@ -10,6 +10,7 @@ from datetime import datetime
 from models.platform_schema import (
     AlertStatus,
     AssessmentCase,
+    AssessmentSummary,
     AuditAction,
     AuditEntityType,
     CaseDetailResponse,
@@ -17,8 +18,11 @@ from models.platform_schema import (
     CaseStatusUpdateRequest,
     CreateCaseRequest,
     KiranaLocation,
+    KiranaDetailResponse,
     KiranaProfile,
+    LoanHistoryEntry,
     OrgDashboardResponse,
+    StatementUploadRecord,
 )
 from services.audit_service import AuditService
 from storage.repository import PlatformRepository
@@ -247,6 +251,205 @@ class CaseService:
             alerts=alerts,
             audit_events=audit_events,
         )
+
+    def get_kirana_detail(
+        self,
+        org_id: uuid.UUID,
+        kirana_id: uuid.UUID,
+    ) -> KiranaDetailResponse:
+        org = self.repository.get_organization(org_id)
+        if org is None:
+            raise ValueError("Organization not found")
+
+        kirana = self.repository.get_kirana(kirana_id)
+        if kirana is None or kirana.org_id != org_id:
+            raise ValueError("Kirana not found")
+
+        cases = [
+            case for case in self.repository.list_cases(org_id)
+            if case.kirana_id == kirana_id
+        ]
+
+        assessment_history: list[AssessmentSummary] = []
+        for case in cases:
+            if case.latest_assessment_session_id is None:
+                continue
+            summary = self.repository.get_assessment_summary(case.latest_assessment_session_id)
+            if summary is not None:
+                assessment_history.append(summary)
+        assessment_history.sort(key=lambda item: item.completed_at, reverse=True)
+
+        alerts = self.repository.list_alerts(org_id=org_id, kirana_id=kirana_id)
+
+        loan_statuses = {
+            CaseStatus.APPROVED,
+            CaseStatus.DISBURSED,
+            CaseStatus.MONITORING,
+            CaseStatus.RESTRUCTURED,
+            CaseStatus.CLOSED,
+        }
+        loan_history = [
+            LoanHistoryEntry(
+                case_id=case.id,
+                status=case.status,
+                risk_band=case.latest_risk_band,
+                loan_range=case.latest_loan_range,
+                updated_at=case.updated_at,
+                notes=case.notes,
+            )
+            for case in cases
+            if case.status in loan_statuses or case.latest_loan_range is not None
+        ]
+        loan_history.sort(key=lambda item: item.updated_at, reverse=True)
+
+        statement_uploads: list[StatementUploadRecord] = []
+        for case in cases:
+            if case.status in {CaseStatus.DISBURSED, CaseStatus.MONITORING, CaseStatus.RESTRUCTURED}:
+                statement_uploads.append(
+                    StatementUploadRecord(
+                        id=f"pending-{case.id}",
+                        label="Manual statement refresh",
+                        status="pending",
+                        created_at=case.updated_at,
+                        note="Statement upload workflow is scheduled for Phase 11.",
+                    )
+                )
+
+        audit_events = self.repository.list_audit_events(entity_id=kirana.id)
+        for case in cases:
+            audit_events.extend(self.repository.list_audit_events(entity_id=case.id))
+        audit_events = sorted(
+            {str(event.id): event for event in audit_events}.values(),
+            key=lambda item: item.created_at,
+            reverse=True,
+        )
+
+        return KiranaDetailResponse(
+            kirana=kirana,
+            cases=cases,
+            assessment_history=assessment_history,
+            loan_history=loan_history,
+            statement_uploads=statement_uploads,
+            alerts=alerts,
+            audit_events=audit_events,
+        )
+
+    def upsert_kirana_from_assessment(
+        self,
+        org_id: uuid.UUID,
+        store_name: str,
+        owner_name: str | None = None,
+        owner_mobile: str | None = None,
+        state: str | None = None,
+        district: str | None = None,
+        pin_code: str | None = None,
+        locality: str | None = None,
+        shop_size: str | None = None,
+        rent: float | None = None,
+        years_in_operation: float | None = None,
+    ) -> KiranaProfile:
+        """Find existing kirana by name+pin or create a new one. Update metadata either way."""
+        now = datetime.utcnow()
+        safe_pin = pin_code or "000000"
+        safe_state = state or "Unknown"
+        safe_district = district or "Unknown"
+
+        existing = self.repository.find_kirana(org_id, store_name, safe_pin)
+
+        metadata: dict = {}
+        if shop_size:
+            metadata["shop_size"] = shop_size
+        if rent is not None:
+            metadata["rent"] = rent
+        if years_in_operation is not None:
+            metadata["years_in_operation"] = years_in_operation
+
+        if existing is not None:
+            updated = existing.model_copy(
+                update={
+                    "metadata": {**existing.metadata, **metadata},
+                    "updated_at": now,
+                    **({"owner_name": owner_name} if owner_name else {}),
+                    **({"owner_mobile": owner_mobile} if owner_mobile else {}),
+                }
+            )
+            self.repository.update_kirana(updated)
+            return updated
+
+        kirana = KiranaProfile(
+            org_id=org_id,
+            store_name=store_name,
+            owner_name=owner_name or "Unknown",
+            owner_mobile=owner_mobile or "N/A",
+            location=KiranaLocation(
+                state=safe_state,
+                district=safe_district,
+                pin_code=safe_pin,
+                locality=locality,
+            ),
+            metadata=metadata,
+            created_at=now,
+            updated_at=now,
+        )
+        self.repository.create_kirana(kirana)
+        return kirana
+
+    def create_case_from_assessment(
+        self,
+        org_id: uuid.UUID,
+        created_by_user_id: uuid.UUID,
+        kirana_id: uuid.UUID,
+        session_id: uuid.UUID,
+    ) -> AssessmentCase:
+        """Auto-create a case linked to a kirana and assessment (standalone assessment flow)."""
+        org = self.repository.get_organization(org_id)
+        if org is None:
+            raise ValueError("Organization not found")
+
+        summary = self.repository.get_assessment_summary(session_id)
+
+        now = datetime.utcnow()
+        case = AssessmentCase(
+            org_id=org_id,
+            kirana_id=kirana_id,
+            created_by_user_id=created_by_user_id,
+            assigned_to_user_id=created_by_user_id,
+            status=CaseStatus.UNDER_REVIEW if summary else CaseStatus.DRAFT,
+            latest_assessment_session_id=summary.session_id if summary else None,
+            latest_assessment_id=summary.assessment_id if summary else None,
+            latest_risk_band=summary.risk_band if summary else None,
+            latest_loan_range=summary.loan_range if summary else None,
+            notes="Auto-created from standalone assessment.",
+            created_at=now,
+            updated_at=now,
+        )
+        self.repository.create_case(case)
+
+        kirana = self.repository.get_kirana(kirana_id)
+        kirana_name = kirana.store_name if kirana else "Unknown"
+
+        self.audit_service.record_event(
+            org_id=org_id,
+            entity_type=AuditEntityType.CASE,
+            entity_id=case.id,
+            action=AuditAction.CREATED,
+            description=f"Auto-created case for {kirana_name} from assessment",
+            actor_user_id=created_by_user_id,
+            metadata={"source": "standalone_assessment", "session_id": str(session_id)},
+        )
+
+        if summary:
+            self.audit_service.record_event(
+                org_id=org_id,
+                entity_type=AuditEntityType.ASSESSMENT,
+                entity_id=summary.assessment_id,
+                action=AuditAction.ASSESSMENT_LINKED,
+                description=f"Linked assessment {session_id} to auto-created case {case.id}",
+                actor_user_id=created_by_user_id,
+                metadata={"case_id": str(case.id), "session_id": str(session_id)},
+            )
+
+        return case
 
     def get_org_dashboard(self, org_id: uuid.UUID) -> OrgDashboardResponse:
         org = self.repository.get_organization(org_id)

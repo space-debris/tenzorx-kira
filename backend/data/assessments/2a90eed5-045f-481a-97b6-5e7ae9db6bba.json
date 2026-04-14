@@ -1,0 +1,81 @@
+{
+  "session_id": "2a90eed5-045f-481a-97b6-5e7ae9db6bba",
+  "assessment_id": "bd720ec7-0593-41aa-806a-85c381780cf8",
+  "timestamp": "2026-04-14T12:10:23.410412",
+  "status": "completed",
+  "revenue_estimate": {
+    "monthly_low": 175000.0,
+    "monthly_high": 253300.0,
+    "confidence": 0.7344,
+    "methodology": "inventory_turnover_model"
+  },
+  "risk_assessment": {
+    "risk_band": "MEDIUM",
+    "risk_score": 0.4889,
+    "confidence": 0.7344
+  },
+  "cv_signals": {
+    "shelf_density": 0.99,
+    "sku_diversity_score": 0.6963,
+    "estimated_sku_count": 196,
+    "inventory_value_range": {
+      "low": 13920.0,
+      "high": 98350.0
+    },
+    "store_size_category": "medium",
+    "brand_tier_mix": "mass_dominant",
+    "consistency_score": 0.5173
+  },
+  "geo_signals": {
+    "area_type": "semi_urban",
+    "footfall_score": 0.0494,
+    "competition_count": 0,
+    "competition_score": 1.0,
+    "catchment_population": 9424,
+    "demand_index": 1.0
+  },
+  "loan_recommendation": {
+    "eligible": false,
+    "loan_range": {
+      "low": 0.0,
+      "high": 0.0
+    },
+    "suggested_tenure_months": 18,
+    "estimated_emi": 0.0,
+    "emi_to_income_ratio": 0.0
+  },
+  "fraud_detection": {
+    "fraud_score": 0.33,
+    "is_flagged": true,
+    "flags": [
+      "Low image consistency (0.52): possible mismatched or reused images",
+      "low_product_overlap: only 0/8 categories shared",
+      "low_product_overlap: only 0/10 categories shared",
+      "low_product_overlap: only 0/12 categories shared",
+      "identical_image_quality: all images have nearly identical quality — unusual for real-world captures from different angles",
+      "Mismatched image resolutions: images from different devices"
+    ],
+    "checks_performed": [
+      "image_consistency",
+      "gps_visual_mismatch",
+      "signal_cross_validation",
+      "statistical_outlier"
+    ]
+  },
+  "explanation": {
+    "risk_narrative": "The store demonstrates strong operational health with near-maximum shelf density (0.99) and a diverse SKU range tailored to mass-market demand. While the semi-urban location benefits from a high demand index (1.0) and a complete lack of immediate competition, the notably low footfall score (0.0494) suggests potential challenges in organic customer traffic. Despite estimated monthly revenues reaching up to ₹253,300, the overall risk is rated as Medium due to a fraud flag and moderate confidence levels (73%). Consequently, any lending should be approached with caution and contingent upon a thorough manual verification to resolve the fraud alert and validate actual sales patterns.",
+    "summary": {
+      "strengths": [
+        "Favorable competitive position with manageable competition (100%)",
+        "Strong local demand (100%) indicates robust customer base",
+        "Well-stocked shelves (99%) indicate active inventory management"
+      ],
+      "concerns": [
+        "Fraud alert: Low image consistency (0.52): possible mismatched or reused images",
+        "Fraud alert: low_product_overlap: only 0/8 categories shared",
+        "Weak footfall potential (5%) limits customer acquisition"
+      ],
+      "recommendation": "Hold for manual review — assessment flagged for potential inconsistencies requiring human verification"
+    }
+  }
+}

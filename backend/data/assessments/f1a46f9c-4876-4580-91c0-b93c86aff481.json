@@ -1,0 +1,79 @@
+{
+  "session_id": "f1a46f9c-4876-4580-91c0-b93c86aff481",
+  "assessment_id": "122c23ec-8691-4428-b14f-677ac9d8e3c3",
+  "timestamp": "2026-04-14T10:11:23.505536",
+  "status": "completed",
+  "revenue_estimate": {
+    "monthly_low": 210400.0,
+    "monthly_high": 305000.0,
+    "confidence": 0.82,
+    "methodology": "inventory_turnover_model"
+  },
+  "risk_assessment": {
+    "risk_band": "MEDIUM",
+    "risk_score": 0.4873,
+    "confidence": 0.82
+  },
+  "cv_signals": {
+    "shelf_density": 1.0,
+    "sku_diversity_score": 0.7667,
+    "estimated_sku_count": 366,
+    "inventory_value_range": {
+      "low": 8350.0,
+      "high": 59970.0
+    },
+    "store_size_category": "small",
+    "brand_tier_mix": "mass_dominant",
+    "consistency_score": 0.7518
+  },
+  "geo_signals": {
+    "area_type": "urban",
+    "footfall_score": 0.0385,
+    "competition_count": 0,
+    "competition_score": 1.0,
+    "catchment_population": 7853,
+    "demand_index": 1.0
+  },
+  "loan_recommendation": {
+    "eligible": false,
+    "loan_range": {
+      "low": 0.0,
+      "high": 0.0
+    },
+    "suggested_tenure_months": 18,
+    "estimated_emi": 0.0,
+    "emi_to_income_ratio": 0.0
+  },
+  "fraud_detection": {
+    "fraud_score": 0.19,
+    "is_flagged": true,
+    "flags": [
+      "low_product_overlap: only 2/11 categories shared",
+      "low_product_overlap: only 0/11 categories shared",
+      "Mismatched image resolutions: images from different devices",
+      "Statistical outlier: footfall_score=0.04 is 4.4σ from urban mean (0.70±0.15)"
+    ],
+    "checks_performed": [
+      "image_consistency",
+      "gps_visual_mismatch",
+      "signal_cross_validation",
+      "statistical_outlier"
+    ]
+  },
+  "explanation": {
+    "risk_narrative": "The store demonstrates strong operational health with a maximum shelf density of 1.0 and a diverse inventory of approximately 366 SKUs, indicating a well-stocked mass-market offering. While located in an urban area with a high demand index (1.0) and no immediate competition, the very low footfall score (0.0385) suggests a reliance on a limited, captive customer base. Despite estimated monthly revenues reaching up to ₹305,000, the store is categorized as Medium risk due to a critical fraud flag. Consequently, lending is not recommended at this time until the fraud alert is thoroughly investigated and resolved.",
+    "summary": {
+      "strengths": [
+        "Well-stocked shelves (100%) indicate active inventory management",
+        "Favorable competitive position with manageable competition (100%)",
+        "Strong local demand (100%) indicates robust customer base"
+      ],
+      "concerns": [
+        "Fraud alert: low_product_overlap: only 2/11 categories shared",
+        "Fraud alert: low_product_overlap: only 0/11 categories shared",
+        "Weak footfall potential (4%) limits customer acquisition"
+      ],
+      "recommendation": "Hold for manual review — assessment flagged for potential inconsistencies requiring human verification"
+    }
+  }
+}

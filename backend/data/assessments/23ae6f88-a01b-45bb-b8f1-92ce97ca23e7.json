@@ -1,0 +1,79 @@
+{
+  "session_id": "23ae6f88-a01b-45bb-b8f1-92ce97ca23e7",
+  "assessment_id": "82064afa-59a6-4878-924d-aa8514f20e15",
+  "timestamp": "2026-04-14T11:03:26.681819",
+  "status": "completed",
+  "revenue_estimate": {
+    "monthly_low": 214400.0,
+    "monthly_high": 314300.0,
+    "confidence": 0.8195,
+    "methodology": "inventory_turnover_model"
+  },
+  "risk_assessment": {
+    "risk_band": "MEDIUM",
+    "risk_score": 0.4726,
+    "confidence": 0.8195
+  },
+  "cv_signals": {
+    "shelf_density": 1.0,
+    "sku_diversity_score": 0.4583,
+    "estimated_sku_count": 266,
+    "inventory_value_range": {
+      "low": 55185.0,
+      "high": 453750.0
+    },
+    "store_size_category": "medium",
+    "brand_tier_mix": "premium_dominant",
+    "consistency_score": 0.6989
+  },
+  "geo_signals": {
+    "area_type": "urban",
+    "footfall_score": 0.171,
+    "competition_count": 0,
+    "competition_score": 1.0,
+    "catchment_population": 7853,
+    "demand_index": 1.0
+  },
+  "loan_recommendation": {
+    "eligible": false,
+    "loan_range": {
+      "low": 0.0,
+      "high": 0.0
+    },
+    "suggested_tenure_months": 18,
+    "estimated_emi": 0.0,
+    "emi_to_income_ratio": 0.0
+  },
+  "fraud_detection": {
+    "fraud_score": 0.235,
+    "is_flagged": true,
+    "flags": [
+      "identical_image_quality: all images have nearly identical quality — unusual for real-world captures from different angles",
+      "perfect_organization_all_images: all images show well-organized store — unusual for typical kirana stores",
+      "Mismatched image resolutions: images from different devices",
+      "Statistical outlier: footfall_score=0.17 is 3.5σ from urban mean (0.70±0.15)"
+    ],
+    "checks_performed": [
+      "image_consistency",
+      "gps_visual_mismatch",
+      "signal_cross_validation",
+      "statistical_outlier"
+    ]
+  },
+  "explanation": {
+    "risk_narrative": "The store exhibits strong inventory management with a maximum shelf density (1.0) and a premium brand focus, although its low SKU diversity (0.4583) indicates a limited product variety. While the urban location is highly advantageous due to zero nearby competition and a peak demand index (1.0), the very low footfall score (0.171) presents a significant operational concern. Despite estimated monthly revenues reaching up to ₹314,300, the overall risk is categorized as Medium. Due to the presence of a fraud flag, we recommend withholding credit approval until a comprehensive manual audit is conducted to verify the store's legitimacy and reconcile the low footfall with the high demand.",
+    "summary": {
+      "strengths": [
+        "Well-stocked shelves (100%) indicate active inventory management",
+        "Favorable competitive position with manageable competition (100%)",
+        "Strong local demand (100%) indicates robust customer base"
+      ],
+      "concerns": [
+        "Fraud alert: identical_image_quality: all images have nearly identical quality — unusual for real-world captures from different angles",
+        "Fraud alert: perfect_organization_all_images: all images show well-organized store — unusual for typical kirana stores",
+        "Weak footfall potential (17%) limits customer acquisition"
+      ],
+      "recommendation": "Hold for manual review — assessment flagged for potential inconsistencies requiring human verification"
+    }
+  }
+}
