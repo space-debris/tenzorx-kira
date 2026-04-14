@@ -120,7 +120,7 @@ export default function Results() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+      <div className="flex flex-col items-center justify-center p-12 text-center mt-20">
         <div className="bg-indigo-100 p-4 rounded-full mb-6 relative">
           <div className="absolute inset-0 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
           <Store className="w-8 h-8 text-indigo-700" />
@@ -133,13 +133,13 @@ export default function Results() {
 
   if (error || !assessment) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+      <div className="flex flex-col items-center justify-center p-12 text-center mt-20">
         <div className="bg-red-100 p-4 rounded-full mb-6">
           <AlertCircle className="w-8 h-8 text-red-600" />
         </div>
         <h2 className="text-2xl font-bold text-slate-800 mb-2">Assessment Not Found</h2>
         <p className="text-slate-500 max-w-md mb-8">{error || "The session ID provided does not match any recent assessments."}</p>
-        <Link to="/assess" className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-indigo-700 transition">
+        <Link to="/app/tools/assessment" className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-indigo-700 transition">
           Start New Assessment
         </Link>
       </div>
@@ -154,35 +154,33 @@ export default function Results() {
   const recommendation = summaryData.recommendation || 'Review';
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-24">
+    <div className="text-slate-900 pb-24 animate-fade-in">
       {/* Header */}
-      <nav className="bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 text-indigo-700 font-bold text-xl hover:opacity-80 transition">
-            <ChevronLeft className="w-5 h-5" /> back
-          </Link>
-          
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleDownloadPdf}
-              disabled={isExporting}
-              className="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-4 py-1.5 rounded-lg text-sm font-bold transition-all disabled:opacity-50"
-            >
-              {isExporting ? (
-                <><div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div> Exporting...</>
-              ) : (
-                <><Download className="w-4 h-4" /> Export Document</>
-              )}
-            </button>
-            <div className="text-sm font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full font-mono hidden sm:block">
-              ID: {assessment.assessment_id?.split('-')[0].toUpperCase()}
-            </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <Link to="/app/tools/assessment" className="inline-flex items-center gap-2 text-slate-600 font-medium hover:text-indigo-700 transition py-1.5 rounded-lg">
+          <ChevronLeft className="w-5 h-5" /> Back to Assessment
+        </Link>
+        
+        <div className="flex items-center gap-4">
+          <button
+            onClick={handleDownloadPdf}
+            disabled={isExporting}
+            className="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-4 py-1.5 rounded-lg text-sm font-bold transition-all disabled:opacity-50"
+          >
+            {isExporting ? (
+              <><div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div> Exporting...</>
+            ) : (
+              <><Download className="w-4 h-4" /> Export Document</>
+            )}
+          </button>
+          <div className="text-sm font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full font-mono hidden sm:block">
+            ID: {assessment.assessment_id?.split('-')[0].toUpperCase()}
           </div>
         </div>
-      </nav>
+      </div>
 
-      <div ref={contentRef} className="print-content bg-slate-50">
-        <main id="report-content" className="max-w-6xl mx-auto px-6 mt-10 bg-slate-50">
+      <div ref={contentRef} className="print-content">
+        <div id="report-content" className="max-w-6xl mx-auto">
           
           <header className="mb-8 p-4">
           <h1 className="text-3xl font-extrabold text-slate-900 mb-2">KIRA Underwriting Report</h1>
@@ -292,9 +290,8 @@ export default function Results() {
             </div>
           </div>
         </div>
-
-        </main>
       </div>
+    </div>
     </div>
   );
 }

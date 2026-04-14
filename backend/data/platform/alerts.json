@@ -1,0 +1,14 @@
+[
+  {
+    "id": "71111111-1111-1111-1111-111111111111",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "62222222-2222-2222-2222-222222222222",
+    "kirana_id": "32222222-2222-2222-2222-222222222222",
+    "severity": "warning",
+    "status": "open",
+    "title": "Fresh statement upload pending",
+    "description": "Monitoring case has crossed the 15-day refresh mark.",
+    "created_at": "2026-04-13T00:16:33.674793",
+    "updated_at": "2026-04-13T00:16:33.674793"
+  }
+]

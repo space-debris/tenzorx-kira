@@ -1,0 +1,79 @@
+{
+  "session_id": "15cd2261-4606-456f-acc8-c1e06283a06e",
+  "assessment_id": "18c8593b-2cff-4ea9-90fc-c8a84846a4f9",
+  "timestamp": "2026-04-14T15:53:11.218457",
+  "status": "completed",
+  "revenue_estimate": {
+    "monthly_low": 111100.0,
+    "monthly_high": 156300.0,
+    "confidence": 0.7854,
+    "methodology": "inventory_turnover_model"
+  },
+  "risk_assessment": {
+    "risk_band": "HIGH",
+    "risk_score": 0.6805,
+    "confidence": 0.7854
+  },
+  "cv_signals": {
+    "shelf_density": 1.0,
+    "sku_diversity_score": 0.0,
+    "estimated_sku_count": 300,
+    "inventory_value_range": {
+      "low": 3192.0,
+      "high": 25536.0
+    },
+    "store_size_category": "small",
+    "brand_tier_mix": "value_dominant",
+    "consistency_score": 0.6261
+  },
+  "geo_signals": {
+    "area_type": "urban",
+    "footfall_score": 0.3604,
+    "competition_count": 7,
+    "competition_score": 1.0,
+    "catchment_population": 7853,
+    "demand_index": 0.1628
+  },
+  "loan_recommendation": {
+    "eligible": false,
+    "loan_range": {
+      "low": 0.0,
+      "high": 0.0
+    },
+    "suggested_tenure_months": 18,
+    "estimated_emi": 0.0,
+    "emi_to_income_ratio": 0.0
+  },
+  "fraud_detection": {
+    "fraud_score": 0.335,
+    "is_flagged": true,
+    "flags": [
+      "low_product_overlap: only 0/6 categories shared",
+      "store_size_mismatch: small vs large",
+      "Mismatched image resolutions: images from different devices",
+      "Cross-validation: overstocked shelves in low-demand area (shelf=1.00, demand=0.16)",
+      "Statistical outlier: sku_diversity_score=0.00 is 3.3σ from urban mean (0.60±0.18)"
+    ],
+    "checks_performed": [
+      "image_consistency",
+      "gps_visual_mismatch",
+      "signal_cross_validation",
+      "statistical_outlier"
+    ]
+  },
+  "explanation": {
+    "risk_narrative": "The store exhibits high shelf density (1.0) but suffers from critically low SKU diversity (0.0) and a limited inventory value peaking at ₹25,536, indicating a lack of product variety and depth. Despite its urban location, the business faces significant headwinds due to a very low demand index (0.16) and intense local competition from seven nearby stores. These operational weaknesses, coupled with a \"High\" risk band and a triggered fraud flag, suggest significant instability in the store's financial health. Consequently, lending is not recommended at this time due to the combination of poor market demand and high fraud risk.",
+    "summary": {
+      "strengths": [
+        "Well-stocked shelves (100%) indicate active inventory management",
+        "Favorable competitive position with manageable competition (100%)"
+      ],
+      "concerns": [
+        "Limited product range (0%) restricts revenue potential",
+        "Fraud alert: low_product_overlap: only 0/6 categories shared",
+        "Fraud alert: store_size_mismatch: small vs large"
+      ],
+      "recommendation": "Hold for manual review — assessment flagged for potential inconsistencies requiring human verification"
+    }
+  }
+}

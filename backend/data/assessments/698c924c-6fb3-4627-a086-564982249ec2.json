@@ -1,0 +1,80 @@
+{
+  "session_id": "698c924c-6fb3-4627-a086-564982249ec2",
+  "assessment_id": "2328fa6d-a542-4c03-aba6-ffe6e69a4695",
+  "timestamp": "2026-04-14T08:41:52.171413",
+  "status": "completed",
+  "revenue_estimate": {
+    "monthly_low": 203800.0,
+    "monthly_high": 289500.0,
+    "confidence": 0.88,
+    "methodology": "inventory_turnover_model"
+  },
+  "risk_assessment": {
+    "risk_band": "MEDIUM",
+    "risk_score": 0.512,
+    "confidence": 0.88
+  },
+  "cv_signals": {
+    "shelf_density": 0.95,
+    "sku_diversity_score": 0.7083,
+    "estimated_sku_count": 316,
+    "inventory_value_range": {
+      "low": 7960.0,
+      "high": 56200.0
+    },
+    "store_size_category": "small",
+    "brand_tier_mix": "mass_dominant",
+    "consistency_score": 0.7009
+  },
+  "geo_signals": {
+    "area_type": "urban",
+    "footfall_score": 0.0385,
+    "competition_count": 0,
+    "competition_score": 1.0,
+    "catchment_population": 7853,
+    "demand_index": 1.0
+  },
+  "loan_recommendation": {
+    "eligible": false,
+    "loan_range": {
+      "low": 0.0,
+      "high": 0.0
+    },
+    "suggested_tenure_months": 18,
+    "estimated_emi": 0.0,
+    "emi_to_income_ratio": 0.0
+  },
+  "fraud_detection": {
+    "fraud_score": 0.22,
+    "is_flagged": true,
+    "flags": [
+      "brand_tier_mismatch: mixed vs mass_dominant",
+      "low_product_overlap: only 1/11 categories shared",
+      "low_product_overlap: only 1/10 categories shared",
+      "Mismatched image resolutions: images from different devices",
+      "Statistical outlier: footfall_score=0.04 is 4.4σ from urban mean (0.70±0.15)"
+    ],
+    "checks_performed": [
+      "image_consistency",
+      "gps_visual_mismatch",
+      "signal_cross_validation",
+      "statistical_outlier"
+    ]
+  },
+  "explanation": {
+    "risk_narrative": "The store demonstrates strong operational health with high shelf density (0.95) and a diverse SKU range (0.7083), indicating a well-stocked inventory tailored to mass-market demand. While the urban location benefits from a maximum demand index (1.0) and a lack of immediate competition, the very low footfall score (0.0385) suggests limited spontaneous customer traffic. Despite healthy estimated monthly revenues of up to ₹289,500, the overall risk is categorized as Medium due to a critical fraud flag. Consequently, lending is not recommended at this time until the fraud alert is thoroughly investigated and resolved.",
+    "summary": {
+      "strengths": [
+        "Favorable competitive position with manageable competition (100%)",
+        "Strong local demand (100%) indicates robust customer base",
+        "Well-stocked shelves (95%) indicate active inventory management"
+      ],
+      "concerns": [
+        "Fraud alert: brand_tier_mismatch: mixed vs mass_dominant",
+        "Fraud alert: low_product_overlap: only 1/11 categories shared",
+        "Weak footfall potential (4%) limits customer acquisition"
+      ],
+      "recommendation": "Hold for manual review — assessment flagged for potential inconsistencies requiring human verification"
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "session_id": "77c217b3-26f0-4886-b0d6-de6b38a803f7",
+  "assessment_id": "10d19e9d-08f4-4daf-bc5c-6a5dc5672351",
+  "timestamp": "2026-04-14T08:04:14.293091",
+  "status": "completed",
+  "revenue_estimate": {
+    "monthly_low": 98600.0,
+    "monthly_high": 127300.0,
+    "confidence": 0.6794,
+    "methodology": "inventory_turnover_model"
+  },
+  "risk_assessment": {
+    "risk_band": "HIGH",
+    "risk_score": 0.7791,
+    "confidence": 0.6794
+  },
+  "cv_signals": {
+    "shelf_density": 0.4273,
+    "sku_diversity_score": 0.0,
+    "estimated_sku_count": 100,
+    "inventory_value_range": {
+      "low": 0.0,
+      "high": 0.0
+    },
+    "store_size_category": "medium",
+    "brand_tier_mix": "mixed",
+    "consistency_score": 0.4
+  },
+  "geo_signals": {
+    "area_type": "urban",
+    "footfall_score": 0.171,
+    "competition_count": 0,
+    "competition_score": 1.0,
+    "catchment_population": 7853,
+    "demand_index": 1.0
+  },
+  "loan_recommendation": {
+    "eligible": false,
+    "loan_range": {
+      "low": 0.0,
+      "high": 0.0
+    },
+    "suggested_tenure_months": 18,
+    "estimated_emi": 0.0,
+    "emi_to_income_ratio": 0.0
+  },
+  "fraud_detection": {
+    "fraud_score": 0.34,
+    "is_flagged": true,
+    "flags": [
+      "Low image consistency (0.40): possible mismatched or reused images",
+      "possible_stock_photo: 1 image(s) with unusually high quality score (>0.95)",
+      "Mismatched image resolutions: images from different devices",
+      "Statistical outlier: sku_diversity_score=0.00 is 3.3σ from urban mean (0.60±0.18)",
+      "Statistical outlier: footfall_score=0.17 is 3.5σ from urban mean (0.70±0.15)"
+    ],
+    "checks_performed": [
+      "image_consistency",
+      "gps_visual_mismatch",
+      "signal_cross_validation",
+      "statistical_outlier"
+    ]
+  },
+  "explanation": {
+    "risk_narrative": "The store exhibits poor operational health, characterized by low shelf density (0.4273) and a critical lack of inventory diversity (0.0 SKU score), suggesting the business is severely understocked. While the urban location benefits from a high demand index (1.0) and a lack of immediate competition, the store is failing to capture this market, as evidenced by a very low footfall score of 0.171. The overall risk profile is categorized as HIGH, further compromised by a fraud flag and inconsistent visual data. Consequently, lending is not recommended due to the combination of negligible inventory value and significant red flags regarding the store's legitimacy.",
+    "summary": {
+      "strengths": [
+        "Favorable competitive position with manageable competition (100%)",
+        "Strong local demand (100%) indicates robust customer base"
+      ],
+      "concerns": [
+        "Limited product range (0%) restricts revenue potential",
+        "Low inventory investment raises concerns about business viability",
+        "Fraud alert: Low image consistency (0.40): possible mismatched or reused images"
+      ],
+      "recommendation": "Hold for manual review — assessment flagged for potential inconsistencies requiring human verification"
+    }
+  }
+}

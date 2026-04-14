@@ -18,6 +18,7 @@ Economic Significance:
 from __future__ import annotations
 
 import logging
+import re
 from typing import Any
 
 logger = logging.getLogger("kira.cv.sku_diversity")
@@ -114,6 +115,32 @@ CATEGORY_KEYWORDS = {
     ],
 }
 
+# Common LLM-generated labels that should map to our standard categories.
+CATEGORY_ALIASES = {
+    "staples": "fmcg_staples",
+    "grocery_staples": "fmcg_staples",
+    "cooking_essentials": "fmcg_staples",
+    "daily_essentials": "fmcg_staples",
+    "packaged_food": "fmcg_packaged",
+    "packaged_foods": "fmcg_packaged",
+    "processed_food": "fmcg_packaged",
+    "processed_foods": "fmcg_packaged",
+    "soft_drinks": "beverages",
+    "cold_drinks": "beverages",
+    "dairy_products": "dairy",
+    "personal_hygiene": "personal_care",
+    "toiletries": "personal_care",
+    "household_essentials": "household",
+    "cleaning_supplies": "household",
+    "home_care": "household",
+    "confectionery": "snacks",
+    "biscuits_and_confectionery": "snacks",
+    "medicines": "pharma_otc",
+    "otc_medicines": "pharma_otc",
+    "baby_products": "baby_care",
+    "frozen_foods": "frozen_processed",
+}
+
 # SKU depth benchmarks (average SKUs per category for a typical kirana)
 SKU_DEPTH_BENCHMARKS = {
     "low": 5,      # < 5 SKUs per category
@@ -168,6 +195,26 @@ def compute_sku_diversity(
     # Step 1: Map detected categories to standard PRODUCT_CATEGORIES
     standard_categories = _map_to_standard_categories(detected_categories)
     category_count = len(standard_categories)
+
+    if category_count == 0 and detected_categories:
+        fallback_category_count = min(
+            len(
+                {
+                    _normalize_label(str(category))
+                    for category in detected_categories
+                    if str(category).strip()
+                }
+            ),
+            MAX_CATEGORIES,
+        )
+        if fallback_category_count > 0:
+            logger.warning(
+                "SKU category mapping found no standard matches for %s; "
+                "using fallback raw-category count=%s",
+                detected_categories,
+                fallback_category_count,
+            )
+            category_count = fallback_category_count
 
     # Step 2: Compute category coverage (breadth)
     category_coverage = min(category_count / MAX_CATEGORIES, 1.0)
@@ -227,11 +274,20 @@ def _map_to_standard_categories(
     matched_categories: set[str] = set()
 
     for raw_category in detected_categories:
-        raw_lower = raw_category.lower().strip()
+        if raw_category is None:
+            continue
+
+        raw_lower = str(raw_category).lower().strip()
+        raw_normalized = _normalize_label(raw_lower)
 
         # Direct match check first
-        if raw_lower in PRODUCT_CATEGORIES:
-            matched_categories.add(raw_lower)
+        if raw_normalized in PRODUCT_CATEGORIES:
+            matched_categories.add(raw_normalized)
+            continue
+
+        alias_match = CATEGORY_ALIASES.get(raw_normalized)
+        if alias_match:
+            matched_categories.add(alias_match)
             continue
 
         # Fuzzy keyword matching
@@ -241,7 +297,11 @@ def _map_to_standard_categories(
         for standard_cat, keywords in CATEGORY_KEYWORDS.items():
             match_count = 0
             for keyword in keywords:
-                if keyword in raw_lower or raw_lower in keyword:
+                keyword_normalized = _normalize_label(keyword)
+                if (
+                    keyword_normalized in raw_normalized
+                    or raw_normalized in keyword_normalized
+                ):
                     match_count += 1
             if match_count > best_match_count:
                 best_match_count = match_count
@@ -249,22 +309,39 @@ def _map_to_standard_categories(
 
         if best_match and best_match_count > 0:
             matched_categories.add(best_match)
-        else:
-            # Try partial word matching as fallback
-            for standard_cat, keywords in CATEGORY_KEYWORDS.items():
-                for keyword in keywords:
-                    # Check if any word in raw category matches a keyword
-                    raw_words = raw_lower.split()
-                    for word in raw_words:
-                        if len(word) >= 3 and (word in keyword or keyword in word):
-                            matched_categories.add(standard_cat)
-                            break
+            continue
+
+        # Try partial token matching as fallback for broader category labels.
+        raw_words = [
+            word for word in re.split(r"[_\s/,&+-]+", raw_normalized) if word
+        ]
+        for standard_cat, keywords in CATEGORY_KEYWORDS.items():
+            found_match = False
+            for keyword in keywords:
+                keyword_normalized = _normalize_label(keyword)
+                for word in raw_words:
+                    if len(word) >= 3 and (
+                        word in keyword_normalized or keyword_normalized in word
+                    ):
+                        matched_categories.add(standard_cat)
+                        found_match = True
+                        break
+                if found_match:
+                    break
+            if found_match:
+                break
 
     logger.debug(
         f"Category mapping: {detected_categories} → {list(matched_categories)}"
     )
 
     return list(matched_categories)
+
+
+def _normalize_label(value: str) -> str:
+    """Normalize free-text labels before matching."""
+    normalized = re.sub(r"[^a-z0-9]+", "_", value.lower().strip())
+    return normalized.strip("_")
 
 
 def _score_category_depth(

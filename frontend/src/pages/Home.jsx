@@ -20,14 +20,17 @@ export default function Home() {
           <Store className="w-8 h-8" />
           KIRA
         </div>
-        <div className="hidden sm:flex gap-6 text-sm font-medium text-slate-600">
+        <div className="hidden sm:flex gap-6 items-center text-sm font-medium text-slate-600">
           <a href="#how-it-works" className="hover:text-indigo-600 transition-colors">How it works</a>
           <a href="#stats" className="hover:text-indigo-600 transition-colors">Impact</a>
+          <Link to="/login" className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold transition-all shadow-sm">
+            Lender Portal
+          </Link>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <main className="max-w-6xl mx-auto px-6 py-20 pb-24 text-center">
+      <main className="max-w-6xl mx-auto px-6 py-20 text-center">
         <h1 className="text-5xl md:text-6xl font-extrabold text-slate-900 mb-6 tracking-tight leading-tight">
           Remote Cash Flow Underwriting <br className="hidden md:block" />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
@@ -39,7 +42,7 @@ export default function Home() {
           No GST, no bank statements, no credit history required.
         </p>
         <Link 
-          to="/assess" 
+          to="/app/tools/assessment" 
           className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
         >
           <Activity className="w-5 h-5" />

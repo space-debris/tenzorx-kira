@@ -55,4 +55,7 @@ htmlcov/
 .mypy_cache/
 
 # Assessment data (runtime persistence)
-backend/data/
+
+# Graphify
+graphify-out/
+
