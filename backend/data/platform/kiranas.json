@@ -156,5 +156,41 @@
     },
     "created_at": "2026-04-14T15:48:50.193493",
     "updated_at": "2026-04-14T16:21:13.744094"
+  },
+  {
+    "id": "11127741-d439-4ad4-bafd-905da3fe9c81",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "shastri stores",
+    "owner_name": "rishabh shastri",
+    "owner_mobile": "987654321",
+    "location": {
+      "state": "Delhi",
+      "district": "east",
+      "pin_code": "110095",
+      "locality": null
+    },
+    "metadata": {},
+    "created_at": "2026-04-15T07:40:14.161832",
+    "updated_at": "2026-04-15T07:40:14.161832"
+  },
+  {
+    "id": "f35c523b-1166-4e81-b5b2-e3be537117b6",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "All needs the supermarket",
+    "owner_name": "rishabh shastri",
+    "owner_mobile": "987654321",
+    "location": {
+      "state": "Unknown",
+      "district": "Delhi",
+      "pin_code": "000000",
+      "locality": "Saini Enclave"
+    },
+    "metadata": {
+      "shop_size": "large",
+      "rent": 0.0,
+      "years_in_operation": 8.0
+    },
+    "created_at": "2026-04-15T07:57:00.999274",
+    "updated_at": "2026-04-15T07:57:00.999274"
   }
 ]

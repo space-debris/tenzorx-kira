@@ -1,0 +1,61 @@
+{
+  "session_id": "6badde29-8bf2-4267-9166-2bd20b8117ac",
+  "assessment_id": "ebd6a8cd-5f95-466d-8d9b-4168ab345223",
+  "timestamp": "2026-04-13T09:19:50.103759",
+  "status": "completed",
+  "revenue_estimate": {
+    "monthly_low": 100000.0,
+    "monthly_high": 150000.0,
+    "confidence": 0.5,
+    "methodology": "inventory_turnover_model"
+  },
+  "risk_assessment": {
+    "risk_band": "MEDIUM",
+    "risk_score": 0.5,
+    "confidence": 0.5
+  },
+  "cv_signals": {
+    "shelf_density": 0.4273,
+    "sku_diversity_score": 0.0,
+    "estimated_sku_count": 50,
+    "inventory_value_range": {
+      "low": 0.0,
+      "high": 0.0
+    },
+    "store_size_category": "medium",
+    "brand_tier_mix": "mixed",
+    "consistency_score": 0.5
+  },
+  "geo_signals": {
+    "area_type": "semi_urban",
+    "footfall_score": 0.5,
+    "competition_count": 1,
+    "competition_score": 0.5,
+    "catchment_population": 5000,
+    "demand_index": 0.5
+  },
+  "loan_recommendation": {
+    "eligible": true,
+    "loan_range": {
+      "low": 10000.0,
+      "high": 20000.0
+    },
+    "suggested_tenure_months": 18,
+    "estimated_emi": 1000.0,
+    "emi_to_income_ratio": 0.1
+  },
+  "fraud_detection": {
+    "fraud_score": 0.1,
+    "is_flagged": false,
+    "flags": [],
+    "checks_performed": []
+  },
+  "explanation": {
+    "risk_narrative": "ok narrative that is long enough to pass validation.",
+    "summary": {
+      "strengths": [],
+      "concerns": [],
+      "recommendation": "Review"
+    }
+  }
+}

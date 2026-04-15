@@ -14,6 +14,15 @@
       "low": 90000.0,
       "high": 180000.0
     },
+    "recommended_amount": null,
+    "suggested_tenure_months": null,
+    "estimated_emi": null,
+    "emi_to_income_ratio": null,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null,
+    "explanation_summary": null,
+    "decision_pack": null,
     "eligible": true,
     "fraud_flagged": false
   },
@@ -32,6 +41,15 @@
       "low": 120000.0,
       "high": 220000.0
     },
+    "recommended_amount": null,
+    "suggested_tenure_months": null,
+    "estimated_emi": null,
+    "emi_to_income_ratio": null,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null,
+    "explanation_summary": null,
+    "decision_pack": null,
     "eligible": true,
     "fraud_flagged": false
   },
@@ -50,6 +68,15 @@
       "low": 40000.0,
       "high": 80000.0
     },
+    "recommended_amount": null,
+    "suggested_tenure_months": null,
+    "estimated_emi": null,
+    "emi_to_income_ratio": null,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null,
+    "explanation_summary": null,
+    "decision_pack": null,
     "eligible": true,
     "fraud_flagged": true
   },
@@ -68,6 +95,15 @@
       "low": 0.0,
       "high": 0.0
     },
+    "recommended_amount": null,
+    "suggested_tenure_months": null,
+    "estimated_emi": null,
+    "emi_to_income_ratio": null,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null,
+    "explanation_summary": null,
+    "decision_pack": null,
     "eligible": false,
     "fraud_flagged": true
   },
@@ -86,6 +122,15 @@
       "low": 0.0,
       "high": 0.0
     },
+    "recommended_amount": null,
+    "suggested_tenure_months": null,
+    "estimated_emi": null,
+    "emi_to_income_ratio": null,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null,
+    "explanation_summary": null,
+    "decision_pack": null,
     "eligible": false,
     "fraud_flagged": true
   },
@@ -104,6 +149,15 @@
       "low": 0.0,
       "high": 0.0
     },
+    "recommended_amount": null,
+    "suggested_tenure_months": null,
+    "estimated_emi": null,
+    "emi_to_income_ratio": null,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null,
+    "explanation_summary": null,
+    "decision_pack": null,
     "eligible": false,
     "fraud_flagged": true
   },
@@ -122,6 +176,15 @@
       "low": 0.0,
       "high": 0.0
     },
+    "recommended_amount": null,
+    "suggested_tenure_months": null,
+    "estimated_emi": null,
+    "emi_to_income_ratio": null,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null,
+    "explanation_summary": null,
+    "decision_pack": null,
     "eligible": false,
     "fraud_flagged": true
   },
@@ -140,6 +203,15 @@
       "low": 0.0,
       "high": 0.0
     },
+    "recommended_amount": null,
+    "suggested_tenure_months": null,
+    "estimated_emi": null,
+    "emi_to_income_ratio": null,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null,
+    "explanation_summary": null,
+    "decision_pack": null,
     "eligible": false,
     "fraud_flagged": true
   },
@@ -158,6 +230,15 @@
       "low": 0.0,
       "high": 0.0
     },
+    "recommended_amount": null,
+    "suggested_tenure_months": null,
+    "estimated_emi": null,
+    "emi_to_income_ratio": null,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null,
+    "explanation_summary": null,
+    "decision_pack": null,
     "eligible": false,
     "fraud_flagged": true
   },
@@ -176,6 +257,15 @@
       "low": 0.0,
       "high": 0.0
     },
+    "recommended_amount": null,
+    "suggested_tenure_months": null,
+    "estimated_emi": null,
+    "emi_to_income_ratio": null,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null,
+    "explanation_summary": null,
+    "decision_pack": null,
     "eligible": false,
     "fraud_flagged": true
   },
@@ -194,6 +284,15 @@
       "low": 0.0,
       "high": 0.0
     },
+    "recommended_amount": null,
+    "suggested_tenure_months": null,
+    "estimated_emi": null,
+    "emi_to_income_ratio": null,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null,
+    "explanation_summary": null,
+    "decision_pack": null,
     "eligible": false,
     "fraud_flagged": true
   },
@@ -212,6 +311,15 @@
       "low": 0.0,
       "high": 0.0
     },
+    "recommended_amount": null,
+    "suggested_tenure_months": null,
+    "estimated_emi": null,
+    "emi_to_income_ratio": null,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null,
+    "explanation_summary": null,
+    "decision_pack": null,
     "eligible": false,
     "fraud_flagged": true
   },
@@ -230,6 +338,15 @@
       "low": 0.0,
       "high": 0.0
     },
+    "recommended_amount": null,
+    "suggested_tenure_months": null,
+    "estimated_emi": null,
+    "emi_to_income_ratio": null,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null,
+    "explanation_summary": null,
+    "decision_pack": null,
     "eligible": false,
     "fraud_flagged": true
   },
@@ -248,6 +365,15 @@
       "low": 0.0,
       "high": 0.0
     },
+    "recommended_amount": null,
+    "suggested_tenure_months": null,
+    "estimated_emi": null,
+    "emi_to_income_ratio": null,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null,
+    "explanation_summary": null,
+    "decision_pack": null,
     "eligible": false,
     "fraud_flagged": true
   },
@@ -266,6 +392,15 @@
       "low": 0.0,
       "high": 0.0
     },
+    "recommended_amount": null,
+    "suggested_tenure_months": null,
+    "estimated_emi": null,
+    "emi_to_income_ratio": null,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null,
+    "explanation_summary": null,
+    "decision_pack": null,
     "eligible": false,
     "fraud_flagged": true
   },
@@ -284,7 +419,60 @@
       "low": 153000.0,
       "high": 255000.0
     },
+    "recommended_amount": null,
+    "suggested_tenure_months": null,
+    "estimated_emi": null,
+    "emi_to_income_ratio": null,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null,
+    "explanation_summary": null,
+    "decision_pack": null,
     "eligible": true,
     "fraud_flagged": false
+  },
+  {
+    "session_id": "d9350359-acae-456d-a5ec-5eda02e67348",
+    "assessment_id": "ae894f42-b9bf-4168-9b06-a21b9e65cfa1",
+    "completed_at": "2026-04-15T07:57:00.908526",
+    "status": "completed",
+    "risk_band": "MEDIUM",
+    "risk_score": 0.4648,
+    "revenue_range": {
+      "low": 216500.0,
+      "high": 319200.0
+    },
+    "loan_range": {
+      "low": 0.0,
+      "high": 0.0
+    },
+    "recommended_amount": null,
+    "suggested_tenure_months": 18,
+    "estimated_emi": 0.0,
+    "emi_to_income_ratio": 0.0,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null,
+    "explanation_summary": {
+      "strengths": [
+        "Well-stocked shelves (100%) indicate active inventory management",
+        "Favorable competitive position with manageable competition (100%)",
+        "Strong local demand (78%) indicates robust customer base"
+      ],
+      "concerns": [
+        "Fraud alert: Low image consistency (0.51): possible mismatched or reused images",
+        "Fraud alert: low_product_overlap: only 0/9 categories shared",
+        "Weak footfall potential (4%) limits customer acquisition"
+      ],
+      "recommendation": "Hold for manual review \u2014 assessment flagged for potential inconsistencies requiring human verification"
+    },
+    "decision_pack": {
+      "amount_rationale": "No lendable amount is recommended because the current assessment does not clear the eligibility checks for a MEDIUM risk posture.",
+      "tenure_rationale": "Tenure remains advisory only until the assessment clears manual review and policy checks.",
+      "repayment_rationale": "Repayment cadence is not activated for lending. Key concerns: Fraud alert: Low image consistency (0.51): possible mismatched or reused images; Fraud alert: low_product_overlap: only 0/9 categories shared.",
+      "pricing_rationale": "Pricing guidance is withheld because the case is not currently eligible for a standard offer."
+    },
+    "eligible": false,
+    "fraud_flagged": true
   }
 ]

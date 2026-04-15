@@ -1,0 +1,67 @@
+{
+  "session_id": "f6b633fa-c569-432f-abec-52ad2196532b",
+  "assessment_id": "5396913a-f08c-43ac-beab-67db5e340344",
+  "timestamp": "2026-04-13T09:13:23.763814",
+  "status": "completed",
+  "revenue_estimate": {
+    "monthly_low": 150000.0,
+    "monthly_high": 250000.0,
+    "confidence": 0.72,
+    "methodology": "inventory_turnover_model"
+  },
+  "risk_assessment": {
+    "risk_band": "MEDIUM",
+    "risk_score": 0.42,
+    "confidence": 0.72
+  },
+  "cv_signals": {
+    "shelf_density": 0.7168,
+    "sku_diversity_score": 0.4167,
+    "estimated_sku_count": 100,
+    "inventory_value_range": {
+      "low": 5845.0,
+      "high": 28460.0
+    },
+    "store_size_category": "medium",
+    "brand_tier_mix": "mass_dominant",
+    "consistency_score": 0.8
+  },
+  "geo_signals": {
+    "area_type": "semi_urban",
+    "footfall_score": 0.6,
+    "competition_count": 4,
+    "competition_score": 0.55,
+    "catchment_population": 12000,
+    "demand_index": 0.58
+  },
+  "loan_recommendation": {
+    "eligible": true,
+    "loan_range": {
+      "low": 100000.0,
+      "high": 220000.0
+    },
+    "suggested_tenure_months": 18,
+    "estimated_emi": 6500.0,
+    "emi_to_income_ratio": 0.15
+  },
+  "fraud_detection": {
+    "fraud_score": 0.12,
+    "is_flagged": false,
+    "flags": [],
+    "checks_performed": [
+      "image_consistency"
+    ]
+  },
+  "explanation": {
+    "risk_narrative": "Synthetic narrative.",
+    "summary": {
+      "strengths": [
+        "Strong shelves"
+      ],
+      "concerns": [
+        "Moderate competition"
+      ],
+      "recommendation": "Approve with standard terms"
+    }
+  }
+}

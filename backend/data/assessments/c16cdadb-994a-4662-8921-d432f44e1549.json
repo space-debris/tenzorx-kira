@@ -1,0 +1,80 @@
+{
+  "session_id": "c16cdadb-994a-4662-8921-d432f44e1549",
+  "assessment_id": "92bf3d47-c65d-4722-91d4-8801b27a2fec",
+  "timestamp": "2026-04-13T10:56:31.585898",
+  "status": "completed",
+  "revenue_estimate": {
+    "monthly_low": 117000.0,
+    "monthly_high": 170200.0,
+    "confidence": 0.7686,
+    "methodology": "inventory_turnover_model"
+  },
+  "risk_assessment": {
+    "risk_band": "HIGH",
+    "risk_score": 0.6332,
+    "confidence": 0.7686
+  },
+  "cv_signals": {
+    "shelf_density": 0.9,
+    "sku_diversity_score": 0.65,
+    "estimated_sku_count": 800,
+    "inventory_value_range": {
+      "low": 7835.0,
+      "high": 57680.0
+    },
+    "store_size_category": "small",
+    "brand_tier_mix": "mass_dominant",
+    "consistency_score": 0.5494
+  },
+  "geo_signals": {
+    "area_type": "urban",
+    "footfall_score": 0.0385,
+    "competition_count": 13,
+    "competition_score": 0.7778,
+    "catchment_population": 7853,
+    "demand_index": 0.0752
+  },
+  "loan_recommendation": {
+    "eligible": false,
+    "loan_range": {
+      "low": 0.0,
+      "high": 0.0
+    },
+    "suggested_tenure_months": 18,
+    "estimated_emi": 0.0,
+    "emi_to_income_ratio": 0.0
+  },
+  "fraud_detection": {
+    "fraud_score": 0.41,
+    "is_flagged": true,
+    "flags": [
+      "Low image consistency (0.55): possible mismatched or reused images",
+      "low_product_overlap: only 0/7 categories shared",
+      "image_quality_mismatch: 0.60 vs 0.90",
+      "Mismatched image resolutions: images from different devices",
+      "Cross-validation: overstocked shelves in low-demand area (shelf=0.90, demand=0.08)",
+      "Statistical outlier: footfall_score=0.04 is 4.4σ from urban mean (0.70±0.15)"
+    ],
+    "checks_performed": [
+      "image_consistency",
+      "gps_visual_mismatch",
+      "signal_cross_validation",
+      "statistical_outlier"
+    ]
+  },
+  "explanation": {
+    "risk_narrative": "The store exhibits strong shelf density (0.9) and a mass-dominant brand mix, suggesting a well-stocked inventory tailored for a budget-conscious customer base. Despite this, the location is poorly positioned, characterized by a very low footfall score (0.0385) and intense competition from 13 nearby stores within a small catchment area. These location disadvantages, coupled with a HIGH risk band and an active fraud flag, significantly undermine the reliability of the estimated monthly revenue (₹117,000 - ₹170,200). Consequently, lending is not recommended due to the combination of poor demand signals and critical integrity concerns.",
+    "summary": {
+      "strengths": [
+        "Well-stocked shelves (90%) indicate active inventory management",
+        "Favorable competitive position with manageable competition (78%)"
+      ],
+      "concerns": [
+        "Fraud alert: Low image consistency (0.55): possible mismatched or reused images",
+        "Fraud alert: low_product_overlap: only 0/7 categories shared",
+        "Weak footfall potential (4%) limits customer acquisition"
+      ],
+      "recommendation": "Hold for manual review — assessment flagged for potential inconsistencies requiring human verification"
+    }
+  }
+}

@@ -33,9 +33,12 @@ from models.platform_schema import (
     KiranaLocation,
     KiranaProfile,
     LenderOrg,
+    LoanAccount,
+    MonitoringRun,
     PlatformSnapshot,
     PlatformUser,
     RiskAlert,
+    StatementUpload,
     UnderwritingDecision,
     UserRole,
 )
@@ -66,6 +69,9 @@ class PlatformRepository:
             "assessment_summaries": self._data_dir / "assessment_summaries.json",
             "document_bundles": self._data_dir / "document_bundles.json",
             "underwriting_decisions": self._data_dir / "underwriting_decisions.json",
+            "loan_accounts": self._data_dir / "loan_accounts.json",
+            "statement_uploads": self._data_dir / "statement_uploads.json",
+            "monitoring_runs": self._data_dir / "monitoring_runs.json",
         }
 
         self.organizations = self._load_collection("organizations", LenderOrg, "id")
@@ -87,6 +93,21 @@ class PlatformRepository:
         self.underwriting_decisions = self._load_collection(
             "underwriting_decisions",
             UnderwritingDecision,
+            "id",
+        )
+        self.loan_accounts = self._load_collection(
+            "loan_accounts",
+            LoanAccount,
+            "id",
+        )
+        self.statement_uploads = self._load_collection(
+            "statement_uploads",
+            StatementUpload,
+            "id",
+        )
+        self.monitoring_runs = self._load_collection(
+            "monitoring_runs",
+            MonitoringRun,
             "id",
         )
 
@@ -135,6 +156,9 @@ class PlatformRepository:
         self._save_collection("assessment_summaries", self.assessment_summaries)
         self._save_collection("document_bundles", self.document_bundles)
         self._save_collection("underwriting_decisions", self.underwriting_decisions)
+        self._save_collection("loan_accounts", self.loan_accounts)
+        self._save_collection("statement_uploads", self.statement_uploads)
+        self._save_collection("monitoring_runs", self.monitoring_runs)
 
     def _seed_demo_data_if_empty(self) -> None:
         if self.organizations:
@@ -427,6 +451,12 @@ class PlatformRepository:
             alerts = [alert for alert in alerts if alert.kirana_id == kirana_id]
         return sorted(alerts, key=lambda item: item.created_at, reverse=True)
 
+    def create_alert(self, alert: RiskAlert) -> RiskAlert:
+        """Create a new risk alert."""
+        self.alerts[str(alert.id)] = alert
+        self._save_collection("alerts", self.alerts)
+        return alert
+
     def list_document_bundles(
         self,
         org_id: uuid.UUID | None = None,
@@ -489,6 +519,85 @@ class PlatformRepository:
         if entity_id is not None:
             events = [event for event in events if event.entity_id == entity_id]
         return sorted(events, key=lambda item: item.created_at, reverse=True)
+
+    # ------------------------------------------------------------------
+    # Phase 11 — Loan Accounts
+    # ------------------------------------------------------------------
+
+    def create_loan_account(self, loan: LoanAccount) -> LoanAccount:
+        self.loan_accounts[str(loan.id)] = loan
+        self._save_collection("loan_accounts", self.loan_accounts)
+        return loan
+
+    def update_loan_account(self, loan: LoanAccount) -> LoanAccount:
+        self.loan_accounts[str(loan.id)] = loan
+        self._save_collection("loan_accounts", self.loan_accounts)
+        return loan
+
+    def get_loan_account(self, loan_id: uuid.UUID) -> LoanAccount | None:
+        return self.loan_accounts.get(str(loan_id))
+
+    def list_loan_accounts(
+        self,
+        org_id: uuid.UUID | None = None,
+        case_id: uuid.UUID | None = None,
+        kirana_id: uuid.UUID | None = None,
+    ) -> list[LoanAccount]:
+        loans = list(self.loan_accounts.values())
+        if org_id is not None:
+            loans = [l for l in loans if l.org_id == org_id]
+        if case_id is not None:
+            loans = [l for l in loans if l.case_id == case_id]
+        if kirana_id is not None:
+            loans = [l for l in loans if l.kirana_id == kirana_id]
+        return sorted(loans, key=lambda item: item.created_at, reverse=True)
+
+    # ------------------------------------------------------------------
+    # Phase 11 — Statement Uploads
+    # ------------------------------------------------------------------
+
+    def create_statement_upload(self, upload: StatementUpload) -> StatementUpload:
+        self.statement_uploads[str(upload.id)] = upload
+        self._save_collection("statement_uploads", self.statement_uploads)
+        return upload
+
+    def update_statement_upload(self, upload: StatementUpload) -> StatementUpload:
+        self.statement_uploads[str(upload.id)] = upload
+        self._save_collection("statement_uploads", self.statement_uploads)
+        return upload
+
+    def list_statement_uploads(
+        self,
+        loan_id: uuid.UUID | None = None,
+        case_id: uuid.UUID | None = None,
+    ) -> list[StatementUpload]:
+        uploads = list(self.statement_uploads.values())
+        if loan_id is not None:
+            uploads = [u for u in uploads if u.loan_id == loan_id]
+        if case_id is not None:
+            uploads = [u for u in uploads if u.case_id == case_id]
+        return sorted(uploads, key=lambda item: item.created_at, reverse=True)
+
+    # ------------------------------------------------------------------
+    # Phase 11 — Monitoring Runs
+    # ------------------------------------------------------------------
+
+    def create_monitoring_run(self, run: MonitoringRun) -> MonitoringRun:
+        self.monitoring_runs[str(run.id)] = run
+        self._save_collection("monitoring_runs", self.monitoring_runs)
+        return run
+
+    def list_monitoring_runs(
+        self,
+        loan_id: uuid.UUID | None = None,
+        case_id: uuid.UUID | None = None,
+    ) -> list[MonitoringRun]:
+        runs = list(self.monitoring_runs.values())
+        if loan_id is not None:
+            runs = [r for r in runs if r.loan_id == loan_id]
+        if case_id is not None:
+            runs = [r for r in runs if r.case_id == case_id]
+        return sorted(runs, key=lambda item: item.created_at, reverse=True)
 
     def upsert_assessment_summary(self, output: AssessmentOutput) -> AssessmentSummary:
         summary = AssessmentSummary(
@@ -563,6 +672,9 @@ class PlatformRepository:
             ),
             document_bundles=self.list_document_bundles(),
             underwriting_decisions=self.list_underwriting_decisions(),
+            loan_accounts=self.list_loan_accounts(),
+            statement_uploads=self.list_statement_uploads(),
+            monitoring_runs=self.list_monitoring_runs(),
         )
 
 

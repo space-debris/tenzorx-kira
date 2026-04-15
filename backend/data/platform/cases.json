@@ -124,5 +124,23 @@
     "notes": null,
     "created_at": "2026-04-14T15:48:50.193493",
     "updated_at": "2026-04-14T18:11:49.667418"
+  },
+  {
+    "id": "5011fd34-38d4-4877-9cc6-989ee4993909",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "kirana_id": "11127741-d439-4ad4-bafd-905da3fe9c81",
+    "created_by_user_id": "21111111-1111-1111-1111-111111111111",
+    "assigned_to_user_id": "21111111-1111-1111-1111-111111111111",
+    "status": "restructured",
+    "latest_assessment_session_id": "d9350359-acae-456d-a5ec-5eda02e67348",
+    "latest_assessment_id": "ae894f42-b9bf-4168-9b06-a21b9e65cfa1",
+    "latest_risk_band": "MEDIUM",
+    "latest_loan_range": {
+      "low": 0.0,
+      "high": 0.0
+    },
+    "notes": null,
+    "created_at": "2026-04-15T07:40:14.161832",
+    "updated_at": "2026-04-15T11:19:12.094996"
   }
 ]

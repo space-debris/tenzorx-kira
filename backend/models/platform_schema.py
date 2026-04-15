@@ -75,6 +75,36 @@ class AuditEntityType(str, Enum):
     SYSTEM = "system"
 
 
+class LoanAccountStatus(str, Enum):
+    """Lifecycle states for a booked loan account."""
+
+    ACTIVE = "active"
+    CURRENT = "current"
+    OVERDUE = "overdue"
+    NPA = "npa"
+    RESTRUCTURED = "restructured"
+    CLOSED = "closed"
+    WRITTEN_OFF = "written_off"
+
+
+class MonitoringRunStatus(str, Enum):
+    """Status of a monitoring re-score run."""
+
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class StatementUploadStatus(str, Enum):
+    """Lifecycle states for an uploaded statement file."""
+
+    UPLOADED = "uploaded"
+    PARSING = "parsing"
+    PARSED = "parsed"
+    FAILED = "failed"
+
+
 class AuditAction(str, Enum):
     """Supported audit event actions."""
 
@@ -86,6 +116,16 @@ class AuditAction(str, Enum):
     ASSIGNED = "assigned"
     SEEDED = "seeded"
     EXPORTED = "exported"
+    # Phase 11 actions
+    LOAN_BOOKED = "loan_booked"
+    LOAN_STATUS_CHANGED = "loan_status_changed"
+    LOAN_CLOSED = "loan_closed"
+    STATEMENT_UPLOADED = "statement_uploaded"
+    STATEMENT_PARSED = "statement_parsed"
+    MONITORING_RUN_STARTED = "monitoring_run_started"
+    MONITORING_RUN_COMPLETED = "monitoring_run_completed"
+    ALERT_RAISED = "alert_raised"
+    RESTRUCTURING_SUGGESTED = "restructuring_suggested"
 
 
 class LenderOrg(BaseModel):
@@ -270,6 +310,138 @@ class StatementUploadRecord(BaseModel):
     note: str
 
 
+# =============================================================================
+# Phase 11 — Loan Lifecycle & Monitoring Entities
+# =============================================================================
+
+
+class TransactionSummary(BaseModel):
+    """Aggregated transaction statistics derived from a parsed statement."""
+
+    total_credits: float = Field(default=0.0, ge=0)
+    total_debits: float = Field(default=0.0, ge=0)
+    credit_count: int = Field(default=0, ge=0)
+    debit_count: int = Field(default=0, ge=0)
+    avg_daily_balance: float = Field(default=0.0, ge=0)
+    period_days: int = Field(default=0, ge=0)
+    start_date: Optional[datetime] = Field(default=None)
+    end_date: Optional[datetime] = Field(default=None)
+
+
+class UtilizationBreakdown(BaseModel):
+    """Post-disbursement outflow classification."""
+
+    supplier_inventory_pct: float = Field(default=0.0, ge=0, le=100)
+    transfer_wallet_pct: float = Field(default=0.0, ge=0, le=100)
+    personal_cash_pct: float = Field(default=0.0, ge=0, le=100)
+    unknown_pct: float = Field(default=0.0, ge=0, le=100)
+    flags: list[str] = Field(default_factory=list)
+    diversion_risk: str = Field(default="low")
+
+
+class RestructuringSuggestion(BaseModel):
+    """System-generated restructuring recommendation for a stressed loan."""
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    loan_id: uuid.UUID
+    case_id: uuid.UUID
+    org_id: uuid.UUID
+    trigger: str = Field(..., min_length=1, max_length=300)
+    suggestion_type: str = Field(default="tenure_extension")
+    suggested_tenure_extension_months: Optional[int] = Field(default=None, ge=1, le=24)
+    suggested_emi_reduction_pct: Optional[float] = Field(default=None, ge=0, le=50)
+    suggested_moratorium_months: Optional[int] = Field(default=None, ge=1, le=6)
+    rationale: str = Field(..., min_length=1, max_length=500)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class LoanAccount(BaseModel):
+    """A persistent loan account created after case approval and disbursement."""
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    org_id: uuid.UUID
+    case_id: uuid.UUID
+    kirana_id: uuid.UUID
+    assessment_session_id: uuid.UUID
+    status: LoanAccountStatus = Field(default=LoanAccountStatus.ACTIVE)
+
+    # Booked terms
+    principal_amount: float = Field(..., ge=0)
+    tenure_months: int = Field(..., ge=6, le=60)
+    repayment_cadence: RepaymentCadence
+    annual_interest_rate_pct: float = Field(..., ge=0, le=60)
+    processing_fee_pct: float = Field(..., ge=0, le=10)
+    estimated_installment: float = Field(default=0.0, ge=0)
+
+    # Tracking
+    disbursed_at: Optional[datetime] = Field(default=None)
+    maturity_date: Optional[datetime] = Field(default=None)
+    outstanding_principal: Optional[float] = Field(default=None, ge=0)
+    total_collected: float = Field(default=0.0, ge=0)
+    last_collection_date: Optional[datetime] = Field(default=None)
+    days_past_due: int = Field(default=0, ge=0)
+    utilization: Optional[UtilizationBreakdown] = Field(default=None)
+
+    # Frozen assessment snapshot
+    original_risk_band: Optional[RiskBand] = Field(default=None)
+    original_revenue_range: Optional[ValueRange] = Field(default=None)
+
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class StatementUpload(BaseModel):
+    """A bank or UPI statement uploaded for monitoring purposes."""
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    org_id: uuid.UUID
+    case_id: uuid.UUID
+    loan_id: uuid.UUID
+    kirana_id: uuid.UUID
+    status: StatementUploadStatus = Field(default=StatementUploadStatus.UPLOADED)
+
+    # File metadata
+    file_name: str = Field(..., min_length=1, max_length=255)
+    file_type: str = Field(default="pdf")
+    file_size_bytes: int = Field(default=0, ge=0)
+
+    # Parsed results
+    transaction_summary: Optional[TransactionSummary] = Field(default=None)
+    parse_error: Optional[str] = Field(default=None, max_length=500)
+
+    uploaded_by_user_id: Optional[uuid.UUID] = Field(default=None)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class MonitoringRun(BaseModel):
+    """A single monitoring re-assessment run for an active loan."""
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    org_id: uuid.UUID
+    case_id: uuid.UUID
+    loan_id: uuid.UUID
+    kirana_id: uuid.UUID
+    status: MonitoringRunStatus = Field(default=MonitoringRunStatus.PENDING)
+
+    # Source data
+    statement_upload_id: Optional[uuid.UUID] = Field(default=None)
+    previous_risk_band: Optional[RiskBand] = Field(default=None)
+
+    # Re-scored results
+    new_risk_band: Optional[RiskBand] = Field(default=None)
+    new_risk_score: Optional[float] = Field(default=None, ge=0, le=1)
+    inflow_velocity_change_pct: Optional[float] = Field(default=None)
+    utilization: Optional[UtilizationBreakdown] = Field(default=None)
+    alerts_raised: list[str] = Field(default_factory=list)
+    restructuring_suggestion: Optional[RestructuringSuggestion] = Field(default=None)
+
+    run_notes: Optional[str] = Field(default=None, max_length=1000)
+    completed_at: Optional[datetime] = Field(default=None)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
 class AuditEvent(BaseModel):
     """Immutable audit event."""
 
@@ -366,3 +538,41 @@ class PlatformSnapshot(BaseModel):
     assessment_summaries: list[AssessmentSummary] = Field(default_factory=list)
     document_bundles: list[DocumentBundle] = Field(default_factory=list)
     underwriting_decisions: list[UnderwritingDecision] = Field(default_factory=list)
+    loan_accounts: list[LoanAccount] = Field(default_factory=list)
+    statement_uploads: list[StatementUpload] = Field(default_factory=list)
+    monitoring_runs: list[MonitoringRun] = Field(default_factory=list)
+
+
+# =============================================================================
+# Phase 11 — Request & Response Models
+# =============================================================================
+
+
+class BookLoanRequest(BaseModel):
+    """Request to book a loan account from an approved case."""
+
+    actor_user_id: uuid.UUID
+    case_id: uuid.UUID
+    disbursement_date: Optional[datetime] = Field(default=None)
+    note: Optional[str] = Field(default=None, max_length=500)
+
+
+class LoanStatusUpdateRequest(BaseModel):
+    """Request to change loan account status."""
+
+    actor_user_id: uuid.UUID
+    new_status: LoanAccountStatus
+    days_past_due: Optional[int] = Field(default=None, ge=0)
+    note: Optional[str] = Field(default=None, max_length=500)
+
+
+class LoanAccountDetailResponse(BaseModel):
+    """Detailed view for a loan account page."""
+
+    loan: LoanAccount
+    case: AssessmentCase
+    kirana: KiranaProfile
+    statement_uploads: list[StatementUpload] = Field(default_factory=list)
+    monitoring_runs: list[MonitoringRun] = Field(default_factory=list)
+    alerts: list[RiskAlert] = Field(default_factory=list)
+    audit_events: list[AuditEvent] = Field(default_factory=list)
