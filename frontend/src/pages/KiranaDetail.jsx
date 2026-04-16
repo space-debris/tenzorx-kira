@@ -14,6 +14,7 @@ import {
 import { useAuth } from '../context/useAuth';
 import { getPlatformKiranaDetail } from '../api/kiraApi';
 import CaseTimeline from '../components/CaseTimeline';
+import RiskTimeline from '../components/RiskTimeline';
 import { formatCurrency, getCaseNextAction } from '../utils/caseUtils';
 
 const STATUS_COLORS = {
@@ -90,7 +91,7 @@ export default function KiranaDetail() {
     );
   }
 
-  const { kirana, cases = [], assessment_history: assessmentHistory = [], loan_history: loanHistory = [], statement_uploads: statementUploads = [], alerts = [], audit_events: auditEvents = [] } = detail;
+  const { kirana, cases = [], assessment_history: assessmentHistory = [], loan_history: loanHistory = [], statement_uploads: statementUploads = [], monitoring_runs: monitoringRuns = [], alerts = [], audit_events: auditEvents = [] } = detail;
 
   return (
     <div className="animate-fade-in max-w-6xl mx-auto">
@@ -286,12 +287,22 @@ export default function KiranaDetail() {
                       <span className="text-xs uppercase tracking-wide font-bold text-indigo-500">{upload.status}</span>
                     </div>
                     <div className="text-xs text-slate-400 mt-2">{upload.note}</div>
+                    <div className="text-sm text-slate-600 mt-2">
+                      Inflows {formatCurrency(upload.inflow_total)} • Outflows {formatCurrency(upload.outflow_total)}
+                    </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-slate-400">No statement uploads recorded yet. The upload pipeline lands in Phase 11.</p>
+              <p className="text-sm text-slate-400">No statement uploads recorded yet.</p>
             )}
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-rose-500" /> Monitoring Runs
+            </h2>
+            <RiskTimeline runs={monitoringRuns} />
           </div>
 
           <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">

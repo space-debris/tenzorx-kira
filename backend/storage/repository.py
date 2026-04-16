@@ -34,12 +34,12 @@ from models.platform_schema import (
     KiranaProfile,
     LenderOrg,
     LoanAccount,
+    LoanDecision,
     MonitoringRun,
     PlatformSnapshot,
     PlatformUser,
     RiskAlert,
     StatementUpload,
-    UnderwritingDecision,
     UserRole,
 )
 
@@ -55,8 +55,8 @@ def _fixed_uuid(value: str) -> uuid.UUID:
 class PlatformRepository:
     """File-backed repository for platform entities and demo data."""
 
-    def __init__(self) -> None:
-        self._data_dir = Path(__file__).resolve().parent.parent / "data" / "platform"
+    def __init__(self, data_dir: Path | None = None) -> None:
+        self._data_dir = data_dir or (Path(__file__).resolve().parent.parent / "data" / "platform")
         self._data_dir.mkdir(parents=True, exist_ok=True)
 
         self._file_map = {
@@ -67,11 +67,11 @@ class PlatformRepository:
             "alerts": self._data_dir / "alerts.json",
             "audit_events": self._data_dir / "audit_events.json",
             "assessment_summaries": self._data_dir / "assessment_summaries.json",
-            "document_bundles": self._data_dir / "document_bundles.json",
-            "underwriting_decisions": self._data_dir / "underwriting_decisions.json",
+            "loan_decisions": self._data_dir / "loan_decisions.json",
             "loan_accounts": self._data_dir / "loan_accounts.json",
             "statement_uploads": self._data_dir / "statement_uploads.json",
             "monitoring_runs": self._data_dir / "monitoring_runs.json",
+            "document_bundles": self._data_dir / "document_bundles.json",
         }
 
         self.organizations = self._load_collection("organizations", LenderOrg, "id")
@@ -85,29 +85,13 @@ class PlatformRepository:
             AssessmentSummary,
             "session_id",
         )
+        self.loan_decisions = self._load_collection("loan_decisions", LoanDecision, "id")
+        self.loan_accounts = self._load_collection("loan_accounts", LoanAccount, "id")
+        self.statement_uploads = self._load_collection("statement_uploads", StatementUpload, "id")
+        self.monitoring_runs = self._load_collection("monitoring_runs", MonitoringRun, "id")
         self.document_bundles = self._load_collection(
             "document_bundles",
             DocumentBundle,
-            "id",
-        )
-        self.underwriting_decisions = self._load_collection(
-            "underwriting_decisions",
-            UnderwritingDecision,
-            "id",
-        )
-        self.loan_accounts = self._load_collection(
-            "loan_accounts",
-            LoanAccount,
-            "id",
-        )
-        self.statement_uploads = self._load_collection(
-            "statement_uploads",
-            StatementUpload,
-            "id",
-        )
-        self.monitoring_runs = self._load_collection(
-            "monitoring_runs",
-            MonitoringRun,
             "id",
         )
 
@@ -154,11 +138,11 @@ class PlatformRepository:
         self._save_collection("alerts", self.alerts)
         self._save_collection("audit_events", self.audit_events)
         self._save_collection("assessment_summaries", self.assessment_summaries)
-        self._save_collection("document_bundles", self.document_bundles)
-        self._save_collection("underwriting_decisions", self.underwriting_decisions)
+        self._save_collection("loan_decisions", self.loan_decisions)
         self._save_collection("loan_accounts", self.loan_accounts)
         self._save_collection("statement_uploads", self.statement_uploads)
         self._save_collection("monitoring_runs", self.monitoring_runs)
+        self._save_collection("document_bundles", self.document_bundles)
 
     def _seed_demo_data_if_empty(self) -> None:
         if self.organizations:
@@ -331,6 +315,104 @@ class PlatformRepository:
             updated_at=now - timedelta(hours=18),
         )
 
+        decision = LoanDecision(
+            id=_fixed_uuid("91111111-1111-1111-1111-111111111111"),
+            org_id=org.id,
+            case_id=case_2.id,
+            assessment_session_id=summary_2.session_id,
+            recommended_amount=180000,
+            approved_amount=175000,
+            recommended_tenure_months=12,
+            approved_tenure_months=12,
+            pricing_rate_annual=22.0,
+            processing_fee_rate=1.5,
+            repayment_cadence="weekly",
+            decision_reason="Strong urban turnover and good recent repayment capacity.",
+            override_reason="Trimmed ticket slightly to stay within branch comfort band.",
+            created_by_user_id=officer.id,
+            created_at=now - timedelta(days=3),
+        )
+
+        loan_account = LoanAccount(
+            id=_fixed_uuid("92222222-2222-2222-2222-222222222222"),
+            org_id=org.id,
+            case_id=case_2.id,
+            kirana_id=kirana_2.id,
+            loan_decision_id=decision.id,
+            principal_amount=175000,
+            outstanding_amount=158000,
+            tenure_months=12,
+            pricing_rate_annual=22.0,
+            processing_fee_rate=1.5,
+            repayment_cadence="weekly",
+            disbursed_at=now - timedelta(days=9),
+            next_review_at=now + timedelta(days=7),
+            status=CaseStatus.MONITORING,
+            original_assessment_session_id=summary_2.session_id,
+        )
+
+        statement_upload = StatementUpload(
+            id=_fixed_uuid("93333333-3333-3333-3333-333333333333"),
+            org_id=org.id,
+            case_id=case_2.id,
+            loan_account_id=loan_account.id,
+            uploaded_by_user_id=officer.id,
+            file_name="sai-provision-april.csv",
+            file_type="text/csv",
+            source_kind="upi",
+            parse_status="parsed",
+            parse_confidence=0.92,
+            transaction_count=14,
+            inflow_total=98000,
+            outflow_total=84500,
+            period_start=now - timedelta(days=21),
+            period_end=now - timedelta(days=7),
+            parsed_summary={
+                "inflow_velocity": 0.78,
+                "cash_withdrawal_share": 0.26,
+                "supplier_share": 0.44,
+            },
+            uploaded_at=now - timedelta(days=7),
+        )
+
+        monitoring_run = MonitoringRun(
+            id=_fixed_uuid("94444444-4444-4444-4444-444444444444"),
+            org_id=org.id,
+            case_id=case_2.id,
+            loan_account_id=loan_account.id,
+            statement_upload_id=statement_upload.id,
+            previous_risk_band=summary_2.risk_band,
+            current_risk_band=RiskBand.MEDIUM,
+            previous_inflow_total=118000,
+            current_inflow_total=98000,
+            inflow_change_ratio=-0.1695,
+            utilization_breakdown={
+                "supplier_or_inventory_like": 0.44,
+                "transfer_or_wallet_like": 0.12,
+                "personal_or_cash_withdrawal_like": 0.26,
+                "unknown": 0.18,
+            },
+            stress_score=0.42,
+            restructuring_recommendation="No restructure yet. Keep weekly collections and refresh in 14 days.",
+            alerts_created=[alert.id],
+            created_at=now - timedelta(days=7),
+        )
+
+        document_bundle = DocumentBundle(
+            id=_fixed_uuid("95555555-5555-5555-5555-555555555555"),
+            org_id=org.id,
+            case_id=case_2.id,
+            documents={
+                "underwriting_summary": "ready",
+                "sanction_note": "ready",
+                "monitoring_history_summary": "ready",
+                "audit_event_export": "ready",
+            },
+            created_at=now - timedelta(days=2),
+            generated_by_user_id=officer.id,
+            export_formats=["json", "pdf"],
+        )
+
         seed_event = AuditEvent(
             id=_fixed_uuid("81111111-1111-1111-1111-111111111111"),
             org_id=org.id,
@@ -356,6 +438,11 @@ class PlatformRepository:
         self.cases[str(case_2.id)] = case_2
         self.cases[str(case_3.id)] = case_3
         self.alerts[str(alert.id)] = alert
+        self.loan_decisions[str(decision.id)] = decision
+        self.loan_accounts[str(loan_account.id)] = loan_account
+        self.statement_uploads[str(statement_upload.id)] = statement_upload
+        self.monitoring_runs[str(monitoring_run.id)] = monitoring_run
+        self.document_bundles[str(document_bundle.id)] = document_bundle
         self.audit_events[str(seed_event.id)] = seed_event
 
         self._save_all()
@@ -451,12 +538,6 @@ class PlatformRepository:
             alerts = [alert for alert in alerts if alert.kirana_id == kirana_id]
         return sorted(alerts, key=lambda item: item.created_at, reverse=True)
 
-    def create_alert(self, alert: RiskAlert) -> RiskAlert:
-        """Create a new risk alert."""
-        self.alerts[str(alert.id)] = alert
-        self._save_collection("alerts", self.alerts)
-        return alert
-
     def list_document_bundles(
         self,
         org_id: uuid.UUID | None = None,
@@ -469,44 +550,117 @@ class PlatformRepository:
             bundles = [bundle for bundle in bundles if bundle.case_id == case_id]
         return sorted(bundles, key=lambda item: item.created_at, reverse=True)
 
+    def create_document_bundle(self, bundle: DocumentBundle) -> DocumentBundle:
+        self.document_bundles[str(bundle.id)] = bundle
+        self._save_collection("document_bundles", self.document_bundles)
+        return bundle
+
+    def list_loan_decisions(
+        self,
+        org_id: uuid.UUID | None = None,
+        case_id: uuid.UUID | None = None,
+    ) -> list[LoanDecision]:
+        decisions = list(self.loan_decisions.values())
+        if org_id is not None:
+            decisions = [decision for decision in decisions if decision.org_id == org_id]
+        if case_id is not None:
+            decisions = [decision for decision in decisions if decision.case_id == case_id]
+        return sorted(decisions, key=lambda item: item.created_at, reverse=True)
+
+    def get_latest_loan_decision(self, case_id: uuid.UUID) -> LoanDecision | None:
+        decisions = self.list_loan_decisions(case_id=case_id)
+        return decisions[0] if decisions else None
+
+    def create_loan_decision(self, decision: LoanDecision) -> LoanDecision:
+        self.loan_decisions[str(decision.id)] = decision
+        self._save_collection("loan_decisions", self.loan_decisions)
+        return decision
+
+    def list_loan_accounts(
+        self,
+        org_id: uuid.UUID | None = None,
+        case_id: uuid.UUID | None = None,
+        kirana_id: uuid.UUID | None = None,
+    ) -> list[LoanAccount]:
+        accounts = list(self.loan_accounts.values())
+        if org_id is not None:
+            accounts = [account for account in accounts if account.org_id == org_id]
+        if case_id is not None:
+            accounts = [account for account in accounts if account.case_id == case_id]
+        if kirana_id is not None:
+            accounts = [account for account in accounts if account.kirana_id == kirana_id]
+        return sorted(accounts, key=lambda item: item.disbursed_at, reverse=True)
+
+    def get_loan_account(self, loan_account_id: uuid.UUID) -> LoanAccount | None:
+        return self.loan_accounts.get(str(loan_account_id))
+
+    def get_loan_account_for_case(self, case_id: uuid.UUID) -> LoanAccount | None:
+        accounts = self.list_loan_accounts(case_id=case_id)
+        return accounts[0] if accounts else None
+
+    def create_loan_account(self, loan_account: LoanAccount) -> LoanAccount:
+        self.loan_accounts[str(loan_account.id)] = loan_account
+        self._save_collection("loan_accounts", self.loan_accounts)
+        return loan_account
+
+    def update_loan_account(self, loan_account: LoanAccount) -> LoanAccount:
+        self.loan_accounts[str(loan_account.id)] = loan_account
+        self._save_collection("loan_accounts", self.loan_accounts)
+        return loan_account
+
+    def list_statement_uploads(
+        self,
+        org_id: uuid.UUID | None = None,
+        case_id: uuid.UUID | None = None,
+        loan_account_id: uuid.UUID | None = None,
+    ) -> list[StatementUpload]:
+        uploads = list(self.statement_uploads.values())
+        if org_id is not None:
+            uploads = [upload for upload in uploads if upload.org_id == org_id]
+        if case_id is not None:
+            uploads = [upload for upload in uploads if upload.case_id == case_id]
+        if loan_account_id is not None:
+            uploads = [upload for upload in uploads if upload.loan_account_id == loan_account_id]
+        return sorted(uploads, key=lambda item: item.uploaded_at, reverse=True)
+
+    def create_statement_upload(self, upload: StatementUpload) -> StatementUpload:
+        self.statement_uploads[str(upload.id)] = upload
+        self._save_collection("statement_uploads", self.statement_uploads)
+        return upload
+
+    def list_monitoring_runs(
+        self,
+        org_id: uuid.UUID | None = None,
+        case_id: uuid.UUID | None = None,
+        loan_account_id: uuid.UUID | None = None,
+    ) -> list[MonitoringRun]:
+        runs = list(self.monitoring_runs.values())
+        if org_id is not None:
+            runs = [run for run in runs if run.org_id == org_id]
+        if case_id is not None:
+            runs = [run for run in runs if run.case_id == case_id]
+        if loan_account_id is not None:
+            runs = [run for run in runs if run.loan_account_id == loan_account_id]
+        return sorted(runs, key=lambda item: item.created_at, reverse=True)
+
+    def get_latest_monitoring_run(self, case_id: uuid.UUID) -> MonitoringRun | None:
+        runs = self.list_monitoring_runs(case_id=case_id)
+        return runs[0] if runs else None
+
+    def create_monitoring_run(self, run: MonitoringRun) -> MonitoringRun:
+        self.monitoring_runs[str(run.id)] = run
+        self._save_collection("monitoring_runs", self.monitoring_runs)
+        return run
+
+    def create_alert(self, alert: RiskAlert) -> RiskAlert:
+        self.alerts[str(alert.id)] = alert
+        self._save_collection("alerts", self.alerts)
+        return alert
+
     def create_audit_event(self, event: AuditEvent) -> AuditEvent:
         self.audit_events[str(event.id)] = event
         self._save_collection("audit_events", self.audit_events)
         return event
-
-    def save_underwriting_decision(
-        self,
-        decision: UnderwritingDecision,
-    ) -> UnderwritingDecision:
-        self.underwriting_decisions[str(decision.id)] = decision
-        self._save_collection("underwriting_decisions", self.underwriting_decisions)
-        return decision
-
-    def list_underwriting_decisions(
-        self,
-        case_id: uuid.UUID | None = None,
-        assessment_session_id: uuid.UUID | None = None,
-    ) -> list[UnderwritingDecision]:
-        decisions = list(self.underwriting_decisions.values())
-        if case_id is not None:
-            decisions = [item for item in decisions if item.case_id == case_id]
-        if assessment_session_id is not None:
-            decisions = [
-                item for item in decisions
-                if item.assessment_session_id == assessment_session_id
-            ]
-        return sorted(decisions, key=lambda item: item.updated_at, reverse=True)
-
-    def get_latest_underwriting_decision(
-        self,
-        case_id: uuid.UUID,
-        assessment_session_id: uuid.UUID | None = None,
-    ) -> UnderwritingDecision | None:
-        decisions = self.list_underwriting_decisions(
-            case_id=case_id,
-            assessment_session_id=assessment_session_id,
-        )
-        return decisions[0] if decisions else None
 
     def list_audit_events(
         self,
@@ -519,85 +673,6 @@ class PlatformRepository:
         if entity_id is not None:
             events = [event for event in events if event.entity_id == entity_id]
         return sorted(events, key=lambda item: item.created_at, reverse=True)
-
-    # ------------------------------------------------------------------
-    # Phase 11 — Loan Accounts
-    # ------------------------------------------------------------------
-
-    def create_loan_account(self, loan: LoanAccount) -> LoanAccount:
-        self.loan_accounts[str(loan.id)] = loan
-        self._save_collection("loan_accounts", self.loan_accounts)
-        return loan
-
-    def update_loan_account(self, loan: LoanAccount) -> LoanAccount:
-        self.loan_accounts[str(loan.id)] = loan
-        self._save_collection("loan_accounts", self.loan_accounts)
-        return loan
-
-    def get_loan_account(self, loan_id: uuid.UUID) -> LoanAccount | None:
-        return self.loan_accounts.get(str(loan_id))
-
-    def list_loan_accounts(
-        self,
-        org_id: uuid.UUID | None = None,
-        case_id: uuid.UUID | None = None,
-        kirana_id: uuid.UUID | None = None,
-    ) -> list[LoanAccount]:
-        loans = list(self.loan_accounts.values())
-        if org_id is not None:
-            loans = [l for l in loans if l.org_id == org_id]
-        if case_id is not None:
-            loans = [l for l in loans if l.case_id == case_id]
-        if kirana_id is not None:
-            loans = [l for l in loans if l.kirana_id == kirana_id]
-        return sorted(loans, key=lambda item: item.created_at, reverse=True)
-
-    # ------------------------------------------------------------------
-    # Phase 11 — Statement Uploads
-    # ------------------------------------------------------------------
-
-    def create_statement_upload(self, upload: StatementUpload) -> StatementUpload:
-        self.statement_uploads[str(upload.id)] = upload
-        self._save_collection("statement_uploads", self.statement_uploads)
-        return upload
-
-    def update_statement_upload(self, upload: StatementUpload) -> StatementUpload:
-        self.statement_uploads[str(upload.id)] = upload
-        self._save_collection("statement_uploads", self.statement_uploads)
-        return upload
-
-    def list_statement_uploads(
-        self,
-        loan_id: uuid.UUID | None = None,
-        case_id: uuid.UUID | None = None,
-    ) -> list[StatementUpload]:
-        uploads = list(self.statement_uploads.values())
-        if loan_id is not None:
-            uploads = [u for u in uploads if u.loan_id == loan_id]
-        if case_id is not None:
-            uploads = [u for u in uploads if u.case_id == case_id]
-        return sorted(uploads, key=lambda item: item.created_at, reverse=True)
-
-    # ------------------------------------------------------------------
-    # Phase 11 — Monitoring Runs
-    # ------------------------------------------------------------------
-
-    def create_monitoring_run(self, run: MonitoringRun) -> MonitoringRun:
-        self.monitoring_runs[str(run.id)] = run
-        self._save_collection("monitoring_runs", self.monitoring_runs)
-        return run
-
-    def list_monitoring_runs(
-        self,
-        loan_id: uuid.UUID | None = None,
-        case_id: uuid.UUID | None = None,
-    ) -> list[MonitoringRun]:
-        runs = list(self.monitoring_runs.values())
-        if loan_id is not None:
-            runs = [r for r in runs if r.loan_id == loan_id]
-        if case_id is not None:
-            runs = [r for r in runs if r.case_id == case_id]
-        return sorted(runs, key=lambda item: item.created_at, reverse=True)
 
     def upsert_assessment_summary(self, output: AssessmentOutput) -> AssessmentSummary:
         summary = AssessmentSummary(
@@ -612,15 +687,6 @@ class PlatformRepository:
                 high=output.revenue_estimate.monthly_high,
             ),
             loan_range=output.loan_recommendation.loan_range,
-            recommended_amount=output.loan_recommendation.recommended_amount,
-            suggested_tenure_months=output.loan_recommendation.suggested_tenure_months,
-            estimated_emi=output.loan_recommendation.estimated_emi,
-            emi_to_income_ratio=output.loan_recommendation.emi_to_income_ratio,
-            repayment_cadence=output.loan_recommendation.repayment_cadence,
-            estimated_installment=output.loan_recommendation.estimated_installment,
-            pricing_recommendation=output.loan_recommendation.pricing_recommendation,
-            explanation_summary=output.explanation.summary,
-            decision_pack=output.explanation.decision_pack,
             eligible=output.loan_recommendation.eligible,
             fraud_flagged=output.fraud_detection.is_flagged,
         )
@@ -670,11 +736,11 @@ class PlatformRepository:
                 key=lambda item: item.completed_at,
                 reverse=True,
             ),
-            document_bundles=self.list_document_bundles(),
-            underwriting_decisions=self.list_underwriting_decisions(),
+            loan_decisions=self.list_loan_decisions(),
             loan_accounts=self.list_loan_accounts(),
             statement_uploads=self.list_statement_uploads(),
             monitoring_runs=self.list_monitoring_runs(),
+            document_bundles=self.list_document_bundles(),
         )
 
 

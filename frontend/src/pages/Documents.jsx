@@ -1,20 +1,30 @@
-import { useEffect, useMemo, useState } from 'react';
-import { FolderKanban, Loader2, AlertTriangle, FileText, Sparkles } from 'lucide-react';
-import { getPlatformDemoSnapshot } from '../api/kiraApi';
+import { useEffect, useState } from 'react';
+import { FolderKanban, Loader2, AlertTriangle } from 'lucide-react';
+import { exportCaseDocuments, getCaseDocuments, listOrganizationCases } from '../api/kiraApi';
 import { useAuth } from '../context/useAuth';
+import DocumentCenter from '../components/DocumentCenter';
 
 export default function Documents() {
-  const { org } = useAuth();
-  const [snapshot, setSnapshot] = useState(null);
+  const { org, user } = useAuth();
+  const [bundle, setBundle] = useState(null);
+  const [cases, setCases] = useState([]);
+  const [selectedCaseId, setSelectedCaseId] = useState('');
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (!org?.id) return;
+
     async function load() {
       try {
         setLoading(true);
-        const res = await getPlatformDemoSnapshot();
-        setSnapshot(res.data);
+        const casesRes = await listOrganizationCases(org.id);
+        const nextCases = casesRes.data || [];
+        setCases(nextCases);
+        if (nextCases[0]?.id) {
+          setSelectedCaseId(nextCases[0].id);
+        }
       } catch (err) {
         console.error('Failed to load document center:', err);
         setError('Failed to load document center.');
@@ -24,12 +34,37 @@ export default function Documents() {
     }
 
     load();
-  }, []);
+  }, [org?.id]);
 
-  const bundles = useMemo(() => {
-    const allBundles = snapshot?.document_bundles || [];
-    return allBundles.filter((bundle) => !org?.id || bundle.org_id === org.id);
-  }, [snapshot, org?.id]);
+  useEffect(() => {
+    if (!selectedCaseId) return;
+
+    async function loadBundle() {
+      try {
+        const res = await getCaseDocuments(selectedCaseId);
+        setBundle(res.data);
+      } catch (err) {
+        console.error('Failed to load case documents:', err);
+        setError('Failed to load case documents.');
+      }
+    }
+
+    loadBundle();
+  }, [selectedCaseId]);
+
+  const handleExport = async () => {
+    if (!selectedCaseId) return;
+    try {
+      setExporting(true);
+      const res = await exportCaseDocuments(selectedCaseId, user?.id);
+      setBundle(res.data);
+    } catch (err) {
+      console.error('Failed to export case documents:', err);
+      setError('Failed to export case bundle.');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   if (loading) {
     return <div className="flex items-center justify-center py-32"><Loader2 className="w-8 h-8 text-primary-500 animate-spin" /></div>;
@@ -45,43 +80,25 @@ export default function Documents() {
         <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
           <FolderKanban className="w-6 h-6 text-primary-600" /> Documents
         </h1>
-        <p className="text-slate-500 font-medium mt-1">Workspace document bundles and export placeholders. Full packet generation lands in Phase 13.</p>
+        <p className="text-slate-500 font-medium mt-1">Deterministic loan-file bundles, sanction packets, and audit-ready exports.</p>
       </div>
 
-      {bundles.length > 0 ? (
-        <div className="grid gap-4">
-          {bundles.map((bundle) => (
-            <div key={bundle.id} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <div className="text-lg font-bold text-slate-900">Case {bundle.case_id?.slice?.(0, 8) || bundle.case_id}</div>
-                  <div className="text-sm text-slate-500">Created {new Date(bundle.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
-                </div>
-                <FileText className="w-6 h-6 text-primary-500" />
-              </div>
-              <div className="space-y-2">
-                {Object.entries(bundle.documents || {}).map(([label, value]) => (
-                  <div key={label} className="flex items-center justify-between text-sm border border-slate-100 rounded-lg px-3 py-2">
-                    <span className="font-medium text-slate-700">{label}</span>
-                    <span className="text-slate-400">{value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm mb-6">
+        <label className="text-xs uppercase tracking-wide font-bold text-slate-400">Case</label>
+        <select
+          value={selectedCaseId}
+          onChange={(event) => setSelectedCaseId(event.target.value)}
+          className="mt-2 w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm bg-white"
+        >
+          {cases.map((caseItem) => (
+            <option key={caseItem.id} value={caseItem.id}>
+              {caseItem.id.slice(0, 8)} • {caseItem.status}
+            </option>
           ))}
-        </div>
-      ) : (
-        <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-10 text-center">
-          <div className="w-16 h-16 mx-auto rounded-full bg-primary-50 text-primary-600 flex items-center justify-center mb-5">
-            <Sparkles className="w-8 h-8" />
-          </div>
-          <h2 className="text-lg font-bold text-slate-900">Document center is ready for bundles</h2>
-          <p className="text-sm text-slate-500 mt-2 max-w-lg mx-auto">
-            Your workspace already has persistent case records. Once deterministic document generation is added, sanction notes,
-            case summaries, and audit exports will appear here automatically.
-          </p>
-        </div>
-      )}
+        </select>
+      </div>
+
+      {bundle && <DocumentCenter bundle={bundle} onExport={handleExport} isExporting={exporting} />}
     </div>
   );
 }

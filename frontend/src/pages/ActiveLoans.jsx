@@ -100,7 +100,7 @@ export default function ActiveLoans() {
             return (
               <Link
                 key={caseItem.id}
-                to={`/app/cases/${caseItem.id}`}
+                to={caseItem.status === 'approved' ? `/app/cases/${caseItem.id}` : `/app/loan-accounts/${caseItem.id}`}
                 className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:border-primary-200 hover:shadow-md transition-all"
               >
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">

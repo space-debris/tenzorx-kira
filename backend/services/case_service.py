@@ -22,6 +22,7 @@ from models.platform_schema import (
     KiranaDetailResponse,
     KiranaProfile,
     LoanHistoryEntry,
+    MonitoringRunRecord,
     OrgDashboardResponse,
     StatementUploadRecord,
     UnderwritingDecision,
@@ -29,15 +30,33 @@ from models.platform_schema import (
     UnderwritingTerms,
 )
 from services.audit_service import AuditService
+from services.loan_service import LoanService
 from storage.repository import PlatformRepository
+
+ALLOWED_STATUS_TRANSITIONS: dict[CaseStatus, set[CaseStatus]] = {
+    CaseStatus.DRAFT: {CaseStatus.SUBMITTED},
+    CaseStatus.SUBMITTED: {CaseStatus.UNDER_REVIEW, CaseStatus.CLOSED},
+    CaseStatus.UNDER_REVIEW: {CaseStatus.APPROVED, CaseStatus.CLOSED},
+    CaseStatus.APPROVED: {CaseStatus.DISBURSED, CaseStatus.CLOSED},
+    CaseStatus.DISBURSED: {CaseStatus.MONITORING, CaseStatus.CLOSED},
+    CaseStatus.MONITORING: {CaseStatus.RESTRUCTURED, CaseStatus.CLOSED},
+    CaseStatus.RESTRUCTURED: {CaseStatus.MONITORING, CaseStatus.CLOSED},
+    CaseStatus.CLOSED: set(),
+}
 
 
 class CaseService:
     """Coordinates persistent case and kirana operations for lenders."""
 
-    def __init__(self, repository: PlatformRepository, audit_service: AuditService) -> None:
+    def __init__(
+        self,
+        repository: PlatformRepository,
+        audit_service: AuditService,
+        loan_service: LoanService | None = None,
+    ) -> None:
         self.repository = repository
         self.audit_service = audit_service
+        self.loan_service = loan_service
 
     def create_case(self, payload: CreateCaseRequest) -> CaseDetailResponse:
         org = self.repository.get_organization(payload.org_id)
@@ -187,6 +206,15 @@ class CaseService:
         actor = self.repository.get_user(payload.actor_user_id)
         if actor is None or actor.org_id != case.org_id:
             raise ValueError("Actor is invalid for this organization")
+        if payload.new_status == case.status:
+            raise ValueError("Case is already in the requested status")
+        allowed = ALLOWED_STATUS_TRANSITIONS.get(case.status, set())
+        if payload.new_status not in allowed:
+            raise ValueError(
+                f"Invalid status transition from {case.status.value} to {payload.new_status.value}"
+            )
+        if payload.new_status == CaseStatus.APPROVED and case.latest_loan_range is None:
+            raise ValueError("Cannot approve a case before an assessment is linked")
 
         updated_case = case.model_copy(
             update={
@@ -196,6 +224,13 @@ class CaseService:
             }
         )
         self.repository.update_case(updated_case)
+
+        if self.loan_service is not None:
+            if payload.new_status == CaseStatus.APPROVED:
+                self.loan_service.ensure_decision_for_case(updated_case, payload.actor_user_id, payload.note)
+            elif payload.new_status == CaseStatus.DISBURSED:
+                self.loan_service.ensure_loan_account_for_case(updated_case, payload.actor_user_id)
+            self.loan_service.sync_loan_status(updated_case)
 
         self.audit_service.record_event(
             org_id=case.org_id,
@@ -308,17 +343,37 @@ class CaseService:
         loan_history.sort(key=lambda item: item.updated_at, reverse=True)
 
         statement_uploads: list[StatementUploadRecord] = []
-        for case in cases:
-            if case.status in {CaseStatus.DISBURSED, CaseStatus.MONITORING, CaseStatus.RESTRUCTURED}:
-                statement_uploads.append(
-                    StatementUploadRecord(
-                        id=f"pending-{case.id}",
-                        label="Manual statement refresh",
-                        status="pending",
-                        created_at=case.updated_at,
-                        note="Statement upload workflow is scheduled for Phase 11.",
-                    )
+        for upload in self.repository.list_statement_uploads(org_id=org_id):
+            if upload.case_id not in {case.id for case in cases}:
+                continue
+            statement_uploads.append(
+                StatementUploadRecord(
+                    id=str(upload.id),
+                    label=upload.file_name,
+                    status=upload.parse_status,
+                    created_at=upload.uploaded_at,
+                    note=f"{upload.source_kind.upper()} upload • confidence {round(upload.parse_confidence * 100)}%",
+                    transaction_count=upload.transaction_count,
+                    inflow_total=upload.inflow_total,
+                    outflow_total=upload.outflow_total,
                 )
+            )
+
+        monitoring_runs: list[MonitoringRunRecord] = []
+        for run in self.repository.list_monitoring_runs(org_id=org_id):
+            if run.case_id not in {case.id for case in cases}:
+                continue
+            monitoring_runs.append(
+                MonitoringRunRecord(
+                    id=str(run.id),
+                    created_at=run.created_at,
+                    current_risk_band=run.current_risk_band,
+                    inflow_change_ratio=run.inflow_change_ratio,
+                    stress_score=run.stress_score,
+                    restructuring_recommendation=run.restructuring_recommendation,
+                    utilization_breakdown=run.utilization_breakdown,
+                )
+            )
 
         audit_events = self.repository.list_audit_events(entity_id=kirana.id)
         for case in cases:
@@ -335,6 +390,7 @@ class CaseService:
             assessment_history=assessment_history,
             loan_history=loan_history,
             statement_uploads=statement_uploads,
+            monitoring_runs=monitoring_runs,
             alerts=alerts,
             audit_events=audit_events,
         )

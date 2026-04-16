@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://192.168.31.66:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -31,6 +31,10 @@ export async function listOrganizations() {
 
 export async function getOrganizationDashboard(orgId) {
   return apiClient.get(`/platform/orgs/${orgId}/dashboard`);
+}
+
+export async function getOrganizationPortfolio(orgId) {
+  return apiClient.get(`/platform/orgs/${orgId}/portfolio`);
 }
 
 export async function listOrganizationCases(orgId) {
@@ -71,6 +75,20 @@ export async function getCasePrefillData(caseId) {
   return apiClient.get(`/platform/cases/${caseId}/prefill`);
 }
 
-export async function overrideUnderwritingDecision(caseId, payload) {
-  return apiClient.post(`/platform/cases/${caseId}/underwriting/override`, payload);
+export async function getLoanAccount(caseId) {
+  return apiClient.get(`/platform/cases/${caseId}/loan-account`);
+}
+
+export async function uploadStatement(caseId, payload) {
+  return apiClient.post(`/platform/cases/${caseId}/statements`, payload);
+}
+
+export async function getCaseDocuments(caseId) {
+  return apiClient.get(`/platform/cases/${caseId}/documents`);
+}
+
+export async function exportCaseDocuments(caseId, actorUserId) {
+  const formData = new FormData();
+  if (actorUserId) formData.append('actor_user_id', actorUserId);
+  return apiClient.post(`/platform/cases/${caseId}/documents/export`, formData);
 }

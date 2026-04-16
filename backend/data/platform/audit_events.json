@@ -280,52 +280,169 @@
     "created_at": "2026-04-14T18:11:49.670411"
   },
   {
-    "id": "e2f61577-1395-4732-9fbc-d65b3a6e1bc2",
+    "id": "0c013898-1a44-48f9-ba9a-9bd6249d16dc",
     "org_id": "11111111-1111-1111-1111-111111111111",
-    "entity_type": "kirana",
-    "entity_id": "11127741-d439-4ad4-bafd-905da3fe9c81",
+    "entity_type": "loan",
+    "entity_id": "0dbebe30-a26c-4e76-9e29-ae40a0585b9e",
+    "action": "decision_recorded",
+    "description": "Recorded loan decision for case 61111111-1111-1111-1111-111111111111",
+    "actor_user_id": "22222222-2222-2222-2222-222222222222",
+    "actor_name": "Rohan Verma",
+    "metadata": {
+      "case_id": "61111111-1111-1111-1111-111111111111",
+      "approved_amount": 135000.0,
+      "repayment_cadence": "weekly"
+    },
+    "created_at": "2026-04-16T12:02:36.963193"
+  },
+  {
+    "id": "c36bde09-1a30-4280-b7b5-e1574e882f0c",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "61111111-1111-1111-1111-111111111111",
+    "action": "status_changed",
+    "description": "Changed case status from under_review to approved",
+    "actor_user_id": "22222222-2222-2222-2222-222222222222",
+    "actor_name": "Rohan Verma",
+    "metadata": {
+      "previous_status": "under_review",
+      "new_status": "approved",
+      "note": "Approval test"
+    },
+    "created_at": "2026-04-16T12:02:36.963193"
+  },
+  {
+    "id": "65851671-3c0d-4116-89a1-22f5c354fd6b",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "loan",
+    "entity_id": "6404c8bf-a17f-4269-9113-c45b70c215f3",
     "action": "created",
-    "description": "Created kirana profile for shastri stores",
+    "description": "Booked loan account for case 61111111-1111-1111-1111-111111111111",
+    "actor_user_id": "22222222-2222-2222-2222-222222222222",
+    "actor_name": "Rohan Verma",
+    "metadata": {
+      "case_id": "61111111-1111-1111-1111-111111111111",
+      "principal_amount": 135000.0
+    },
+    "created_at": "2026-04-16T12:02:36.964193"
+  },
+  {
+    "id": "df98ee2b-c3dc-4a37-9c3d-e90d34fe87a3",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "61111111-1111-1111-1111-111111111111",
+    "action": "status_changed",
+    "description": "Changed case status from approved to disbursed",
+    "actor_user_id": "22222222-2222-2222-2222-222222222222",
+    "actor_name": "Rohan Verma",
+    "metadata": {
+      "previous_status": "approved",
+      "new_status": "disbursed",
+      "note": "Disbursement test"
+    },
+    "created_at": "2026-04-16T12:02:36.965192"
+  },
+  {
+    "id": "b8b98694-d4cc-4b90-9313-c2bab5a24989",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "loan",
+    "entity_id": "017162fd-8620-4aff-a754-c23bf2a4d399",
+    "action": "decision_recorded",
+    "description": "Recorded loan decision for case 62222222-2222-2222-2222-222222222222",
+    "actor_user_id": "22222222-2222-2222-2222-222222222222",
+    "actor_name": "Rohan Verma",
+    "metadata": {
+      "case_id": "62222222-2222-2222-2222-222222222222",
+      "approved_amount": 170000.0,
+      "repayment_cadence": "monthly"
+    },
+    "created_at": "2026-04-16T12:02:36.974204"
+  },
+  {
+    "id": "31e39347-a13c-471c-ba2d-481144d9b108",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "loan",
+    "entity_id": "21a51cf0-39bd-42b2-8181-7dec78515fa1",
+    "action": "created",
+    "description": "Booked loan account for case 62222222-2222-2222-2222-222222222222",
+    "actor_user_id": "22222222-2222-2222-2222-222222222222",
+    "actor_name": "Rohan Verma",
+    "metadata": {
+      "case_id": "62222222-2222-2222-2222-222222222222",
+      "principal_amount": 170000.0
+    },
+    "created_at": "2026-04-16T12:02:36.976195"
+  },
+  {
+    "id": "d7b83cf2-5704-45ab-9cfd-7799fc901b9a",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "62222222-2222-2222-2222-222222222222",
+    "action": "statement_uploaded",
+    "description": "Uploaded statement latest-cycle.csv",
+    "actor_user_id": "22222222-2222-2222-2222-222222222222",
+    "actor_name": "Rohan Verma",
+    "metadata": {
+      "statement_upload_id": "7d4024fb-12e2-4875-bae6-f1aafa655353",
+      "transaction_count": 4
+    },
+    "created_at": "2026-04-16T12:02:36.984196"
+  },
+  {
+    "id": "2772ca61-7d22-44c6-ae2a-23a6c8b689cf",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "62222222-2222-2222-2222-222222222222",
+    "action": "monitoring_run_completed",
+    "description": "Completed monitoring run from statement latest-cycle.csv",
+    "actor_user_id": "22222222-2222-2222-2222-222222222222",
+    "actor_name": "Rohan Verma",
+    "metadata": {
+      "monitoring_run_id": "b8d7b8de-64e3-4bdd-a17b-bc36e3d522c3",
+      "stress_score": 0.652,
+      "current_risk_band": "HIGH"
+    },
+    "created_at": "2026-04-16T12:02:36.987196"
+  },
+  {
+    "id": "d868867d-fac8-413c-9a4e-57f3213a32e4",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "62222222-2222-2222-2222-222222222222",
+    "action": "exported",
+    "description": "Exported deterministic case bundle",
+    "actor_user_id": "22222222-2222-2222-2222-222222222222",
+    "actor_name": "Rohan Verma",
+    "metadata": {
+      "document_bundle_id": "c3b0ef3c-7339-4081-9848-de70c90bd738",
+      "formats": [
+        "json",
+        "pdf"
+      ]
+    },
+    "created_at": "2026-04-16T12:02:36.988196"
+  },
+  {
+    "id": "440c8f97-8aa8-4cba-bfbd-b7490e46f8a5",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "loan",
+    "entity_id": "1fa03352-5973-4291-b76d-5cc7dbfa3df2",
+    "action": "decision_recorded",
+    "description": "Recorded loan decision for case 3ce18a28-4e21-4f8b-820b-30d1884cd9a6",
     "actor_user_id": "21111111-1111-1111-1111-111111111111",
     "actor_name": "Maya Sharma",
     "metadata": {
-      "pin_code": "110095"
+      "case_id": "3ce18a28-4e21-4f8b-820b-30d1884cd9a6",
+      "approved_amount": 0.0,
+      "repayment_cadence": "weekly"
     },
-    "created_at": "2026-04-15T07:40:14.188472"
+    "created_at": "2026-04-16T12:53:18.619541"
   },
   {
-    "id": "287970ba-f606-4558-a79e-076d60c6c13e",
+    "id": "04c6117a-1fce-462d-abb5-612c8247e931",
     "org_id": "11111111-1111-1111-1111-111111111111",
     "entity_type": "case",
-    "entity_id": "5011fd34-38d4-4877-9cc6-989ee4993909",
-    "action": "created",
-    "description": "Created case for shastri stores",
-    "actor_user_id": "21111111-1111-1111-1111-111111111111",
-    "actor_name": "Maya Sharma",
-    "metadata": {
-      "status": "draft"
-    },
-    "created_at": "2026-04-15T07:40:14.199969"
-  },
-  {
-    "id": "0c806e7a-2a37-4fc9-b827-f5d0dd146bb5",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "entity_type": "case",
-    "entity_id": "5011fd34-38d4-4877-9cc6-989ee4993909",
-    "action": "assessment_linked",
-    "description": "Linked assessment d9350359-acae-456d-a5ec-5eda02e67348 to case",
-    "actor_user_id": null,
-    "actor_name": null,
-    "metadata": {
-      "assessment_id": "ae894f42-b9bf-4168-9b06-a21b9e65cfa1"
-    },
-    "created_at": "2026-04-15T07:57:00.981136"
-  },
-  {
-    "id": "8f86938f-31ce-49b9-90ee-ecaa61a7867d",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "entity_type": "case",
-    "entity_id": "5011fd34-38d4-4877-9cc6-989ee4993909",
+    "entity_id": "3ce18a28-4e21-4f8b-820b-30d1884cd9a6",
     "action": "status_changed",
     "description": "Changed case status from under_review to approved",
     "actor_user_id": "21111111-1111-1111-1111-111111111111",
@@ -335,13 +452,28 @@
       "new_status": "approved",
       "note": null
     },
-    "created_at": "2026-04-15T07:58:21.885539"
+    "created_at": "2026-04-16T12:53:18.622542"
   },
   {
-    "id": "c99fdfcc-dc99-4740-9772-12e29b76fe42",
+    "id": "608275f3-3656-4771-ade3-9b467cec1c02",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "loan",
+    "entity_id": "ecaebb6a-4b61-42b3-8075-2100250eebbc",
+    "action": "created",
+    "description": "Booked loan account for case 3ce18a28-4e21-4f8b-820b-30d1884cd9a6",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "case_id": "3ce18a28-4e21-4f8b-820b-30d1884cd9a6",
+      "principal_amount": 0.0
+    },
+    "created_at": "2026-04-16T12:53:19.726430"
+  },
+  {
+    "id": "650e8d12-09c6-40f4-a743-125120721541",
     "org_id": "11111111-1111-1111-1111-111111111111",
     "entity_type": "case",
-    "entity_id": "5011fd34-38d4-4877-9cc6-989ee4993909",
+    "entity_id": "3ce18a28-4e21-4f8b-820b-30d1884cd9a6",
     "action": "status_changed",
     "description": "Changed case status from approved to disbursed",
     "actor_user_id": "21111111-1111-1111-1111-111111111111",
@@ -351,102 +483,6 @@
       "new_status": "disbursed",
       "note": null
     },
-    "created_at": "2026-04-15T11:19:06.572663"
-  },
-  {
-    "id": "575a0c3f-7c55-4d8a-8650-c14734e36955",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "entity_type": "case",
-    "entity_id": "5011fd34-38d4-4877-9cc6-989ee4993909",
-    "action": "status_changed",
-    "description": "Changed case status from disbursed to monitoring",
-    "actor_user_id": "21111111-1111-1111-1111-111111111111",
-    "actor_name": "Maya Sharma",
-    "metadata": {
-      "previous_status": "disbursed",
-      "new_status": "monitoring",
-      "note": null
-    },
-    "created_at": "2026-04-15T11:19:08.414526"
-  },
-  {
-    "id": "e103c7e3-8d4a-4458-86d6-691bc57c04a7",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "entity_type": "case",
-    "entity_id": "5011fd34-38d4-4877-9cc6-989ee4993909",
-    "action": "status_changed",
-    "description": "Changed case status from monitoring to restructured",
-    "actor_user_id": "21111111-1111-1111-1111-111111111111",
-    "actor_name": "Maya Sharma",
-    "metadata": {
-      "previous_status": "monitoring",
-      "new_status": "restructured",
-      "note": null
-    },
-    "created_at": "2026-04-15T11:19:09.272887"
-  },
-  {
-    "id": "4b7c5d47-5318-4ba8-971f-d57ac8e386b7",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "entity_type": "case",
-    "entity_id": "5011fd34-38d4-4877-9cc6-989ee4993909",
-    "action": "status_changed",
-    "description": "Changed case status from restructured to monitoring",
-    "actor_user_id": "21111111-1111-1111-1111-111111111111",
-    "actor_name": "Maya Sharma",
-    "metadata": {
-      "previous_status": "restructured",
-      "new_status": "monitoring",
-      "note": null
-    },
-    "created_at": "2026-04-15T11:19:09.915059"
-  },
-  {
-    "id": "7e8e6c12-b1e2-43d4-916e-77670e58be61",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "entity_type": "case",
-    "entity_id": "5011fd34-38d4-4877-9cc6-989ee4993909",
-    "action": "status_changed",
-    "description": "Changed case status from monitoring to restructured",
-    "actor_user_id": "21111111-1111-1111-1111-111111111111",
-    "actor_name": "Maya Sharma",
-    "metadata": {
-      "previous_status": "monitoring",
-      "new_status": "restructured",
-      "note": null
-    },
-    "created_at": "2026-04-15T11:19:10.491593"
-  },
-  {
-    "id": "dd1d51ef-e0f9-4e26-a258-8ab45b07d6bb",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "entity_type": "case",
-    "entity_id": "5011fd34-38d4-4877-9cc6-989ee4993909",
-    "action": "status_changed",
-    "description": "Changed case status from restructured to monitoring",
-    "actor_user_id": "21111111-1111-1111-1111-111111111111",
-    "actor_name": "Maya Sharma",
-    "metadata": {
-      "previous_status": "restructured",
-      "new_status": "monitoring",
-      "note": null
-    },
-    "created_at": "2026-04-15T11:19:10.957388"
-  },
-  {
-    "id": "54fdd9cd-3bf8-4147-809f-430754ba27fe",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "entity_type": "case",
-    "entity_id": "5011fd34-38d4-4877-9cc6-989ee4993909",
-    "action": "status_changed",
-    "description": "Changed case status from monitoring to restructured",
-    "actor_user_id": "21111111-1111-1111-1111-111111111111",
-    "actor_name": "Maya Sharma",
-    "metadata": {
-      "previous_status": "monitoring",
-      "new_status": "restructured",
-      "note": null
-    },
-    "created_at": "2026-04-15T11:19:12.096763"
+    "created_at": "2026-04-16T12:53:19.731431"
   }
 ]

@@ -41,22 +41,23 @@ from models.output_schema import (
 from models.platform_schema import (
     AssessmentCase,
     AuditEvent,
-    BookLoanRequest,
     CaseDetailResponse,
+    CaseStatus,
     CaseStatusUpdateRequest,
     CreateCaseRequest,
+    DocumentBundleResponse,
     KiranaDetailResponse,
     KiranaProfile,
     LenderOrg,
-    LoanAccount,
     LoanAccountDetailResponse,
-    LoanStatusUpdateRequest,
-    MonitoringRun,
     OrgDashboardResponse,
+    PortfolioAnalyticsResponse,
     PlatformSnapshot,
-    StatementUpload,
-    UnderwritingOverrideRequest,
+    StatementUploadCreateRequest,
+    StatementUploadResponse,
 )
+from analytics.cohort_analysis import build_cohort_analysis
+from analytics.portfolio_metrics import build_portfolio_metrics
 from orchestration.fusion_engine import run_fusion_engine
 from orchestration.fraud_detector import run_fraud_detection
 from orchestration.loan_sizer import compute_loan_recommendation
@@ -74,13 +75,12 @@ from geo_module.geo_analyzer import analyze_location
 from geo_module.footfall_proxy import estimate_footfall
 from geo_module.competition_density import analyze_competition
 from geo_module.catchment_estimator import estimate_catchment
-from llm_layer.explainer import (
-    generate_risk_narrative,
-    generate_underwriting_decision_pack,
-)
+from llm_layer.explainer import generate_risk_narrative
 from llm_layer.risk_summarizer import generate_risk_summary
 from services.audit_service import AuditService
 from services.case_service import CaseService
+from services.compliance_exporter import ComplianceExporter
+from services.document_builder import DocumentBuilder
 from services.loan_service import LoanService
 from services.monitoring_service import MonitoringService
 from storage.repository import get_platform_repository
@@ -90,9 +90,7 @@ from storage.repository import get_platform_repository
 # ---------------------------------------------------------------------------
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-for env_path in (REPO_ROOT / ".env", REPO_ROOT.parent / ".env"):
-    if env_path.exists():
-        load_dotenv(dotenv_path=env_path, override=False)
+load_dotenv(dotenv_path=REPO_ROOT / ".env")
 
 logging.basicConfig(
     level=getattr(logging, os.getenv("LOG_LEVEL", "INFO")),
@@ -102,9 +100,11 @@ logger = logging.getLogger("kira.main")
 
 platform_repository = get_platform_repository()
 audit_service = AuditService(platform_repository)
-case_service = CaseService(platform_repository, audit_service)
 loan_service = LoanService(platform_repository, audit_service)
-monitoring_service = MonitoringService(platform_repository, audit_service)
+case_service = CaseService(platform_repository, audit_service, loan_service)
+document_builder = DocumentBuilder(platform_repository)
+compliance_exporter = ComplianceExporter(document_builder, audit_service)
+monitoring_service = MonitoringService(platform_repository, audit_service, loan_service)
 
 # ---------------------------------------------------------------------------
 # FastAPI App
@@ -438,11 +438,7 @@ async def submit_assessment(
         # ---- Step 6: Loan Sizing ----
         logger.info("Computing loan recommendation...")
         loan_rec = await compute_loan_recommendation(
-            revenue_estimate,
-            risk_assessment,
-            fraud_result,
-            cv_signals=cv_signals,
-            geo_signals=geo_signals,
+            revenue_estimate, risk_assessment, fraud_result
         )
 
         logger.info(
@@ -459,20 +455,11 @@ async def submit_assessment(
         fraud_dict = fraud_result.model_dump()
 
         risk_narrative = await generate_risk_narrative(
-            cv_dict,
-            geo_dict,
-            fusion_result,
-            fraud_dict,
-            loan_rec,
+            cv_dict, geo_dict, fusion_result, fraud_dict
         )
 
         summary = await generate_risk_summary(
             cv_dict, geo_dict, fusion_result, fraud_dict
-        )
-        decision_pack = generate_underwriting_decision_pack(
-            fusion_result=fusion_result,
-            loan_recommendation=loan_rec,
-            summary=summary,
         )
 
         logger.info(f"Explanation generated: {len(risk_narrative)} chars")
@@ -488,7 +475,6 @@ async def submit_assessment(
             fraud_detection=fraud_result,
             risk_narrative=risk_narrative,
             summary=summary,
-            decision_pack=decision_pack,
         )
 
         # Persist for later retrieval (JSON and in-memory cache)
@@ -635,6 +621,59 @@ async def get_platform_dashboard(org_id: uuid.UUID) -> OrgDashboardResponse:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
+@app.get(
+    "/api/v1/platform/orgs/{org_id}/portfolio",
+    response_model=PortfolioAnalyticsResponse,
+)
+async def get_platform_portfolio(org_id: uuid.UUID) -> PortfolioAnalyticsResponse:
+    """Return portfolio KPIs, drilldowns, and cohort analytics."""
+    org = platform_repository.get_organization(org_id)
+    if org is None:
+        raise HTTPException(status_code=404, detail="Organization not found")
+
+    cases = platform_repository.list_cases(org_id)
+    kiranas = {str(item.id): item for item in platform_repository.list_kiranas(org_id)}
+    risk_distribution = {"LOW": 0, "MEDIUM": 0, "HIGH": 0, "VERY_HIGH": 0}
+    status_distribution = {status.value: 0 for status in CaseStatus}
+    geography_distribution: dict[str, int] = {}
+    loans: list[dict] = []
+
+    for case in cases:
+        if case.latest_risk_band is not None:
+            risk_distribution[case.latest_risk_band.value] = risk_distribution.get(case.latest_risk_band.value, 0) + 1
+        status_distribution[case.status.value] = status_distribution.get(case.status.value, 0) + 1
+        kirana = kiranas.get(str(case.kirana_id))
+        district_key = kirana.location.district if kirana else "Unknown"
+        geography_distribution[district_key] = geography_distribution.get(district_key, 0) + 1
+        loan_account = platform_repository.get_loan_account_for_case(case.id)
+        latest_monitoring = platform_repository.get_latest_monitoring_run(case.id)
+        loans.append(
+            {
+                "case_id": str(case.id),
+                "loan_account_id": str(loan_account.id) if loan_account else None,
+                "store_name": kirana.store_name if kirana else "Unknown",
+                "borrower_name": kirana.owner_name if kirana else "Unknown",
+                "state": kirana.location.state if kirana else None,
+                "district": kirana.location.district if kirana else None,
+                "pin_code": kirana.location.pin_code if kirana else None,
+                "status": case.status.value,
+                "risk_band": case.latest_risk_band.value if case.latest_risk_band else None,
+                "exposure": loan_account.outstanding_amount if loan_account else (case.latest_loan_range.high if case.latest_loan_range else 0),
+                "stress_score": latest_monitoring.stress_score if latest_monitoring else 0,
+                "product_type": "working_capital",
+            }
+        )
+
+    return PortfolioAnalyticsResponse(
+        metrics=build_portfolio_metrics(platform_repository, org_id),
+        risk_distribution=risk_distribution,
+        geography_distribution=geography_distribution,
+        status_distribution=status_distribution,
+        cohorts=build_cohort_analysis(platform_repository, org_id),
+        loans=loans,
+    )
+
+
 @app.get("/api/v1/platform/orgs/{org_id}/kiranas", response_model=list[KiranaProfile])
 async def list_platform_kiranas(org_id: uuid.UUID) -> list[KiranaProfile]:
     """List kirana profiles for a lender organization."""
@@ -754,241 +793,56 @@ async def list_platform_case_audit(case_id: uuid.UUID) -> list[AuditEvent]:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
-@app.post(
-    "/api/v1/platform/cases/{case_id}/underwriting/override",
-    response_model=CaseDetailResponse,
-)
-async def override_platform_underwriting_decision(
-    case_id: uuid.UUID,
-    payload: UnderwritingOverrideRequest,
-) -> CaseDetailResponse:
-    """Capture an officer override for the latest case underwriting decision."""
-    try:
-        return case_service.override_underwriting_decision(case_id, payload)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-
-# ---------------------------------------------------------------------------
-# Phase 11 — Loan Lifecycle Endpoints
-# ---------------------------------------------------------------------------
-
-@app.post("/api/v1/platform/loans", response_model=LoanAccountDetailResponse)
-async def book_platform_loan(payload: BookLoanRequest) -> LoanAccountDetailResponse:
-    """Book a loan account from an approved case."""
-    try:
-        return loan_service.book_loan(payload)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-
-@app.get("/api/v1/platform/orgs/{org_id}/loans", response_model=list[LoanAccount])
-async def list_platform_loans(org_id: uuid.UUID) -> list[LoanAccount]:
-    """List all loan accounts for an organization."""
-    try:
-        return loan_service.list_loans_for_org(org_id)
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-
-
-@app.get("/api/v1/platform/loans/{loan_id}", response_model=LoanAccountDetailResponse)
-async def get_platform_loan_detail(loan_id: uuid.UUID) -> LoanAccountDetailResponse:
-    """Return full loan account detail with monitoring and statement data."""
-    try:
-        return loan_service.get_loan_detail(loan_id)
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-
-
-@app.post(
-    "/api/v1/platform/loans/{loan_id}/status",
+@app.get(
+    "/api/v1/platform/cases/{case_id}/loan-account",
     response_model=LoanAccountDetailResponse,
 )
-async def update_platform_loan_status(
-    loan_id: uuid.UUID,
-    payload: LoanStatusUpdateRequest,
-) -> LoanAccountDetailResponse:
-    """Change the status of a loan account."""
+async def get_platform_loan_account(case_id: uuid.UUID) -> LoanAccountDetailResponse:
+    """Return booked loan details, monitoring, and statement history for a case."""
     try:
-        return loan_service.update_loan_status(loan_id, payload)
+        return loan_service.get_loan_account_detail(case_id)
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
-
-# ---------------------------------------------------------------------------
-# Phase 11 — Statement Upload Endpoints
-# ---------------------------------------------------------------------------
 
 @app.post(
-    "/api/v1/platform/loans/{loan_id}/statements",
-    response_model=StatementUpload,
+    "/api/v1/platform/cases/{case_id}/statements",
+    response_model=StatementUploadResponse,
 )
 async def upload_platform_statement(
-    loan_id: uuid.UUID,
-    file: UploadFile = File(..., description="Bank or UPI statement (PDF/CSV)"),
-    uploaded_by_user_id: Optional[uuid.UUID] = Form(default=None),
-) -> StatementUpload:
-    """Upload a fresh bank or UPI statement for monitoring."""
+    case_id: uuid.UUID,
+    payload: StatementUploadCreateRequest,
+) -> StatementUploadResponse:
+    """Upload a fresh statement and trigger a monitoring re-score."""
     try:
-        content = await file.read()
-        if len(content) > 10 * 1024 * 1024:
-            raise HTTPException(status_code=400, detail="File exceeds 10MB limit")
-
-        file_type = "pdf"
-        if file.filename:
-            ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
-            if ext in ("csv", "xlsx"):
-                file_type = ext
-            elif ext in ("pdf",):
-                file_type = "pdf"
-
-        return monitoring_service.upload_statement(
-            loan_id=loan_id,
-            file_name=file.filename or "statement",
-            file_type=file_type,
-            file_content=content,
-            uploaded_by_user_id=uploaded_by_user_id,
-        )
+        return monitoring_service.upload_statement(case_id, payload)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.get(
-    "/api/v1/platform/loans/{loan_id}/statements",
-    response_model=list[StatementUpload],
+    "/api/v1/platform/cases/{case_id}/documents",
+    response_model=DocumentBundleResponse,
 )
-async def list_platform_statements(loan_id: uuid.UUID) -> list[StatementUpload]:
-    """List all statement uploads for a loan."""
-    return monitoring_service.list_statement_uploads(loan_id)
+async def get_platform_case_documents(case_id: uuid.UUID) -> DocumentBundleResponse:
+    """Return deterministic case bundle data."""
+    try:
+        return document_builder.build_case_bundle(case_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
-
-# ---------------------------------------------------------------------------
-# Phase 11 — Monitoring Endpoints
-# ---------------------------------------------------------------------------
 
 @app.post(
-    "/api/v1/platform/loans/{loan_id}/monitoring/run",
-    response_model=MonitoringRun,
+    "/api/v1/platform/cases/{case_id}/documents/export",
+    response_model=DocumentBundleResponse,
 )
-async def run_platform_monitoring(
-    loan_id: uuid.UUID,
-    statement_upload_id: Optional[uuid.UUID] = Form(default=None),
+async def export_platform_case_documents(
+    case_id: uuid.UUID,
     actor_user_id: Optional[uuid.UUID] = Form(default=None),
-) -> MonitoringRun:
-    """Trigger a monitoring re-assessment cycle for a loan."""
+) -> DocumentBundleResponse:
+    """Generate and audit a deterministic case export bundle."""
     try:
-        return monitoring_service.run_monitoring_cycle(
-            loan_id=loan_id,
-            statement_upload_id=statement_upload_id,
-            actor_user_id=actor_user_id,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-
-@app.get(
-    "/api/v1/platform/loans/{loan_id}/monitoring",
-    response_model=list[MonitoringRun],
-)
-async def list_platform_monitoring_runs(loan_id: uuid.UUID) -> list[MonitoringRun]:
-    """List monitoring runs for a loan."""
-    return monitoring_service.list_monitoring_runs(loan_id)
-
-
-# ---------------------------------------------------------------------------
-# Phase 12 — Portfolio Command Center Endpoints
-# ---------------------------------------------------------------------------
-
-from analytics.portfolio_metrics import PortfolioSummary, compute_portfolio_summary
-from analytics.cohort_analysis import CohortAnalysisResult, run_cohort_analysis
-
-
-@app.get(
-    "/api/v1/platform/orgs/{org_id}/portfolio",
-    response_model=PortfolioSummary,
-)
-async def get_portfolio_summary(org_id: uuid.UUID) -> PortfolioSummary:
-    """Get portfolio-level KPIs, risk distribution, and geographic concentration."""
-    try:
-        org = platform_repository.get_organization(org_id)
-        if org is None:
-            raise ValueError("Organization not found")
-        return compute_portfolio_summary(platform_repository, org_id)
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-
-
-@app.get(
-    "/api/v1/platform/orgs/{org_id}/portfolio/cohorts",
-    response_model=CohortAnalysisResult,
-)
-async def get_cohort_analysis(org_id: uuid.UUID) -> CohortAnalysisResult:
-    """Run cohort analysis (vintage, risk tier, state, cadence) for the portfolio."""
-    try:
-        org = platform_repository.get_organization(org_id)
-        if org is None:
-            raise ValueError("Organization not found")
-        return run_cohort_analysis(platform_repository, org_id)
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-
-
-# ---------------------------------------------------------------------------
-# Phase 13 — Compliance & Document Endpoints
-# ---------------------------------------------------------------------------
-
-from services.compliance_exporter import (
-    AuditExportBundle,
-    CaseFilePacket,
-    ComplianceExporter,
-    ComplianceReport,
-)
-
-compliance_exporter = ComplianceExporter(platform_repository)
-
-
-@app.get(
-    "/api/v1/platform/orgs/{org_id}/audit/export",
-    response_model=AuditExportBundle,
-)
-async def export_audit_events(
-    org_id: uuid.UUID,
-    entity_id: Optional[uuid.UUID] = None,
-    action: Optional[str] = None,
-    limit: int = 500,
-) -> AuditExportBundle:
-    """Export audit events as a structured bundle."""
-    try:
-        return compliance_exporter.export_audit_events(
-            org_id=org_id,
-            entity_id=entity_id,
-            action_filter=action,
-            limit=limit,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-
-
-@app.get(
-    "/api/v1/platform/cases/{case_id}/file-packet",
-    response_model=CaseFilePacket,
-)
-async def get_case_file_packet(case_id: uuid.UUID) -> CaseFilePacket:
-    """Generate a complete loan file packet for a case."""
-    try:
-        return compliance_exporter.generate_case_file_packet(case_id)
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-
-
-@app.get(
-    "/api/v1/platform/orgs/{org_id}/compliance/report",
-    response_model=ComplianceReport,
-)
-async def get_compliance_report(org_id: uuid.UUID) -> ComplianceReport:
-    """Generate an organization-level compliance report."""
-    try:
-        return compliance_exporter.generate_compliance_report(org_id)
+        return compliance_exporter.export_case_bundle(case_id, actor_user_id=actor_user_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 

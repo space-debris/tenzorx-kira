@@ -114,6 +114,9 @@ class AuditAction(str, Enum):
     UNDERWRITING_OVERRIDDEN = "underwriting_overridden"
     ASSESSMENT_LINKED = "assessment_linked"
     ASSIGNED = "assigned"
+    DECISION_RECORDED = "decision_recorded"
+    STATEMENT_UPLOADED = "statement_uploaded"
+    MONITORING_RUN_COMPLETED = "monitoring_run_completed"
     SEEDED = "seeded"
     EXPORTED = "exported"
     # Phase 11 actions
@@ -280,12 +283,98 @@ class RiskAlert(BaseModel):
 
 
 class DocumentBundle(BaseModel):
-    """Placeholder metadata for generated file bundles."""
+    """Generated loan-file bundle metadata and deterministic payload summaries."""
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4)
     org_id: uuid.UUID
     case_id: uuid.UUID
     documents: dict[str, str] = Field(default_factory=dict)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    generated_by_user_id: Optional[uuid.UUID] = Field(default=None)
+    export_formats: list[str] = Field(default_factory=lambda: ["json"])
+
+
+class LoanDecision(BaseModel):
+    """Decision pack recorded at approval time."""
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    org_id: uuid.UUID
+    case_id: uuid.UUID
+    assessment_session_id: Optional[uuid.UUID] = Field(default=None)
+    recommended_amount: float = Field(..., ge=0)
+    approved_amount: float = Field(..., ge=0)
+    recommended_tenure_months: int = Field(..., ge=3, le=60)
+    approved_tenure_months: int = Field(..., ge=3, le=60)
+    pricing_rate_annual: float = Field(..., ge=0)
+    processing_fee_rate: float = Field(..., ge=0)
+    repayment_cadence: str = Field(default="monthly", min_length=3, max_length=20)
+    decision_reason: str = Field(..., min_length=1, max_length=1000)
+    override_reason: Optional[str] = Field(default=None, max_length=1000)
+    created_by_user_id: uuid.UUID
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class LoanAccount(BaseModel):
+    """Persistent booked loan account created on disbursement."""
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    org_id: uuid.UUID
+    case_id: uuid.UUID
+    kirana_id: uuid.UUID
+    loan_decision_id: uuid.UUID
+    principal_amount: float = Field(..., ge=0)
+    outstanding_amount: float = Field(..., ge=0)
+    tenure_months: int = Field(..., ge=3, le=60)
+    pricing_rate_annual: float = Field(..., ge=0)
+    processing_fee_rate: float = Field(..., ge=0)
+    repayment_cadence: str = Field(default="monthly", min_length=3, max_length=20)
+    disbursed_at: datetime = Field(default_factory=datetime.utcnow)
+    next_review_at: Optional[datetime] = Field(default=None)
+    closed_at: Optional[datetime] = Field(default=None)
+    status: CaseStatus = Field(default=CaseStatus.DISBURSED)
+    original_assessment_session_id: Optional[uuid.UUID] = Field(default=None)
+
+
+class StatementUpload(BaseModel):
+    """Stored lender-side upload metadata and parsed transaction summary."""
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    org_id: uuid.UUID
+    case_id: uuid.UUID
+    loan_account_id: Optional[uuid.UUID] = Field(default=None)
+    uploaded_by_user_id: uuid.UUID
+    file_name: str = Field(..., min_length=1, max_length=255)
+    file_type: str = Field(..., min_length=1, max_length=50)
+    source_kind: str = Field(default="bank", min_length=3, max_length=30)
+    parse_status: str = Field(default="parsed", min_length=3, max_length=30)
+    parse_confidence: float = Field(default=0.5, ge=0, le=1)
+    transaction_count: int = Field(default=0, ge=0)
+    inflow_total: float = Field(default=0, ge=0)
+    outflow_total: float = Field(default=0, ge=0)
+    period_start: Optional[datetime] = Field(default=None)
+    period_end: Optional[datetime] = Field(default=None)
+    parsed_summary: dict[str, Any] = Field(default_factory=dict)
+    uploaded_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class MonitoringRun(BaseModel):
+    """Monitoring re-score generated from fresh statements and prior context."""
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    org_id: uuid.UUID
+    case_id: uuid.UUID
+    loan_account_id: Optional[uuid.UUID] = Field(default=None)
+    statement_upload_id: Optional[uuid.UUID] = Field(default=None)
+    run_type: str = Field(default="manual_refresh", min_length=3, max_length=50)
+    previous_risk_band: Optional[RiskBand] = Field(default=None)
+    current_risk_band: RiskBand
+    previous_inflow_total: Optional[float] = Field(default=None, ge=0)
+    current_inflow_total: float = Field(..., ge=0)
+    inflow_change_ratio: float = Field(..., ge=-1)
+    utilization_breakdown: dict[str, float] = Field(default_factory=dict)
+    stress_score: float = Field(default=0.0, ge=0, le=1)
+    restructuring_recommendation: Optional[str] = Field(default=None, max_length=1000)
+    alerts_created: list[uuid.UUID] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -301,13 +390,28 @@ class LoanHistoryEntry(BaseModel):
 
 
 class StatementUploadRecord(BaseModel):
-    """Placeholder record until Phase 11 statement ingestion is implemented."""
+    """UI-friendly view of a stored statement upload."""
 
     id: str
     label: str
     status: str
     created_at: datetime
     note: str
+    transaction_count: int = Field(default=0, ge=0)
+    inflow_total: float = Field(default=0, ge=0)
+    outflow_total: float = Field(default=0, ge=0)
+
+
+class MonitoringRunRecord(BaseModel):
+    """UI-friendly monitoring timeline item."""
+
+    id: str
+    created_at: datetime
+    current_risk_band: RiskBand
+    inflow_change_ratio: float
+    stress_score: float = Field(..., ge=0, le=1)
+    restructuring_recommendation: Optional[str] = Field(default=None)
+    utilization_breakdown: dict[str, float] = Field(default_factory=dict)
 
 
 # =============================================================================
@@ -513,8 +617,66 @@ class KiranaDetailResponse(BaseModel):
     assessment_history: list[AssessmentSummary] = Field(default_factory=list)
     loan_history: list[LoanHistoryEntry] = Field(default_factory=list)
     statement_uploads: list[StatementUploadRecord] = Field(default_factory=list)
+    monitoring_runs: list[MonitoringRunRecord] = Field(default_factory=list)
     alerts: list[RiskAlert] = Field(default_factory=list)
     audit_events: list[AuditEvent] = Field(default_factory=list)
+
+
+class LoanAccountDetailResponse(BaseModel):
+    """Full loan-account detail view for active-loan pages."""
+
+    loan_account: LoanAccount
+    case: AssessmentCase
+    kirana: KiranaProfile
+    loan_decision: Optional[LoanDecision] = Field(default=None)
+    statement_uploads: list[StatementUploadRecord] = Field(default_factory=list)
+    monitoring_runs: list[MonitoringRunRecord] = Field(default_factory=list)
+    alerts: list[RiskAlert] = Field(default_factory=list)
+    audit_events: list[AuditEvent] = Field(default_factory=list)
+
+
+class StatementUploadCreateRequest(BaseModel):
+    """Payload for manual statement refresh uploads."""
+
+    actor_user_id: uuid.UUID
+    file_name: str = Field(..., min_length=1, max_length=255)
+    file_type: str = Field(..., min_length=1, max_length=50)
+    source_kind: str = Field(default="bank", min_length=3, max_length=30)
+    content: str = Field(..., min_length=1)
+
+
+class StatementUploadResponse(BaseModel):
+    """Upload plus any monitoring side effects."""
+
+    statement_upload: StatementUploadRecord
+    monitoring_run: MonitoringRunRecord
+    alerts: list[RiskAlert] = Field(default_factory=list)
+
+
+class PortfolioMetricCard(BaseModel):
+    """Reusable KPI card payload."""
+
+    label: str
+    value: float | int
+    trend_label: Optional[str] = Field(default=None)
+
+
+class PortfolioAnalyticsResponse(BaseModel):
+    """Portfolio command-center payload."""
+
+    metrics: list[PortfolioMetricCard] = Field(default_factory=list)
+    risk_distribution: dict[str, int] = Field(default_factory=dict)
+    geography_distribution: dict[str, int] = Field(default_factory=dict)
+    status_distribution: dict[str, int] = Field(default_factory=dict)
+    cohorts: list[dict[str, Any]] = Field(default_factory=list)
+    loans: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class DocumentBundleResponse(BaseModel):
+    """Generated document bundle plus deterministic payload."""
+
+    bundle: DocumentBundle
+    payload: dict[str, Any] = Field(default_factory=dict)
 
 
 class OrgDashboardResponse(BaseModel):
@@ -536,6 +698,10 @@ class PlatformSnapshot(BaseModel):
     alerts: list[RiskAlert] = Field(default_factory=list)
     audit_events: list[AuditEvent] = Field(default_factory=list)
     assessment_summaries: list[AssessmentSummary] = Field(default_factory=list)
+    loan_decisions: list[LoanDecision] = Field(default_factory=list)
+    loan_accounts: list[LoanAccount] = Field(default_factory=list)
+    statement_uploads: list[StatementUpload] = Field(default_factory=list)
+    monitoring_runs: list[MonitoringRun] = Field(default_factory=list)
     document_bundles: list[DocumentBundle] = Field(default_factory=list)
     underwriting_decisions: list[UnderwritingDecision] = Field(default_factory=list)
     loan_accounts: list[LoanAccount] = Field(default_factory=list)

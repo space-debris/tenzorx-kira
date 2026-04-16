@@ -17,6 +17,7 @@ import CaseList from './pages/CaseList';
 import CaseDetail from './pages/CaseDetail';
 import NewCase from './pages/NewCase';
 import ActiveLoans from './pages/ActiveLoans';
+import LoanAccount from './pages/LoanAccount';
 import Portfolio from './pages/Portfolio';
 import Documents from './pages/Documents';
 
@@ -86,6 +87,7 @@ function App() {
             <Route path="cases" element={<CaseList />} />
             <Route path="cases/:caseId" element={<CaseDetail />} />
             <Route path="active-loans" element={<ActiveLoans />} />
+            <Route path="loan-accounts/:caseId" element={<LoanAccount />} />
             <Route path="portfolio" element={<Portfolio />} />
             <Route path="documents" element={<Documents />} />
             <Route path="new-case" element={<NewCase />} />
