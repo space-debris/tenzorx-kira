@@ -15,6 +15,7 @@ from models.platform_schema import (
     CaseStatus,
     LoanAccount,
     LoanAccountDetailResponse,
+    LoanAccountStatus,
     LoanDecision,
     MonitoringRunRecord,
     RiskAlert,
@@ -99,17 +100,15 @@ class LoanService:
             org_id=case.org_id,
             case_id=case.id,
             kirana_id=case.kirana_id,
-            loan_decision_id=decision.id,
+            assessment_session_id=case.latest_assessment_session_id,
+            status=LoanAccountStatus.ACTIVE,
             principal_amount=decision.approved_amount,
-            outstanding_amount=decision.approved_amount,
+            outstanding_principal=decision.approved_amount,
             tenure_months=decision.approved_tenure_months,
-            pricing_rate_annual=decision.pricing_rate_annual,
-            processing_fee_rate=decision.processing_fee_rate,
+            annual_interest_rate_pct=decision.pricing_rate_annual,
+            processing_fee_pct=decision.processing_fee_rate,
             repayment_cadence=decision.repayment_cadence,
             disbursed_at=datetime.utcnow(),
-            next_review_at=datetime.utcnow() + timedelta(days=14),
-            status=CaseStatus.DISBURSED,
-            original_assessment_session_id=case.latest_assessment_session_id,
         )
         self.repository.create_loan_account(loan_account)
         self.audit_service.record_event(
@@ -131,13 +130,18 @@ class LoanService:
         if account is None:
             return
         closed_at = account.closed_at
-        if case.status == CaseStatus.CLOSED and closed_at is None:
-            closed_at = datetime.utcnow()
+        new_status = account.status
+        if case.status == CaseStatus.CLOSED:
+            if closed_at is None:
+                closed_at = datetime.utcnow()
+            new_status = LoanAccountStatus.CLOSED
+        elif case.status == CaseStatus.RESTRUCTURED:
+            new_status = LoanAccountStatus.RESTRUCTURED
+
         updated = account.model_copy(
             update={
-                "status": case.status,
+                "status": new_status,
                 "closed_at": closed_at,
-                "next_review_at": None if case.status == CaseStatus.CLOSED else account.next_review_at,
             }
         )
         self.repository.update_loan_account(updated)

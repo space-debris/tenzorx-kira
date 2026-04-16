@@ -16,14 +16,8 @@ import {
   MapPin, User, Phone, FileText, Loader2
 } from 'lucide-react';
 
-const INDIAN_STATES = [
-  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
-  'Delhi', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
-  'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
-  'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan',
-  'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh',
-  'Uttarakhand', 'West Bengal',
-];
+import { INDIA_STATES_DISTRICTS } from '../utils/indiaGeo';
+const INDIAN_STATES = Object.keys(INDIA_STATES_DISTRICTS);
 
 export default function NewCase() {
   const navigate = useNavigate();
@@ -161,7 +155,16 @@ export default function NewCase() {
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1.5">District *</label>
-              <input type="text" value={form.district} onChange={(e) => updateField('district', e.target.value)} required placeholder="e.g., Meerut" className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all text-sm" />
+              <select 
+                value={form.district} 
+                onChange={(e) => updateField('district', e.target.value)} 
+                required 
+                disabled={!form.state}
+                className="appearance-none w-full border border-slate-300 bg-white rounded-lg px-4 py-2.5 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all text-sm disabled:bg-slate-50 disabled:text-slate-400"
+              >
+                <option value="">{form.state ? 'Select district' : 'Select state first'}</option>
+                {form.state && INDIA_STATES_DISTRICTS[form.state]?.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1.5">PIN Code *</label>

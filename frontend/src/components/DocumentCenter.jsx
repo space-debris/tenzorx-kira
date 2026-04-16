@@ -23,8 +23,8 @@ export default function DocumentCenter({ bundle, onExport, isExporting = false }
         <div className="grid gap-3">
           {Object.entries(bundle?.bundle?.documents || {}).map(([key, value]) => (
             <div key={key} className="flex items-center justify-between rounded-lg border border-slate-100 px-4 py-3 text-sm">
-              <span className="font-medium text-slate-700">{key.replaceAll('_', ' ')}</span>
-              <span className="text-slate-400">{value}</span>
+              <span className="font-medium text-slate-700">{key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</span>
+              <span className="text-slate-400">{String(value).replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</span>
             </div>
           ))}
         </div>

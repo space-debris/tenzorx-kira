@@ -26,6 +26,7 @@ from services.audit_service import AuditService
 from services.loan_service import LoanService
 from services.statement_parser import parse_statement_content
 from storage.repository import PlatformRepository
+from orchestration.enhanced_fraud import detect_longitudinal_fraud
 
 
 class MonitoringService:
@@ -141,6 +142,31 @@ class MonitoringService:
             restructure = "Soft stress detected. Review collections and refresh in 14 days."
 
         alerts: list[RiskAlert] = []
+        
+        # Enhanced Fraud Detection Integration
+        try:
+            past_uploads = self.repository.list_statement_uploads(case_id=case_id)
+            fraud_check = detect_longitudinal_fraud(upload.model_dump(), [u.model_dump() for u in past_uploads if u.id != upload.id])
+            if fraud_check.get("is_flagged"):
+                stress_score = min(1.0, stress_score + fraud_check.get("suspicion_score", 0))
+                current_risk = _risk_from_stress(case.latest_risk_band, stress_score)
+                for flag in fraud_check.get("flags", []):
+                    alerts.append(
+                        self.repository.create_alert(
+                            RiskAlert(
+                                org_id=case.org_id,
+                                case_id=case.id,
+                                kirana_id=case.kirana_id,
+                                severity=AlertSeverity.CRITICAL,
+                                status=AlertStatus.OPEN,
+                                title="Behavioral Anomaly Detected",
+                                description=f"Longitudinal fraud check flagged: {flag.replace('_', ' ').capitalize()}.",
+                            )
+                        )
+                    )
+        except Exception:
+            pass # Fallback to normal flow if history unavailable
+            
         if inflow_change_ratio <= -0.20:
             alerts.append(
                 self.repository.create_alert(

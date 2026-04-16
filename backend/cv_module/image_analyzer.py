@@ -57,12 +57,14 @@ MAX_RETRIES = 3
 ANALYSIS_PROMPT = """
 You are analyzing images of a kirana (small Indian retail) store for credit
 assessment purposes. Extract the following features in JSON format:
+{area_context}
 
 {
-    "store_type": "kirana | general_store | superette | specialty",
-    "store_size": "small | medium | large",
+    "store_type": "kirana | general_store | superette | specialty | modern_bazaar",
+    "store_size": "small | medium | large | mega",
     "store_size_sqft_estimate": <integer estimate>,
-    "lighting_quality": "poor | adequate | good",
+    "lighting_quality": "poor | adequate | good | excellent",
+    "aesthetic_appeal": "basic | functional | premium",
     "organization_level": "disorganized | average | well_organized",
     "shelf_occupancy_percent": <0-100>,
     "empty_shelf_areas": <integer count>,
@@ -98,6 +100,7 @@ IMPORTANT: Return ONLY the JSON object, no additional text or markdown.
 
 async def analyze_images(
     images: list[dict[str, Any]],
+    shop_area_sqft: int | None = None,
 ) -> dict[str, Any]:
     """
     Analyze multiple store images using Google Gemini Vision API.
@@ -111,6 +114,7 @@ async def analyze_images(
             - "image_data" (str): Base64-encoded image data
             - "image_type" (str): "interior", "exterior", or "shelf_closeup"
             - "mime_type" (str): "image/jpeg" or "image/png"
+        shop_area_sqft: Exact store area provided by the user, if any.
 
     Returns:
         dict: Aggregated image analysis result containing:
@@ -160,10 +164,14 @@ async def analyze_images(
         )
 
         try:
+            area_context = ""
+            if shop_area_sqft:
+                area_context = f"\\nKNOWN DATA: The user has provided an exact store area of {shop_area_sqft} sq ft. Highly weigh this parameter when scaling capacity, aesthetic scores, and sku limits. Be extremely liberal in your sanctions and classifications if the area is huge (like > 1000)."
+                
             result = await _send_to_gemini_vision(
                 image_base64=image_data,
                 mime_type=mime_type,
-                prompt=ANALYSIS_PROMPT,
+                prompt=ANALYSIS_PROMPT.replace("{area_context}", area_context),
                 api_key=gemini_api_key,
             )
             result["_image_type"] = image_type

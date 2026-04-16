@@ -14,8 +14,8 @@
     "metadata": {
       "shop_size": "medium"
     },
-    "created_at": "2026-04-01T18:16:33.674793",
-    "updated_at": "2026-04-09T18:16:33.674793"
+    "created_at": "2026-04-04T18:56:47.300977",
+    "updated_at": "2026-04-12T18:56:47.300977"
   },
   {
     "id": "32222222-2222-2222-2222-222222222222",
@@ -32,8 +32,8 @@
     "metadata": {
       "shop_size": "small"
     },
-    "created_at": "2026-04-03T18:16:33.674793",
-    "updated_at": "2026-04-11T18:16:33.674793"
+    "created_at": "2026-04-06T18:56:47.300977",
+    "updated_at": "2026-04-14T18:56:47.300977"
   },
   {
     "id": "33333333-3333-3333-3333-333333333333",
@@ -50,147 +50,7 @@
     "metadata": {
       "shop_size": "large"
     },
-    "created_at": "2026-04-05T18:16:33.674793",
-    "updated_at": "2026-04-12T18:16:33.674793"
-  },
-  {
-    "id": "625808ff-c37b-4749-b666-ab5ed16a9c40",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "store_name": "Fun Store",
-    "owner_name": "Funny",
-    "owner_mobile": "7894125630",
-    "location": {
-      "state": "Delhi",
-      "district": "South Delhi",
-      "pin_code": "110019",
-      "locality": "CR Park"
-    },
-    "metadata": {},
-    "created_at": "2026-04-13T21:06:25.208616",
-    "updated_at": "2026-04-13T21:06:25.208616"
-  },
-  {
-    "id": "7351bd1c-e5a3-4d69-9224-55273d4bec70",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "store_name": "Fun Store",
-    "owner_name": "Funny",
-    "owner_mobile": "7894125630",
-    "location": {
-      "state": "Unknown",
-      "district": "Delhi",
-      "pin_code": "110080",
-      "locality": "Sangam Vihar"
-    },
-    "metadata": {},
-    "created_at": "2026-04-14T10:11:23.509535",
-    "updated_at": "2026-04-14T10:11:23.509535"
-  },
-  {
-    "id": "d80d9eca-c0f9-4b7a-bc72-46e8ddee912c",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "store_name": "Colour Shop",
-    "owner_name": "Tarun",
-    "owner_mobile": "1234567890",
-    "location": {
-      "state": "Unknown",
-      "district": "Delhi",
-      "pin_code": "110080",
-      "locality": "Sangam Vihar"
-    },
-    "metadata": {},
-    "created_at": "2026-04-14T10:17:08.625938",
-    "updated_at": "2026-04-14T10:17:08.625938"
-  },
-  {
-    "id": "a80fd9c3-12c9-4c85-af74-293d77ef1f44",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "store_name": "Bath & Body Works",
-    "owner_name": "Ayush",
-    "owner_mobile": "98456231475",
-    "location": {
-      "state": "Unknown",
-      "district": "Delhi",
-      "pin_code": "110080",
-      "locality": "Sangam Vihar"
-    },
-    "metadata": {
-      "shop_size": "medium"
-    },
-    "created_at": "2026-04-14T11:03:26.688841",
-    "updated_at": "2026-04-14T12:44:33.306764"
-  },
-  {
-    "id": "991f3f68-9687-4630-81d9-6e61cf7afd00",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "store_name": "Bath & Body Works",
-    "owner_name": "Ayush",
-    "owner_mobile": "98456231475",
-    "location": {
-      "state": "Haryana",
-      "district": "Charkhi Dadri",
-      "pin_code": "127022",
-      "locality": "Balkara"
-    },
-    "metadata": {
-      "shop_size": "medium"
-    },
-    "created_at": "2026-04-14T12:10:23.425801",
-    "updated_at": "2026-04-14T12:10:23.425801"
-  },
-  {
-    "id": "55221cc0-c36b-4620-81d3-1bd441366f1d",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "store_name": "Ram Singh",
-    "owner_name": "Monu Jaat",
-    "owner_mobile": "1457896312",
-    "location": {
-      "state": "Goa",
-      "district": "Panji",
-      "pin_code": "403001",
-      "locality": null
-    },
-    "metadata": {
-      "shop_size": "small",
-      "rent": 4999.0,
-      "years_in_operation": 20.0
-    },
-    "created_at": "2026-04-14T15:48:50.193493",
-    "updated_at": "2026-04-14T16:21:13.744094"
-  },
-  {
-    "id": "11127741-d439-4ad4-bafd-905da3fe9c81",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "store_name": "shastri stores",
-    "owner_name": "rishabh shastri",
-    "owner_mobile": "987654321",
-    "location": {
-      "state": "Delhi",
-      "district": "east",
-      "pin_code": "110095",
-      "locality": null
-    },
-    "metadata": {},
-    "created_at": "2026-04-15T07:40:14.161832",
-    "updated_at": "2026-04-15T07:40:14.161832"
-  },
-  {
-    "id": "f35c523b-1166-4e81-b5b2-e3be537117b6",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "store_name": "All needs the supermarket",
-    "owner_name": "rishabh shastri",
-    "owner_mobile": "987654321",
-    "location": {
-      "state": "Unknown",
-      "district": "Delhi",
-      "pin_code": "000000",
-      "locality": "Saini Enclave"
-    },
-    "metadata": {
-      "shop_size": "large",
-      "rent": 0.0,
-      "years_in_operation": 8.0
-    },
-    "created_at": "2026-04-15T07:57:00.999274",
-    "updated_at": "2026-04-15T07:57:00.999274"
+    "created_at": "2026-04-08T18:56:47.300977",
+    "updated_at": "2026-04-15T18:56:47.300977"
   }
 ]

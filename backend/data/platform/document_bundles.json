@@ -1,53 +1,16 @@
 [
   {
-    "id": "c3b0ef3c-7339-4081-9848-de70c90bd738",
+    "id": "95555555-5555-5555-5555-555555555555",
     "org_id": "11111111-1111-1111-1111-111111111111",
     "case_id": "62222222-2222-2222-2222-222222222222",
     "documents": {
-      "underwriting_summary": "generated",
-      "sanction_note": "generated",
-      "decision_override_sheet": "not_required",
-      "monitoring_history_summary": "generated",
-      "audit_event_export": "generated"
+      "underwriting_summary": "ready",
+      "sanction_note": "ready",
+      "monitoring_history_summary": "ready",
+      "audit_event_export": "ready"
     },
-    "created_at": "2026-04-16T12:02:36.987196",
+    "created_at": "2026-04-14T18:56:47.300977",
     "generated_by_user_id": "22222222-2222-2222-2222-222222222222",
-    "export_formats": [
-      "json",
-      "pdf"
-    ]
-  },
-  {
-    "id": "dbb91f6e-05c4-40c8-bd15-ac85bb504543",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "case_id": "61111111-1111-1111-1111-111111111111",
-    "documents": {
-      "underwriting_summary": "generated",
-      "sanction_note": "generated",
-      "decision_override_sheet": "not_required",
-      "monitoring_history_summary": "pending",
-      "audit_event_export": "generated"
-    },
-    "created_at": "2026-04-16T12:52:39.599746",
-    "generated_by_user_id": null,
-    "export_formats": [
-      "json",
-      "pdf"
-    ]
-  },
-  {
-    "id": "4f3d2e88-e2be-4149-b582-2629c43843c2",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "case_id": "fbe49f07-fbfb-4b45-8255-2a9493113c63",
-    "documents": {
-      "underwriting_summary": "generated",
-      "sanction_note": "pending",
-      "decision_override_sheet": "not_required",
-      "monitoring_history_summary": "pending",
-      "audit_event_export": "generated"
-    },
-    "created_at": "2026-04-16T12:52:53.031928",
-    "generated_by_user_id": null,
     "export_formats": [
       "json",
       "pdf"

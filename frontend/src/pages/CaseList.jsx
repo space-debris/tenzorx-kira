@@ -191,9 +191,13 @@ export default function CaseList() {
                         ) : <span className="text-xs text-slate-400">-</span>}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium text-slate-700">
-                        {caseItem.latest_loan_range
-                          ? `${formatCurrency(caseItem.latest_loan_range.low)} - ${formatCurrency(caseItem.latest_loan_range.high)}`
-                          : '-'}
+                        {caseItem.latest_loan_range ? (
+                          (caseItem.latest_loan_range.low === 0 && caseItem.latest_loan_range.high === 0) ? (
+                            <span className="text-red-700 font-bold bg-red-50 px-2 py-1 rounded text-xs border border-red-200">Not Recommended</span>
+                          ) : (
+                            `${formatCurrency(caseItem.latest_loan_range.low)} - ${formatCurrency(caseItem.latest_loan_range.high)}`
+                          )
+                        ) : '-'}
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-600 max-w-xs">
                         <div className="font-medium">{getCaseNextAction(caseItem)}</div>

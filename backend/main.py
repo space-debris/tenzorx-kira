@@ -55,6 +55,7 @@ from models.platform_schema import (
     PlatformSnapshot,
     StatementUploadCreateRequest,
     StatementUploadResponse,
+    UnderwritingOverrideRequest,
 )
 from analytics.cohort_analysis import build_cohort_analysis
 from analytics.portfolio_metrics import build_portfolio_metrics
@@ -66,6 +67,10 @@ from orchestration.output_formatter import (
     persist_assessment,
     retrieve_assessment,
 )
+from analytics.forecasting import forecast_liquidity
+from analytics.stress_testing import simulate_stress_scenario
+from integrations.account_aggregator import AccountAggregatorConnector
+from orchestration.enhanced_fraud import detect_longitudinal_fraud
 from cv_module.image_analyzer import analyze_images
 from cv_module.shelf_density import compute_shelf_density
 from cv_module.sku_diversity import compute_sku_diversity
@@ -201,7 +206,7 @@ async def submit_assessment(
     ),
     shop_size: Optional[str] = Form(
         default=None,
-        description="Optional shop size (e.g. small, medium, large)"
+        description="Optional shop size (e.g. small, medium, large) or exact sqft"
     ),
     rent: Optional[float] = Form(
         default=None,
@@ -332,7 +337,12 @@ async def submit_assessment(
 
         # ---- Step 2: CV Module — Visual Intelligence ----
         logger.info("Starting CV analysis...")
-        cv_analysis = await analyze_images(image_data_list)
+        
+        shop_area_sqft = None
+        if shop_size and shop_size.isdigit():
+            shop_area_sqft = int(shop_size)
+            
+        cv_analysis = await analyze_images(image_data_list, shop_area_sqft=shop_area_sqft)
 
         # Build CV sub-signals
         shelf_density_result = compute_shelf_density(cv_analysis)
@@ -658,7 +668,7 @@ async def get_platform_portfolio(org_id: uuid.UUID) -> PortfolioAnalyticsRespons
                 "pin_code": kirana.location.pin_code if kirana else None,
                 "status": case.status.value,
                 "risk_band": case.latest_risk_band.value if case.latest_risk_band else None,
-                "exposure": loan_account.outstanding_amount if loan_account else (case.latest_loan_range.high if case.latest_loan_range else 0),
+                "exposure": (loan_account.outstanding_principal or 0) if loan_account else (case.latest_loan_range.high if case.latest_loan_range else 0),
                 "stress_score": latest_monitoring.stress_score if latest_monitoring else 0,
                 "product_type": "working_capital",
             }
@@ -736,6 +746,21 @@ async def update_platform_case_status(
     """Change the lifecycle status of a lender case."""
     try:
         return case_service.update_case_status(case_id, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post(
+    "/api/v1/platform/cases/{case_id}/override",
+    response_model=CaseDetailResponse,
+)
+async def override_platform_case_underwriting(
+    case_id: uuid.UUID,
+    payload: UnderwritingOverrideRequest,
+) -> CaseDetailResponse:
+    """Override the AI underwriting logic manually."""
+    try:
+        return case_service.override_underwriting_decision(case_id, payload)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -843,6 +868,116 @@ async def export_platform_case_documents(
     """Generate and audit a deterministic case export bundle."""
     try:
         return compliance_exporter.export_case_bundle(case_id, actor_user_id=actor_user_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+from fastapi.responses import HTMLResponse
+@app.get("/api/v1/platform/cases/{case_id}/documents/sanction", response_class=HTMLResponse)
+async def download_client_sanction_letter(case_id: uuid.UUID):
+    import datetime
+    import math
+    
+    try:
+        detail = case_service.get_case_detail(case_id)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
+        
+    kirana = detail.kirana
+    assessment = detail.latest_assessment
+    
+    amount = 50000
+    emi = 5000
+    rate = 22.5
+    tenure = 12
+    if assessment and assessment.recommended_amount:
+        amount = assessment.recommended_amount
+    elif detail.case.latest_loan_range:
+        amount = detail.case.latest_loan_range.high
+        
+    if assessment and assessment.estimated_emi:
+        emi = assessment.estimated_emi
+        
+    if detail.underwriting_decision and detail.underwriting_decision.override_amount:
+        amount = detail.underwriting_decision.override_amount
+        emi = detail.underwriting_decision.override_installment
+        
+    amount = math.floor(amount)
+    emi = math.floor(emi)
+    
+    import sys, os
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+    from scripts.generate_sanction_letter import HTML_TEMPLATE
+    
+    def number_to_words(n):
+        if n == 0: return "Zero"
+        return f"{n:,}"
+        
+    html_content = HTML_TEMPLATE.format(
+        case_id_short=str(case_id)[:8].upper(),
+        date_str=datetime.datetime.now().strftime("%d-%b-%Y"),
+        store_name=kirana.store_name,
+        owner_name=kirana.owner_name,
+        district=kirana.location.district,
+        state=kirana.location.state,
+        pincode=kirana.location.pin_code or "XXXXXX",
+        mobile=kirana.owner_mobile,
+        amount=f"{amount:,}",
+        amount_words=number_to_words(amount),
+        tenure=tenure,
+        rate=rate,
+        emi=f"{emi:,}"
+    )
+    return HTMLResponse(content=html_content)
+
+
+# ---------------------------------------------------------------------------
+# Phase 14 Advanced Intelligence Endpoints
+# ---------------------------------------------------------------------------
+
+@app.get("/api/v1/platform/cases/{case_id}/forecast")
+async def get_case_forecast(case_id: uuid.UUID):
+    """Return 30-day and 90-day liquidity forecasting."""
+    try:
+        case_detail = case_service.get_case_detail(case_id)
+        # Placeholder data logic since we don't have historical statements easily queryable here
+        mock_inflow = [2500, 3000, 2800]
+        mock_outflow = [1800, 2000, 1900]
+        curr_bal = 15000.0
+        
+        # Optionally infer from assessment
+        if case_detail.latest_assessment and case_detail.latest_assessment.revenue_range:
+            rev = case_detail.latest_assessment.revenue_range.low
+            mock_inflow = [rev/30, rev/30 * 1.05, rev/30 * 0.95]
+            mock_outflow = [rev/30 * 0.7, rev/30 * 0.75, rev/30 * 0.65]
+        
+        return forecast_liquidity(mock_inflow, mock_outflow, current_balance=curr_bal)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get("/api/v1/platform/cases/{case_id}/simulate")
+async def simulate_scenario(case_id: uuid.UUID, scenario: str):
+    """Simulate what-if scenarios on the borrower's revenue."""
+    try:
+        case_detail = case_service.get_case_detail(case_id)
+        rev = 100000.0
+        if case_detail.latest_assessment and case_detail.latest_assessment.revenue_range:
+            rev = case_detail.latest_assessment.revenue_range.low
+            
+        return simulate_stress_scenario(rev, scenario)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/api/v1/platform/cases/{case_id}/aa_consent")
+async def create_aa_consent(case_id: uuid.UUID, org_id: Optional[uuid.UUID] = Form(default=None)):
+    """Generate mock Account Aggregator consent link."""
+    try:
+        case_detail = case_service.get_case_detail(case_id)
+        mobile = case_detail.kirana.owner_mobile
+        connector = AccountAggregatorConnector()
+        return connector.generate_consent_link(mobile, str(case_detail.case.org_id))
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 

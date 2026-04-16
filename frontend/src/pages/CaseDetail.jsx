@@ -16,6 +16,9 @@ import { getPlatformCase, overrideUnderwritingDecision, updateCaseStatus } from 
 import CaseTimeline from '../components/CaseTimeline';
 import OverrideDecisionForm from '../components/OverrideDecisionForm';
 import UnderwritingDecisionPanel from '../components/UnderwritingDecisionPanel';
+import ForecastPanel from '../components/ForecastPanel';
+import ScenarioSimulator from '../components/ScenarioSimulator';
+import { getCaseForecast, simulateCaseScenario } from '../api/kiraApi';
 import {
   ArrowLeft, Loader2, AlertTriangle, Store, MapPin,
   Phone, User, Briefcase, ShieldCheck, ShieldAlert,
@@ -82,12 +85,20 @@ export default function CaseDetail() {
   const [transitionLoading, setTransitionLoading] = useState(null);
   const [transitionNote, setTransitionNote] = useState('');
   const [overrideLoading, setOverrideLoading] = useState(false);
+  const [isOverrideModalOpen, setIsOverrideModalOpen] = useState(false);
+  const [forecast, setForecast] = useState(null);
 
   const loadCase = useCallback(async () => {
     try {
       setLoading(true);
       const res = await getPlatformCase(caseId);
       setCaseData(res.data);
+      try {
+        const fRes = await getCaseForecast(caseId);
+        setForecast(fRes.data);
+      } catch (fErr) {
+        console.warn('Failed to load forecast', fErr);
+      }
     } catch (err) {
       console.error('Failed to load case:', err);
       setError('Failed to load case details');
@@ -134,6 +145,7 @@ export default function CaseDetail() {
         ...payload,
       });
       setCaseData(res.data);
+      setIsOverrideModalOpen(false);
     } catch (err) {
       console.error('Underwriting override failed:', err);
       alert(err?.response?.data?.detail || 'Failed to save override. Please review the values and try again.');
@@ -232,7 +244,9 @@ export default function CaseDetail() {
           {c.latest_loan_range && (
             <div className="bg-primary-900 text-white rounded-xl p-5 shadow-lg relative overflow-hidden">
               <div className="absolute top-0 right-0 -mt-6 -mr-6 w-24 h-24 bg-primary-600 opacity-20 rounded-full blur-xl"></div>
-              <h2 className="text-primary-200 text-xs font-bold uppercase tracking-wider mb-3">Loan Range</h2>
+              <h2 className="text-primary-200 text-xs font-bold uppercase tracking-wider mb-3">
+                {['approved', 'disbursed', 'monitoring', 'restructured', 'closed'].includes(c.status) ? 'Loan Sanctioned' : 'Loan Range'}
+              </h2>
               <div className="text-2xl font-black">
                 {formatCurrency(c.latest_loan_range.low)} – {formatCurrency(c.latest_loan_range.high)}
               </div>
@@ -253,31 +267,63 @@ export default function CaseDetail() {
                 className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm mb-3 outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-200"
               />
               <div className="space-y-2">
-                {allowedTransitions.map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => handleStatusTransition(status)}
-                    disabled={transitionLoading === status}
-                    className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg border border-slate-200 hover:border-primary-300 hover:bg-primary-50 text-sm font-semibold text-slate-700 hover:text-primary-700 transition-all disabled:opacity-50"
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS[status] }} />
-                      Move to {STATUS_LABELS[status]}
-                    </span>
-                    {transitionLoading === status ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4" />
-                    )}
-                  </button>
-                ))}
+                {allowedTransitions.map((status) => {
+                  let label = `Move to ${STATUS_LABELS[status]}`;
+                  if (status === 'approved') label = 'Sanction Loan';
+                  if (c.status === 'monitoring' && status === 'monitoring') return null; // Avoid redundant monitored move
+                  return (
+                    <button
+                      key={status}
+                      onClick={() => handleStatusTransition(status)}
+                      disabled={transitionLoading === status}
+                      className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg border border-slate-200 hover:border-primary-300 hover:bg-primary-50 text-sm font-semibold text-slate-700 hover:text-primary-700 transition-all disabled:opacity-50"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS[status] }} />
+                        {label}
+                      </span>
+                      {transitionLoading === status ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4" />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
+
+          {/* Activity Timeline moved to left column */}
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Activity className="w-4 h-4 text-indigo-600" /> Activity History
+            </h2>
+            <CaseTimeline events={auditEvents} />
+          </div>
         </div>
 
         {/* Right Column */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Advanced Intelligence */}
+          {c.status !== 'draft' && (
+             <div className="grid sm:grid-cols-2 gap-6">
+                <ForecastPanel forecast={forecast} />
+                <ScenarioSimulator
+                  currentRevenue={assessment?.revenue_range?.low || 100000}
+                  onSimulate={async (scenario) => {
+                     try {
+                       const res = await simulateCaseScenario(caseId, scenario);
+                       return res.data;
+                     } catch(err) {
+                       console.error(err);
+                       return null;
+                     }
+                  }}
+                />
+             </div>
+          )}
+
           {/* Assessment Summary */}
           {!assessment ? (
             <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm text-center">
@@ -380,11 +426,44 @@ export default function CaseDetail() {
                 assessment={assessment}
                 decision={underwritingDecision}
               />
-              <OverrideDecisionForm
-                decision={underwritingDecision}
-                isSubmitting={overrideLoading}
-                onSubmit={handleOverrideSubmit}
-              />
+              
+              {!['approved', 'disbursed', 'monitoring', 'restructured', 'closed'].includes(c.status) && (
+                <div className="flex items-center gap-3 mt-4">
+                  <button
+                    onClick={() => handleStatusTransition('approved')}
+                    disabled={transitionLoading === 'approved'}
+                    className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition disabled:opacity-50"
+                  >
+                    {transitionLoading === 'approved' ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+                    Sanction Loan
+                  </button>
+                  <button
+                    onClick={() => setIsOverrideModalOpen(true)}
+                    className="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold transition"
+                  >
+                    <ShieldCheck className="w-5 h-5 text-indigo-600" />
+                    Officer Override
+                  </button>
+                </div>
+              )}
+
+              {isOverrideModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
+                  <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-50 rounded-2xl shadow-xl flex flex-col">
+                    <div className="sticky top-0 right-0 z-10 flex justify-end p-2 bg-slate-50 rounded-t-2xl">
+                      <button onClick={() => setIsOverrideModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-2 text-xl font-bold leading-none hidden">×</button>
+                    </div>
+                    <div className="p-1 px-4 pb-4">
+                      <OverrideDecisionForm
+                        decision={underwritingDecision}
+                        isSubmitting={overrideLoading}
+                        onSubmit={handleOverrideSubmit}
+                        onCancel={() => setIsOverrideModalOpen(false)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </>
           )}
 
@@ -422,13 +501,6 @@ export default function CaseDetail() {
             </div>
           )}
 
-          {/* Activity Timeline */}
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-indigo-600" /> Activity History
-            </h2>
-            <CaseTimeline events={auditEvents} />
-          </div>
         </div>
       </div>
     </div>

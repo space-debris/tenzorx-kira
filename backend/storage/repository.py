@@ -34,12 +34,16 @@ from models.platform_schema import (
     KiranaProfile,
     LenderOrg,
     LoanAccount,
+    LoanAccountStatus,
     LoanDecision,
     MonitoringRun,
+    MonitoringRunStatus,
     PlatformSnapshot,
     PlatformUser,
     RiskAlert,
     StatementUpload,
+    StatementUploadStatus,
+    UnderwritingDecision,
     UserRole,
 )
 
@@ -72,6 +76,7 @@ class PlatformRepository:
             "statement_uploads": self._data_dir / "statement_uploads.json",
             "monitoring_runs": self._data_dir / "monitoring_runs.json",
             "document_bundles": self._data_dir / "document_bundles.json",
+            "underwriting_decisions": self._data_dir / "underwriting_decisions.json",
         }
 
         self.organizations = self._load_collection("organizations", LenderOrg, "id")
@@ -89,6 +94,7 @@ class PlatformRepository:
         self.loan_accounts = self._load_collection("loan_accounts", LoanAccount, "id")
         self.statement_uploads = self._load_collection("statement_uploads", StatementUpload, "id")
         self.monitoring_runs = self._load_collection("monitoring_runs", MonitoringRun, "id")
+        self.underwriting_decisions = self._load_collection("underwriting_decisions", UnderwritingDecision, "id")
         self.document_bundles = self._load_collection(
             "document_bundles",
             DocumentBundle,
@@ -142,6 +148,7 @@ class PlatformRepository:
         self._save_collection("loan_accounts", self.loan_accounts)
         self._save_collection("statement_uploads", self.statement_uploads)
         self._save_collection("monitoring_runs", self.monitoring_runs)
+        self._save_collection("underwriting_decisions", self.underwriting_decisions)
         self._save_collection("document_bundles", self.document_bundles)
 
     def _seed_demo_data_if_empty(self) -> None:
@@ -338,64 +345,42 @@ class PlatformRepository:
             org_id=org.id,
             case_id=case_2.id,
             kirana_id=kirana_2.id,
-            loan_decision_id=decision.id,
+            assessment_session_id=summary_2.session_id,
+            status=LoanAccountStatus.ACTIVE,
             principal_amount=175000,
-            outstanding_amount=158000,
             tenure_months=12,
-            pricing_rate_annual=22.0,
-            processing_fee_rate=1.5,
             repayment_cadence="weekly",
+            annual_interest_rate_pct=22.0,
+            processing_fee_pct=1.5,
             disbursed_at=now - timedelta(days=9),
-            next_review_at=now + timedelta(days=7),
-            status=CaseStatus.MONITORING,
-            original_assessment_session_id=summary_2.session_id,
+            outstanding_principal=158000.0,
         )
 
         statement_upload = StatementUpload(
             id=_fixed_uuid("93333333-3333-3333-3333-333333333333"),
             org_id=org.id,
             case_id=case_2.id,
-            loan_account_id=loan_account.id,
-            uploaded_by_user_id=officer.id,
+            loan_id=loan_account.id,
+            kirana_id=kirana_2.id,
+            status=StatementUploadStatus.UPLOADED,
             file_name="sai-provision-april.csv",
-            file_type="text/csv",
-            source_kind="upi",
-            parse_status="parsed",
-            parse_confidence=0.92,
-            transaction_count=14,
-            inflow_total=98000,
-            outflow_total=84500,
-            period_start=now - timedelta(days=21),
-            period_end=now - timedelta(days=7),
-            parsed_summary={
-                "inflow_velocity": 0.78,
-                "cash_withdrawal_share": 0.26,
-                "supplier_share": 0.44,
-            },
-            uploaded_at=now - timedelta(days=7),
+            file_type="csv",
+            file_size_bytes=10240,
+            uploaded_by_user_id=officer.id,
         )
 
         monitoring_run = MonitoringRun(
             id=_fixed_uuid("94444444-4444-4444-4444-444444444444"),
             org_id=org.id,
             case_id=case_2.id,
-            loan_account_id=loan_account.id,
+            loan_id=loan_account.id,
+            kirana_id=kirana_2.id,
+            status=MonitoringRunStatus.COMPLETED,
             statement_upload_id=statement_upload.id,
             previous_risk_band=summary_2.risk_band,
-            current_risk_band=RiskBand.MEDIUM,
-            previous_inflow_total=118000,
-            current_inflow_total=98000,
-            inflow_change_ratio=-0.1695,
-            utilization_breakdown={
-                "supplier_or_inventory_like": 0.44,
-                "transfer_or_wallet_like": 0.12,
-                "personal_or_cash_withdrawal_like": 0.26,
-                "unknown": 0.18,
-            },
-            stress_score=0.42,
-            restructuring_recommendation="No restructure yet. Keep weekly collections and refresh in 14 days.",
-            alerts_created=[alert.id],
-            created_at=now - timedelta(days=7),
+            new_risk_band=RiskBand.MEDIUM,
+            alerts_raised=[str(alert.id)],
+            completed_at=now - timedelta(days=7),
         )
 
         document_bundle = DocumentBundle(
@@ -574,6 +559,29 @@ class PlatformRepository:
     def create_loan_decision(self, decision: LoanDecision) -> LoanDecision:
         self.loan_decisions[str(decision.id)] = decision
         self._save_collection("loan_decisions", self.loan_decisions)
+        return decision
+
+    def list_underwriting_decisions(
+        self,
+        case_id: uuid.UUID | None = None,
+    ) -> list[UnderwritingDecision]:
+        decisions = list(self.underwriting_decisions.values())
+        if case_id is not None:
+            decisions = [dec for dec in decisions if dec.case_id == case_id]
+        return sorted(decisions, key=lambda item: item.created_at, reverse=True)
+
+    def get_latest_underwriting_decision(
+        self, case_id: uuid.UUID, session_id: uuid.UUID
+    ) -> UnderwritingDecision | None:
+        decisions = self.list_underwriting_decisions(case_id=case_id)
+        for dec in decisions:
+            if dec.assessment_session_id == session_id:
+                return dec
+        return None
+
+    def save_underwriting_decision(self, decision: UnderwritingDecision) -> UnderwritingDecision:
+        self.underwriting_decisions[str(decision.id)] = decision
+        self._save_collection("underwriting_decisions", self.underwriting_decisions)
         return decision
 
     def list_loan_accounts(

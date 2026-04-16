@@ -2,7 +2,7 @@
   {
     "session_id": "41111111-1111-1111-1111-111111111111",
     "assessment_id": "51111111-1111-1111-1111-111111111111",
-    "completed_at": "2026-04-09T18:16:33.674793",
+    "completed_at": "2026-04-12T18:56:47.300977",
     "status": "completed",
     "risk_band": "MEDIUM",
     "risk_score": 0.41,
@@ -14,13 +14,22 @@
       "low": 90000.0,
       "high": 180000.0
     },
+    "recommended_amount": null,
+    "suggested_tenure_months": null,
+    "estimated_emi": null,
+    "emi_to_income_ratio": null,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null,
+    "explanation_summary": null,
+    "decision_pack": null,
     "eligible": true,
     "fraud_flagged": false
   },
   {
     "session_id": "42222222-2222-2222-2222-222222222222",
     "assessment_id": "52222222-2222-2222-2222-222222222222",
-    "completed_at": "2026-04-11T18:16:33.674793",
+    "completed_at": "2026-04-14T18:56:47.300977",
     "status": "completed",
     "risk_band": "LOW",
     "risk_score": 0.28,
@@ -32,13 +41,22 @@
       "low": 120000.0,
       "high": 220000.0
     },
+    "recommended_amount": null,
+    "suggested_tenure_months": null,
+    "estimated_emi": null,
+    "emi_to_income_ratio": null,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null,
+    "explanation_summary": null,
+    "decision_pack": null,
     "eligible": true,
     "fraud_flagged": false
   },
   {
     "session_id": "43333333-3333-3333-3333-333333333333",
     "assessment_id": "53333333-3333-3333-3333-333333333333",
-    "completed_at": "2026-04-12T18:16:33.674793",
+    "completed_at": "2026-04-15T18:56:47.300977",
     "status": "completed",
     "risk_band": "HIGH",
     "risk_score": 0.67,
@@ -50,277 +68,16 @@
       "low": 40000.0,
       "high": 80000.0
     },
+    "recommended_amount": null,
+    "suggested_tenure_months": null,
+    "estimated_emi": null,
+    "emi_to_income_ratio": null,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null,
+    "explanation_summary": null,
+    "decision_pack": null,
     "eligible": true,
     "fraud_flagged": true
-  },
-  {
-    "session_id": "bcf00b89-710e-415e-931f-cf08b1e7b549",
-    "assessment_id": "860ea3f8-8c22-430e-b434-3c6d2d9fd8b6",
-    "completed_at": "2026-04-13T18:29:24.741711",
-    "status": "completed",
-    "risk_band": "MEDIUM",
-    "risk_score": 0.4743,
-    "revenue_range": {
-      "low": 213900.0,
-      "high": 313200.0
-    },
-    "loan_range": {
-      "low": 0.0,
-      "high": 0.0
-    },
-    "eligible": false,
-    "fraud_flagged": true
-  },
-  {
-    "session_id": "9a2fccb4-23a8-4004-824a-5095a6f40826",
-    "assessment_id": "6d30b510-8dd1-4385-bc22-a7fc102a7dd8",
-    "completed_at": "2026-04-13T21:04:32.683478",
-    "status": "completed",
-    "risk_band": "MEDIUM",
-    "risk_score": 0.4995,
-    "revenue_range": {
-      "low": 207100.0,
-      "high": 297300.0
-    },
-    "loan_range": {
-      "low": 0.0,
-      "high": 0.0
-    },
-    "eligible": false,
-    "fraud_flagged": true
-  },
-  {
-    "session_id": "77c217b3-26f0-4886-b0d6-de6b38a803f7",
-    "assessment_id": "10d19e9d-08f4-4daf-bc5c-6a5dc5672351",
-    "completed_at": "2026-04-14T08:04:14.293091",
-    "status": "completed",
-    "risk_band": "HIGH",
-    "risk_score": 0.7791,
-    "revenue_range": {
-      "low": 98600.0,
-      "high": 127300.0
-    },
-    "loan_range": {
-      "low": 0.0,
-      "high": 0.0
-    },
-    "eligible": false,
-    "fraud_flagged": true
-  },
-  {
-    "session_id": "698c924c-6fb3-4627-a086-564982249ec2",
-    "assessment_id": "2328fa6d-a542-4c03-aba6-ffe6e69a4695",
-    "completed_at": "2026-04-14T08:41:52.171413",
-    "status": "completed",
-    "risk_band": "MEDIUM",
-    "risk_score": 0.512,
-    "revenue_range": {
-      "low": 203800.0,
-      "high": 289500.0
-    },
-    "loan_range": {
-      "low": 0.0,
-      "high": 0.0
-    },
-    "eligible": false,
-    "fraud_flagged": true
-  },
-  {
-    "session_id": "8b407c68-0210-4b13-b1e9-12ab025b8f80",
-    "assessment_id": "2cffe704-0d94-47ca-8b33-b772c1a5b5d5",
-    "completed_at": "2026-04-14T08:59:18.893108",
-    "status": "completed",
-    "risk_band": "MEDIUM",
-    "risk_score": 0.5061,
-    "revenue_range": {
-      "low": 205400.0,
-      "high": 293200.0
-    },
-    "loan_range": {
-      "low": 0.0,
-      "high": 0.0
-    },
-    "eligible": false,
-    "fraud_flagged": true
-  },
-  {
-    "session_id": "f1a46f9c-4876-4580-91c0-b93c86aff481",
-    "assessment_id": "122c23ec-8691-4428-b14f-677ac9d8e3c3",
-    "completed_at": "2026-04-14T10:11:23.505536",
-    "status": "completed",
-    "risk_band": "MEDIUM",
-    "risk_score": 0.4873,
-    "revenue_range": {
-      "low": 210400.0,
-      "high": 305000.0
-    },
-    "loan_range": {
-      "low": 0.0,
-      "high": 0.0
-    },
-    "eligible": false,
-    "fraud_flagged": true
-  },
-  {
-    "session_id": "85adff09-323f-449d-be67-da33879f2920",
-    "assessment_id": "65498739-cec2-452c-b08a-b425897b9d5f",
-    "completed_at": "2026-04-14T10:17:08.622939",
-    "status": "completed",
-    "risk_band": "MEDIUM",
-    "risk_score": 0.5581,
-    "revenue_range": {
-      "low": 191300.0,
-      "high": 260400.0
-    },
-    "loan_range": {
-      "low": 0.0,
-      "high": 0.0
-    },
-    "eligible": false,
-    "fraud_flagged": true
-  },
-  {
-    "session_id": "e3d225af-f083-4182-b154-d427f9de844c",
-    "assessment_id": "b501231b-4b7c-47cc-be36-cdf9d215524c",
-    "completed_at": "2026-04-14T10:37:57.403791",
-    "status": "completed",
-    "risk_band": "MEDIUM",
-    "risk_score": 0.5037,
-    "revenue_range": {
-      "low": 206000.0,
-      "high": 294700.0
-    },
-    "loan_range": {
-      "low": 0.0,
-      "high": 0.0
-    },
-    "eligible": false,
-    "fraud_flagged": true
-  },
-  {
-    "session_id": "23ae6f88-a01b-45bb-b8f1-92ce97ca23e7",
-    "assessment_id": "82064afa-59a6-4878-924d-aa8514f20e15",
-    "completed_at": "2026-04-14T11:03:26.681819",
-    "status": "completed",
-    "risk_band": "MEDIUM",
-    "risk_score": 0.4726,
-    "revenue_range": {
-      "low": 214400.0,
-      "high": 314300.0
-    },
-    "loan_range": {
-      "low": 0.0,
-      "high": 0.0
-    },
-    "eligible": false,
-    "fraud_flagged": true
-  },
-  {
-    "session_id": "2a90eed5-045f-481a-97b6-5e7ae9db6bba",
-    "assessment_id": "bd720ec7-0593-41aa-806a-85c381780cf8",
-    "completed_at": "2026-04-14T12:10:23.410412",
-    "status": "completed",
-    "risk_band": "MEDIUM",
-    "risk_score": 0.4889,
-    "revenue_range": {
-      "low": 175000.0,
-      "high": 253300.0
-    },
-    "loan_range": {
-      "low": 0.0,
-      "high": 0.0
-    },
-    "eligible": false,
-    "fraud_flagged": true
-  },
-  {
-    "session_id": "2ae2b03f-887d-412b-ae02-20884067bc72",
-    "assessment_id": "a39a64e1-2641-4e10-8b86-1e4451808aa2",
-    "completed_at": "2026-04-14T12:44:33.260474",
-    "status": "completed",
-    "risk_band": "MEDIUM",
-    "risk_score": 0.4984,
-    "revenue_range": {
-      "low": 207400.0,
-      "high": 298000.0
-    },
-    "loan_range": {
-      "low": 0.0,
-      "high": 0.0
-    },
-    "eligible": false,
-    "fraud_flagged": true
-  },
-  {
-    "session_id": "15cd2261-4606-456f-acc8-c1e06283a06e",
-    "assessment_id": "18c8593b-2cff-4ea9-90fc-c8a84846a4f9",
-    "completed_at": "2026-04-14T15:53:11.218457",
-    "status": "completed",
-    "risk_band": "HIGH",
-    "risk_score": 0.6805,
-    "revenue_range": {
-      "low": 111100.0,
-      "high": 156300.0
-    },
-    "loan_range": {
-      "low": 0.0,
-      "high": 0.0
-    },
-    "eligible": false,
-    "fraud_flagged": true
-  },
-  {
-    "session_id": "2d272bb3-6d27-472b-bcec-41a73d554fc2",
-    "assessment_id": "6208c0f9-4421-4a2f-9546-7c74cfefaa29",
-    "completed_at": "2026-04-14T16:21:13.739093",
-    "status": "completed",
-    "risk_band": "MEDIUM",
-    "risk_score": 0.5443,
-    "revenue_range": {
-      "low": 195000.0,
-      "high": 269100.0
-    },
-    "loan_range": {
-      "low": 153000.0,
-      "high": 255000.0
-    },
-    "eligible": true,
-    "fraud_flagged": false
-  },
-  {
-    "session_id": "3d432672-eafd-4ef5-bcbc-344ad8234813",
-    "assessment_id": "4bc1be22-0c29-4148-a572-5cd67e0bba79",
-    "completed_at": "2026-04-16T11:29:43.882912",
-    "status": "completed",
-    "risk_band": "MEDIUM",
-    "risk_score": 0.5662,
-    "revenue_range": {
-      "low": 189100.0,
-      "high": 255300.0
-    },
-    "loan_range": {
-      "low": 0.0,
-      "high": 0.0
-    },
-    "eligible": false,
-    "fraud_flagged": true
-  },
-  {
-    "session_id": "20f6d231-e8b3-40f1-b09f-4f0855cacf8d",
-    "assessment_id": "c250db36-cbfd-48ce-b4f5-73048634b988",
-    "completed_at": "2026-04-16T12:56:56.796988",
-    "status": "completed",
-    "risk_band": "MEDIUM",
-    "risk_score": 0.5221,
-    "revenue_range": {
-      "low": 201000.0,
-      "high": 283100.0
-    },
-    "loan_range": {
-      "low": 158000.0,
-      "high": 263000.0
-    },
-    "eligible": true,
-    "fraud_flagged": false
   }
 ]

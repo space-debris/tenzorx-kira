@@ -29,7 +29,7 @@ function buildFormState(decision) {
   };
 }
 
-export default function OverrideDecisionForm({ decision, isSubmitting, onSubmit }) {
+export default function OverrideDecisionForm({ decision, isSubmitting, onSubmit, onCancel }) {
   const [form, setForm] = useState(buildFormState(decision));
 
   useEffect(() => {
@@ -227,20 +227,31 @@ export default function OverrideDecisionForm({ decision, isSubmitting, onSubmit 
           <p className="text-xs text-slate-500">
             Recommended baseline: {formatCurrency(recommended.amount)}, {recommended.tenure_months} months, {recommended.repayment_cadence}, {formatPercent(recommended.annual_interest_rate_pct)} rate.
           </p>
-          <button
-            type="submit"
-            disabled={isSubmitting || !hasChanges || !form.reason.trim()}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Saving Override...
-              </>
-            ) : (
-              'Save Override'
+          <div className="flex items-center gap-2">
+            {onCancel && (
+              <button
+                type="button"
+                onClick={onCancel}
+                className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-bold transition"
+              >
+                Cancel
+              </button>
             )}
-          </button>
+            <button
+              type="submit"
+              disabled={isSubmitting || !hasChanges || !form.reason.trim()}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving Override...
+                </>
+              ) : (
+                'Save Override'
+              )}
+            </button>
+          </div>
         </div>
       </form>
     </section>

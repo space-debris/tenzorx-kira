@@ -101,12 +101,14 @@ export default function UnderwritingDecisionPanel({ assessment, decision }) {
             Officer-ready recommendation generated from the latest assessment snapshot.
           </p>
         </div>
-        <div className="text-right">
-          <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
-            Policy Guardrail
-          </div>
-          <div className="text-sm font-bold text-slate-700">
-            {formatCurrency(decision.loan_range_guardrail?.low)} - {formatCurrency(decision.loan_range_guardrail?.high)}
+        <div className="text-right flex flex-col items-end gap-2">
+          <div className="text-right">
+            <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
+              Policy Guardrail
+            </div>
+            <div className="text-sm font-bold text-slate-700">
+              {formatCurrency(decision.loan_range_guardrail?.low)} - {formatCurrency(decision.loan_range_guardrail?.high)}
+            </div>
           </div>
         </div>
       </div>
@@ -198,16 +200,20 @@ export default function UnderwritingDecisionPanel({ assessment, decision }) {
               <div>
                 <div className="text-slate-400 mb-1">Rate</div>
                 <div className="font-bold text-slate-800">{formatPercent(finalTerms.annual_interest_rate_pct)}</div>
-                <div className="text-xs text-slate-500">
-                  Band: {formatPercent(pricing?.annual_interest_rate_band?.low)} - {formatPercent(pricing?.annual_interest_rate_band?.high)}
-                </div>
+                {pricing?.annual_interest_rate_band ? (
+                  <div className="text-xs text-slate-500 mt-1">
+                    Band: {formatPercent(pricing.annual_interest_rate_band.low)} - {formatPercent(pricing.annual_interest_rate_band.high)}
+                  </div>
+                ) : null}
               </div>
               <div>
                 <div className="text-slate-400 mb-1">Processing Fee</div>
                 <div className="font-bold text-slate-800">{formatPercent(finalTerms.processing_fee_pct)}</div>
-                <div className="text-xs text-slate-500">
-                  Band: {formatPercent(pricing?.processing_fee_band?.low)} - {formatPercent(pricing?.processing_fee_band?.high)}
-                </div>
+                {pricing?.processing_fee_band ? (
+                  <div className="text-xs text-slate-500 mt-1">
+                    Band: {formatPercent(pricing.processing_fee_band.low)} - {formatPercent(pricing.processing_fee_band.high)}
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>

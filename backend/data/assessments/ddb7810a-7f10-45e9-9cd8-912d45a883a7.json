@@ -1,0 +1,92 @@
+{
+  "session_id": "ddb7810a-7f10-45e9-9cd8-912d45a883a7",
+  "assessment_id": "2577b9eb-3dd6-40e3-99af-b0d50d228bb6",
+  "timestamp": "2026-04-16T16:05:09.067360",
+  "status": "completed",
+  "revenue_estimate": {
+    "monthly_low": 186400.0,
+    "monthly_high": 249000.0,
+    "confidence": 0.7561,
+    "methodology": "inventory_turnover_model"
+  },
+  "risk_assessment": {
+    "risk_band": "MEDIUM",
+    "risk_score": 0.5762,
+    "confidence": 0.7561
+  },
+  "cv_signals": {
+    "shelf_density": 1.0,
+    "sku_diversity_score": 0.7792,
+    "estimated_sku_count": 10400,
+    "inventory_value_range": {
+      "low": 38212.5,
+      "high": 271650.0
+    },
+    "store_size_category": "medium",
+    "brand_tier_mix": "premium_dominant",
+    "consistency_score": 0.5641
+  },
+  "geo_signals": {
+    "area_type": "urban",
+    "footfall_score": 0.4486,
+    "competition_count": 26,
+    "competition_score": 0.3889,
+    "catchment_population": 7853,
+    "demand_index": 0.0189
+  },
+  "loan_recommendation": {
+    "eligible": false,
+    "loan_range": {
+      "low": 0.0,
+      "high": 0.0
+    },
+    "recommended_amount": null,
+    "suggested_tenure_months": 18,
+    "estimated_emi": 0.0,
+    "emi_to_income_ratio": 0.0,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null
+  },
+  "fraud_detection": {
+    "fraud_score": 0.39,
+    "is_flagged": true,
+    "flags": [
+      "Low image consistency (0.56): possible mismatched or reused images",
+      "brand_tier_mismatch: mass_dominant vs premium_dominant",
+      "low_product_overlap: only 0/5 categories shared",
+      "low_product_overlap: only 0/8 categories shared",
+      "low_product_overlap: only 1/8 categories shared",
+      "low_product_overlap: only 0/11 categories shared",
+      "low_product_overlap: only 0/7 categories shared",
+      "low_product_overlap: only 0/10 categories shared",
+      "low_product_overlap: only 0/13 categories shared",
+      "low_product_overlap: only 0/14 categories shared",
+      "perfect_organization_all_images: all images show well-organized store — unusual for typical kirana stores",
+      "Mismatched image resolutions: images from different devices",
+      "Cross-validation: overstocked shelves in low-demand area (shelf=1.00, demand=0.02)"
+    ],
+    "checks_performed": [
+      "image_consistency",
+      "gps_visual_mismatch",
+      "signal_cross_validation",
+      "statistical_outlier"
+    ]
+  },
+  "explanation": {
+    "risk_narrative": "The store demonstrates strong operational health with maximum shelf density (1.0) and a diverse, premium-dominant inventory of approximately 10,400 SKUs. However, despite its urban location, the business faces significant headwinds due to a very low demand index (0.0189) and intense local competition from 26 nearby stores. While estimated monthly revenues are stable, the overall risk is categorized as Medium and is further complicated by a triggered fraud flag. Consequently, we recommend a loan amount of ₹0, as the fraud alert and weak location demand outweigh the store's positive visual inventory signals.",
+    "summary": {
+      "strengths": [
+        "Well-stocked shelves (100%) indicate active inventory management",
+        "Strong product diversity (78%) suggests broad customer appeal"
+      ],
+      "concerns": [
+        "Fraud alert: Low image consistency (0.56): possible mismatched or reused images",
+        "Fraud alert: brand_tier_mismatch: mass_dominant vs premium_dominant",
+        "Low local demand (2%) constrains revenue growth"
+      ],
+      "recommendation": "Hold for manual review — assessment flagged for potential inconsistencies requiring human verification"
+    },
+    "decision_pack": null
+  }
+}

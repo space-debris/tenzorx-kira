@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FolderKanban, Loader2, AlertTriangle } from 'lucide-react';
-import { exportCaseDocuments, getCaseDocuments, listOrganizationCases } from '../api/kiraApi';
+import { exportCaseDocuments, getCaseDocuments, listOrganizationCases, listOrganizationKiranas } from '../api/kiraApi';
 import { useAuth } from '../context/useAuth';
 import DocumentCenter from '../components/DocumentCenter';
 
@@ -8,6 +8,7 @@ export default function Documents() {
   const { org, user } = useAuth();
   const [bundle, setBundle] = useState(null);
   const [cases, setCases] = useState([]);
+  const [kiranaMap, setKiranaMap] = useState({});
   const [selectedCaseId, setSelectedCaseId] = useState('');
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -19,9 +20,18 @@ export default function Documents() {
     async function load() {
       try {
         setLoading(true);
-        const casesRes = await listOrganizationCases(org.id);
+        const [casesRes, kiranasRes] = await Promise.all([
+          listOrganizationCases(org.id),
+          listOrganizationKiranas(org.id),
+        ]);
         const nextCases = casesRes.data || [];
         setCases(nextCases);
+        
+        const nextMap = {};
+        (kiranasRes.data || []).forEach((kirana) => {
+          nextMap[kirana.id] = kirana;
+        });
+        setKiranaMap(nextMap);
         if (nextCases[0]?.id) {
           setSelectedCaseId(nextCases[0].id);
         }
@@ -56,11 +66,28 @@ export default function Documents() {
     if (!selectedCaseId) return;
     try {
       setExporting(true);
+      // Run the background compliance export to formally audit this action
       const res = await exportCaseDocuments(selectedCaseId, user?.id);
       setBundle(res.data);
+      
+      // Fetch the actual Client-Facing Sanction HTML file
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+      const sanctionUrl = `${API_BASE}/platform/cases/${selectedCaseId}/documents/sanction`;
+      const htmlRes = await fetch(sanctionUrl);
+      if (!htmlRes.ok) throw new Error("Sanction Letter generation failed");
+      const htmlContent = await htmlRes.text();
+      
+      // Trigger a file download for the HTML file
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sanction_letter_${selectedCaseId.slice(0, 8)}.html`;
+      a.click();
+      window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Failed to export case documents:', err);
-      setError('Failed to export case bundle.');
+      setError('Failed to export client-facing document.');
     } finally {
       setExporting(false);
     }
@@ -90,11 +117,14 @@ export default function Documents() {
           onChange={(event) => setSelectedCaseId(event.target.value)}
           className="mt-2 w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm bg-white"
         >
-          {cases.map((caseItem) => (
-            <option key={caseItem.id} value={caseItem.id}>
-              {caseItem.id.slice(0, 8)} • {caseItem.status}
-            </option>
-          ))}
+          {cases.map((caseItem) => {
+            const kirana = kiranaMap[caseItem.kirana_id] || {};
+            return (
+              <option key={caseItem.id} value={caseItem.id}>
+                {kirana.store_name ? `${kirana.store_name} (${caseItem.id.slice(0, 8)})` : caseItem.id.slice(0, 8)} • {caseItem.status}
+              </option>
+            );
+          })}
         </select>
       </div>
 

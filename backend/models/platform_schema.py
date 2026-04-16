@@ -115,8 +115,6 @@ class AuditAction(str, Enum):
     ASSESSMENT_LINKED = "assessment_linked"
     ASSIGNED = "assigned"
     DECISION_RECORDED = "decision_recorded"
-    STATEMENT_UPLOADED = "statement_uploaded"
-    MONITORING_RUN_COMPLETED = "monitoring_run_completed"
     SEEDED = "seeded"
     EXPORTED = "exported"
     # Phase 11 actions

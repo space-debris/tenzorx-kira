@@ -21,8 +21,8 @@ export default function AuditLogTable({ events = [] }) {
               <td className="px-4 py-3 text-sm text-slate-600">
                 {new Date(event.created_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
               </td>
-              <td className="px-4 py-3 text-sm font-semibold text-slate-700">{event.action}</td>
-              <td className="px-4 py-3 text-sm text-slate-600">{event.entity_type}</td>
+              <td className="px-4 py-3 text-sm font-semibold text-slate-700">{String(event.action).replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</td>
+              <td className="px-4 py-3 text-sm text-slate-600">{String(event.entity_type).replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</td>
               <td className="px-4 py-3 text-sm text-slate-600">{event.description}</td>
               <td className="px-4 py-3 text-sm text-slate-600">{event.actor_name || 'system'}</td>
             </tr>

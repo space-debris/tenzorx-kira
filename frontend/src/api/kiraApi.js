@@ -92,3 +92,21 @@ export async function exportCaseDocuments(caseId, actorUserId) {
   if (actorUserId) formData.append('actor_user_id', actorUserId);
   return apiClient.post(`/platform/cases/${caseId}/documents/export`, formData);
 }
+
+export async function getCaseForecast(caseId) {
+  return apiClient.get(`/platform/cases/${caseId}/forecast`);
+}
+
+export async function simulateCaseScenario(caseId, scenario) {
+  return apiClient.get(`/platform/cases/${caseId}/simulate?scenario=${scenario}`);
+}
+
+export async function createAAConsent(caseId, orgId) {
+  const formData = new FormData();
+  if (orgId) formData.append('org_id', orgId);
+  return apiClient.post(`/platform/cases/${caseId}/aa_consent`, formData);
+}
+
+export async function overrideUnderwritingDecision(caseId, payload) {
+  return apiClient.post(`/platform/cases/${caseId}/override`, payload);
+}

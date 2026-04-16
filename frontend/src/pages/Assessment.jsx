@@ -34,12 +34,12 @@ export default function Assessment() {
   const [shopSize, setShopSize] = useState('');
   const [rent, setRent] = useState('');
   const [yearsInOperation, setYearsInOperation] = useState('');
-  
+
   const [isPrefilling, setIsPrefilling] = useState(false);
   const [prefillSuccess, setPrefillSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
-  
+
   const gpsValidationError = gpsData.validationError;
 
   useEffect(() => {
@@ -50,14 +50,14 @@ export default function Assessment() {
         setIsPrefilling(true);
         const res = await getCasePrefillData(caseId);
         const data = res.data;
-        
+
         if (data.store_name) setStoreName(data.store_name);
         if (data.owner_name) setOwnerName(data.owner_name);
         if (data.owner_mobile) setOwnerMobile(data.owner_mobile);
         if (data.shop_size) setShopSize(data.shop_size);
         if (data.rent) setRent(data.rent.toString());
         if (data.years_in_operation) setYearsInOperation(data.years_in_operation.toString());
-        
+
         setPrefillSuccess(true);
       } catch (err) {
         console.error('Failed to prefill case data:', err);
@@ -118,7 +118,7 @@ export default function Assessment() {
       if (storeName.trim()) formData.append('store_name', storeName.trim());
       if (ownerName.trim()) formData.append('owner_name', ownerName.trim());
       if (ownerMobile.trim()) formData.append('owner_mobile', ownerMobile.trim());
-      
+
       // Append Optional AI Inputs
       if (shopSize) formData.append('shop_size', shopSize);
       if (rent) formData.append('rent', parseFloat(rent));
@@ -133,7 +133,7 @@ export default function Assessment() {
       }
 
       const response = await submitAssessment(formData);
-      
+
       const newCaseId = response.data?.case_id;
       if (newCaseId) {
         navigate(`/app/cases/${newCaseId}`);
@@ -146,7 +146,7 @@ export default function Assessment() {
       console.error(err);
       setError(
         err?.response?.data?.detail ||
-          'An error occurred while uploading. Please check API connectivity and backend logs.'
+        'An error occurred while uploading. Please check API connectivity and backend logs.'
       );
     } finally {
       setIsSubmitting(false);
@@ -179,9 +179,11 @@ export default function Assessment() {
               Assessment linked to case: <span className="font-bold">{storeName || 'Unknown Store'}</span>
             </div>
           </div>
-          <Link to={`/app/cases/${caseId}`} className="text-xs font-bold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 px-3 py-1.5 rounded-lg transition">
-            View Case
-          </Link>
+          {!isSubmitting && (
+            <Link to={`/app/cases/${caseId}`} className="text-xs font-bold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 px-3 py-1.5 rounded-lg transition">
+              View Case
+            </Link>
+          )}
         </div>
       )}
 
@@ -213,7 +215,7 @@ export default function Assessment() {
                 className="w-full border border-slate-300 rounded-lg p-3 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-slate-800"
               />
             </div>
-            
+
             {!caseId && (
               <>
                 <div>
@@ -246,24 +248,20 @@ export default function Assessment() {
             )}
 
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Shop Size (Optional)</label>
-              <div className="relative">
-                <select
-                  value={shopSize}
-                  onChange={(e) => setShopSize(e.target.value)}
-                  className="appearance-none w-full border border-slate-300 bg-white rounded-lg p-3 pr-10 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-slate-800"
-                >
-                  <option value="">Select an option</option>
-                  <option value="small">Small (&lt;200 sqft)</option>
-                  <option value="medium">Medium (200 - 500 sqft)</option>
-                  <option value="large">Large (&gt;500 sqft)</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
-                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                  </svg>
-                </div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Shop Area (sq ft) (Optional)</label>
+              <div className="flex gap-2 mb-2">
+                <button type="button" onClick={() => setShopSize('100')} className="flex-1 py-1.5 text-xs font-semibold rounded bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Small (100)</button>
+                <button type="button" onClick={() => setShopSize('250')} className="flex-1 py-1.5 text-xs font-semibold rounded bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Medium (250)</button>
+                <button type="button" onClick={() => setShopSize('500')} className="flex-1 py-1.5 text-xs font-semibold rounded bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Large (500)</button>
               </div>
+              <input
+                type="number"
+                min="0"
+                value={shopSize}
+                onChange={(e) => setShopSize(e.target.value)}
+                placeholder="e.g., 7500"
+                className="w-full border border-slate-300 rounded-lg p-3 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-slate-800"
+              />
             </div>
 
             <div>
