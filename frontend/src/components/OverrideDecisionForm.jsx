@@ -84,7 +84,7 @@ export default function OverrideDecisionForm({ decision, isSubmitting, onSubmit,
     if (!hasChanges || !form.reason.trim()) return;
 
     onSubmit({
-      override_amount: Number(form.amount),
+      override_approved_amount: Number(form.amount),
       override_tenure_months: Number(form.tenure_months),
       override_repayment_cadence: form.repayment_cadence,
       override_annual_interest_rate_pct: Number(form.annual_interest_rate_pct),

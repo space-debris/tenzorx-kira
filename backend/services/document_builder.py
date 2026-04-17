@@ -11,6 +11,19 @@ from models.platform_schema import DocumentBundle, DocumentBundleResponse
 from storage.repository import PlatformRepository
 
 
+def _monitoring_summary(run) -> dict:
+    return {
+        "created_at": run.created_at.isoformat(),
+        "current_risk_band": run.new_risk_band.value if run.new_risk_band else None,
+        "stress_score": run.new_risk_score or 0.0,
+        "restructuring_recommendation": (
+            run.restructuring_suggestion.rationale
+            if run.restructuring_suggestion is not None
+            else None
+        ),
+    }
+
+
 class DocumentBuilder:
     """Build deterministic case and loan packet payloads."""
 
@@ -72,12 +85,7 @@ class DocumentBuilder:
                 "decision_reason": decision.decision_reason if decision else None,
             },
             "monitoring_history_summary": [
-                {
-                    "created_at": run.created_at.isoformat(),
-                    "current_risk_band": run.current_risk_band.value,
-                    "stress_score": run.stress_score,
-                    "restructuring_recommendation": run.restructuring_recommendation,
-                }
+                _monitoring_summary(run)
                 for run in monitoring_runs
             ],
             "audit_event_export": [

@@ -25,6 +25,45 @@ from services.audit_service import AuditService
 from storage.repository import PlatformRepository
 
 
+def _build_statement_upload_record(upload) -> StatementUploadRecord:
+    summary = upload.transaction_summary
+    return StatementUploadRecord(
+        id=str(upload.id),
+        label=upload.file_name,
+        status=upload.status.value if hasattr(upload.status, "value") else str(upload.status),
+        created_at=upload.created_at,
+        note=f"Uploaded {upload.file_name}",
+        transaction_count=(
+            (summary.credit_count + summary.debit_count)
+            if summary is not None
+            else 0
+        ),
+        inflow_total=summary.total_credits if summary is not None else 0.0,
+        outflow_total=summary.total_debits if summary is not None else 0.0,
+    )
+
+
+def _build_monitoring_run_record(run) -> MonitoringRunRecord:
+    suggestion = run.restructuring_suggestion
+    utilization = {}
+    if run.utilization is not None:
+        utilization = {
+            "supplier_inventory_pct": run.utilization.supplier_inventory_pct,
+            "transfer_wallet_pct": run.utilization.transfer_wallet_pct,
+            "personal_cash_pct": run.utilization.personal_cash_pct,
+            "unknown_pct": run.utilization.unknown_pct,
+        }
+    return MonitoringRunRecord(
+        id=str(run.id),
+        created_at=run.created_at,
+        current_risk_band=run.new_risk_band,
+        inflow_change_ratio=run.inflow_velocity_change_pct or 0.0,
+        stress_score=run.new_risk_score or 0.0,
+        restructuring_recommendation=suggestion.rationale if suggestion is not None else None,
+        utilization_breakdown=utilization,
+    )
+
+
 class LoanService:
     """Manage loan booking artifacts derived from approved lender cases."""
 
@@ -129,11 +168,8 @@ class LoanService:
         account = self.repository.get_loan_account_for_case(case.id)
         if account is None:
             return
-        closed_at = account.closed_at
         new_status = account.status
         if case.status == CaseStatus.CLOSED:
-            if closed_at is None:
-                closed_at = datetime.utcnow()
             new_status = LoanAccountStatus.CLOSED
         elif case.status == CaseStatus.RESTRUCTURED:
             new_status = LoanAccountStatus.RESTRUCTURED
@@ -141,7 +177,7 @@ class LoanService:
         updated = account.model_copy(
             update={
                 "status": new_status,
-                "closed_at": closed_at,
+                "updated_at": datetime.utcnow(),
             }
         )
         self.repository.update_loan_account(updated)
@@ -161,28 +197,11 @@ class LoanService:
 
         decision = self.repository.get_latest_loan_decision(case_id)
         uploads = [
-            StatementUploadRecord(
-                id=str(upload.id),
-                label=upload.file_name,
-                status=upload.status.value if hasattr(upload.status, "value") else str(upload.status),
-                created_at=upload.created_at,
-                note=f"Uploaded {upload.file_name}",
-                transaction_count=(upload.transaction_summary.credit_count + upload.transaction_summary.debit_count) if upload.transaction_summary else 0,
-                inflow_total=upload.transaction_summary.total_credits if upload.transaction_summary else 0.0,
-                outflow_total=upload.transaction_summary.total_debits if upload.transaction_summary else 0.0,
-            )
+            _build_statement_upload_record(upload)
             for upload in self.repository.list_statement_uploads(case_id=case_id)
         ]
         monitoring_runs = [
-            MonitoringRunRecord(
-                id=str(run.id),
-                created_at=run.created_at,
-                current_risk_band=run.current_risk_band,
-                inflow_change_ratio=run.inflow_change_ratio,
-                stress_score=run.stress_score,
-                restructuring_recommendation=run.restructuring_recommendation,
-                utilization_breakdown=run.utilization_breakdown,
-            )
+            _build_monitoring_run_record(run)
             for run in self.repository.list_monitoring_runs(case_id=case_id)
         ]
         alerts = self.repository.list_alerts(case_id=case_id)

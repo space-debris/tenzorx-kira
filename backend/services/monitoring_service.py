@@ -16,17 +16,59 @@ from models.platform_schema import (
     CaseStatus,
     MonitoringRun,
     MonitoringRunRecord,
+    MonitoringRunStatus,
     RiskAlert,
     StatementUpload,
     StatementUploadCreateRequest,
     StatementUploadRecord,
     StatementUploadResponse,
+    TransactionSummary,
+    UtilizationBreakdown,
 )
 from services.audit_service import AuditService
 from services.loan_service import LoanService
 from services.statement_parser import parse_statement_content
 from storage.repository import PlatformRepository
 from orchestration.enhanced_fraud import detect_longitudinal_fraud
+
+
+def _build_statement_upload_record(upload: StatementUpload) -> StatementUploadRecord:
+    summary = upload.transaction_summary
+    return StatementUploadRecord(
+        id=str(upload.id),
+        label=upload.file_name,
+        status=upload.status.value if hasattr(upload.status, "value") else str(upload.status),
+        created_at=upload.created_at,
+        note=f"Uploaded {upload.file_name}",
+        transaction_count=(
+            (summary.credit_count + summary.debit_count)
+            if summary is not None
+            else 0
+        ),
+        inflow_total=summary.total_credits if summary is not None else 0.0,
+        outflow_total=summary.total_debits if summary is not None else 0.0,
+    )
+
+
+def _build_monitoring_run_record(run: MonitoringRun) -> MonitoringRunRecord:
+    suggestion = run.restructuring_suggestion
+    utilization = {}
+    if run.utilization is not None:
+        utilization = {
+            "supplier_inventory_pct": run.utilization.supplier_inventory_pct,
+            "transfer_wallet_pct": run.utilization.transfer_wallet_pct,
+            "personal_cash_pct": run.utilization.personal_cash_pct,
+            "unknown_pct": run.utilization.unknown_pct,
+        }
+    return MonitoringRunRecord(
+        id=str(run.id),
+        created_at=run.created_at,
+        current_risk_band=run.new_risk_band,
+        inflow_change_ratio=run.inflow_velocity_change_pct or 0.0,
+        stress_score=run.new_risk_score or 0.0,
+        restructuring_recommendation=suggestion.rationale if suggestion is not None else None,
+        utilization_breakdown=utilization,
+    )
 
 
 class MonitoringService:
@@ -58,23 +100,29 @@ class MonitoringService:
             raise ValueError("Actor is invalid for this organization")
 
         loan_account = self.loan_service.ensure_loan_account_for_case(case, payload.actor_user_id)
-        parsed = parse_statement_content(payload.file_name, payload.content)
+        parsed = parse_statement_content(payload.file_name, payload.content, payload.file_type)
+        parsed_summary = self._build_parsed_summary(
+            parsed["transactions"],
+            parsed["inflow_total"],
+            parsed["outflow_total"],
+        )
         upload = StatementUpload(
             org_id=case.org_id,
             case_id=case.id,
-            loan_account_id=loan_account.id,
+            loan_id=loan_account.id,
+            kirana_id=case.kirana_id,
             uploaded_by_user_id=payload.actor_user_id,
             file_name=payload.file_name,
             file_type=payload.file_type,
-            source_kind=payload.source_kind,
-            parse_status=parsed["parse_status"],
-            parse_confidence=parsed["parse_confidence"],
-            transaction_count=parsed["transaction_count"],
-            inflow_total=parsed["inflow_total"],
-            outflow_total=parsed["outflow_total"],
-            period_start=_parse_iso(parsed.get("period_start")),
-            period_end=_parse_iso(parsed.get("period_end")),
-            parsed_summary=self._build_parsed_summary(parsed["transactions"], parsed["inflow_total"], parsed["outflow_total"]),
+            transaction_summary=TransactionSummary(
+                total_credits=parsed["inflow_total"],
+                total_debits=parsed["outflow_total"],
+                credit_count=sum(1 for item in parsed["transactions"] if item.get("type") == "credit"),
+                debit_count=sum(1 for item in parsed["transactions"] if item.get("type") == "debit"),
+                start_date=_parse_iso(parsed.get("period_start")),
+                end_date=_parse_iso(parsed.get("period_end")),
+            ),
+            parse_error=None if parsed["parse_status"] == "parsed" else parsed["parse_status"],
         )
         self.repository.create_statement_upload(upload)
         self.audit_service.record_event(
@@ -86,31 +134,16 @@ class MonitoringService:
             actor_user_id=payload.actor_user_id,
             metadata={
                 "statement_upload_id": str(upload.id),
-                "transaction_count": upload.transaction_count,
+                "transaction_count": upload.transaction_summary.credit_count + upload.transaction_summary.debit_count
+                if upload.transaction_summary is not None
+                else 0,
             },
         )
 
-        monitoring_run, alerts = self._create_monitoring_run(case_id, upload)
+        monitoring_run, alerts = self._create_monitoring_run(case_id, upload, parsed_summary)
         return StatementUploadResponse(
-            statement_upload=StatementUploadRecord(
-                id=str(upload.id),
-                label=upload.file_name,
-                status=upload.status.value if hasattr(upload.status, "value") else str(upload.status),
-                created_at=upload.created_at,
-                note=f"Uploaded {upload.file_name}",
-                transaction_count=(upload.transaction_summary.credit_count + upload.transaction_summary.debit_count) if upload.transaction_summary else 0,
-                inflow_total=upload.transaction_summary.total_credits if upload.transaction_summary else 0.0,
-                outflow_total=upload.transaction_summary.total_debits if upload.transaction_summary else 0.0,
-            ),
-            monitoring_run=MonitoringRunRecord(
-                id=str(monitoring_run.id),
-                created_at=monitoring_run.created_at,
-                current_risk_band=monitoring_run.current_risk_band,
-                inflow_change_ratio=monitoring_run.inflow_change_ratio,
-                stress_score=monitoring_run.stress_score,
-                restructuring_recommendation=monitoring_run.restructuring_recommendation,
-                utilization_breakdown=monitoring_run.utilization_breakdown,
-            ),
+            statement_upload=_build_statement_upload_record(upload),
+            monitoring_run=_build_monitoring_run_record(monitoring_run),
             alerts=alerts,
         )
 
@@ -118,20 +151,26 @@ class MonitoringService:
         self,
         case_id: uuid.UUID,
         upload: StatementUpload,
+        parsed_summary: dict,
     ) -> tuple[MonitoringRun, list[RiskAlert]]:
         case = self.repository.get_case(case_id)
         if case is None:
             raise ValueError("Case not found")
 
         previous_run = self.repository.get_latest_monitoring_run(case_id)
-        baseline_inflow = previous_run.current_inflow_total if previous_run else (
-            case.latest_loan_range.high if case.latest_loan_range else upload.inflow_total
+        upload_inflow_total = upload.transaction_summary.total_credits if upload.transaction_summary is not None else 0.0
+        baseline_inflow = (
+            previous_run_metadata_inflow(previous_run)
+            if previous_run is not None
+            else (case.latest_loan_range.high if case.latest_loan_range else upload_inflow_total)
         )
+        if baseline_inflow is None:
+            baseline_inflow = case.latest_loan_range.high if case.latest_loan_range else upload_inflow_total
         if baseline_inflow <= 0:
-            baseline_inflow = upload.inflow_total or 1.0
+            baseline_inflow = upload_inflow_total or 1.0
 
-        inflow_change_ratio = round((upload.inflow_total - baseline_inflow) / baseline_inflow, 4)
-        utilization = upload.parsed_summary.get("utilization_breakdown", {})
+        inflow_change_ratio = round((upload_inflow_total - baseline_inflow) / baseline_inflow, 4)
+        utilization = parsed_summary.get("utilization_breakdown", {})
         cash_share = utilization.get("personal_or_cash_withdrawal_like", 0.0)
         stress_score = min(1.0, max(0.0, (cash_share * 0.6) + (max(0.0, -inflow_change_ratio) * 0.8)))
         current_risk = _risk_from_stress(case.latest_risk_band, stress_score)
@@ -199,17 +238,18 @@ class MonitoringService:
         run = MonitoringRun(
             org_id=case.org_id,
             case_id=case.id,
-            loan_account_id=upload.loan_account_id,
+            loan_id=upload.loan_id,
+            kirana_id=upload.kirana_id,
+            status=MonitoringRunStatus.COMPLETED,
             statement_upload_id=upload.id,
             previous_risk_band=case.latest_risk_band,
-            current_risk_band=current_risk,
-            previous_inflow_total=baseline_inflow,
-            current_inflow_total=upload.inflow_total,
-            inflow_change_ratio=inflow_change_ratio,
-            utilization_breakdown=utilization,
-            stress_score=round(stress_score, 3),
-            restructuring_recommendation=restructure,
-            alerts_created=[alert.id for alert in alerts],
+            new_risk_band=current_risk,
+            new_risk_score=round(stress_score, 3),
+            inflow_velocity_change_pct=inflow_change_ratio,
+            utilization=_build_utilization_breakdown(utilization),
+            alerts_raised=[str(alert.id) for alert in alerts],
+            run_notes=f"baseline_inflow={baseline_inflow:.2f};current_inflow={upload_inflow_total:.2f}",
+            completed_at=datetime.utcnow(),
         )
         self.repository.create_monitoring_run(run)
         self.audit_service.record_event(
@@ -221,8 +261,8 @@ class MonitoringService:
             actor_user_id=upload.uploaded_by_user_id,
             metadata={
                 "monitoring_run_id": str(run.id),
-                "stress_score": run.stress_score,
-                "current_risk_band": run.current_risk_band.value,
+                "stress_score": run.new_risk_score,
+                "current_risk_band": run.new_risk_band.value if run.new_risk_band is not None else None,
             },
         )
         return run, alerts
@@ -262,6 +302,29 @@ def _parse_iso(value: str | None) -> datetime | None:
     if not value:
         return None
     return datetime.fromisoformat(value)
+
+
+def previous_run_metadata_inflow(run: MonitoringRun | None) -> float | None:
+    if run is None or not run.run_notes:
+        return None
+    for part in run.run_notes.split(";"):
+        if part.startswith("current_inflow="):
+            try:
+                return float(part.split("=", 1)[1])
+            except ValueError:
+                return None
+    return None
+
+
+def _build_utilization_breakdown(utilization: dict[str, float]) -> UtilizationBreakdown:
+    return UtilizationBreakdown(
+        supplier_inventory_pct=round(utilization.get("supplier_or_inventory_like", 0.0) * 100, 2),
+        transfer_wallet_pct=round(utilization.get("transfer_or_wallet_like", 0.0) * 100, 2),
+        personal_cash_pct=round(utilization.get("personal_or_cash_withdrawal_like", 0.0) * 100, 2),
+        unknown_pct=round(utilization.get("unknown", 0.0) * 100, 2),
+        flags=[],
+        diversion_risk="high" if utilization.get("personal_or_cash_withdrawal_like", 0.0) >= 0.35 else "low",
+    )
 
 
 def _risk_from_stress(previous_risk: RiskBand | None, stress_score: float) -> RiskBand:

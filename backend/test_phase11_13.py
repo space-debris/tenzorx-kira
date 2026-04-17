@@ -11,6 +11,7 @@ from services.compliance_exporter import ComplianceExporter
 from services.document_builder import DocumentBuilder
 from services.loan_service import LoanService
 from services.monitoring_service import MonitoringService
+from services.statement_parser import parse_statement_content
 from storage.repository import PlatformRepository
 
 
@@ -96,3 +97,19 @@ def test_statement_upload_triggers_monitoring_and_documents(services):
     cohorts = build_cohort_analysis(repository, UUID("11111111-1111-1111-1111-111111111111"))
     assert len(metrics) >= 6
     assert len(cohorts) >= 1
+
+
+def test_pdf_style_upi_statement_text_is_parsed():
+    parsed = parse_statement_content(
+        file_name="paytm-apr-2026.pdf",
+        file_type="application/pdf",
+        content=(
+            "12/04/2026 UPI CR Customer Payment INR 48,000\n"
+            "13/04/2026 UPI DR Supplier Traders INR 22,000\n"
+            "14/04/2026 UPI DR Cash Withdrawal INR 3,500\n"
+        ),
+    )
+
+    assert parsed["transaction_count"] == 3
+    assert parsed["inflow_total"] == 48000.0
+    assert parsed["outflow_total"] == 25500.0

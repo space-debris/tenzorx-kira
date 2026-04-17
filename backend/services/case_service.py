@@ -45,6 +45,45 @@ ALLOWED_STATUS_TRANSITIONS: dict[CaseStatus, set[CaseStatus]] = {
 }
 
 
+def _build_statement_upload_record(upload) -> StatementUploadRecord:
+    summary = upload.transaction_summary
+    return StatementUploadRecord(
+        id=str(upload.id),
+        label=upload.file_name,
+        status=upload.status.value if hasattr(upload.status, "value") else str(upload.status),
+        created_at=upload.created_at,
+        note=f"Uploaded {upload.file_name}",
+        transaction_count=(
+            (summary.credit_count + summary.debit_count)
+            if summary is not None
+            else 0
+        ),
+        inflow_total=summary.total_credits if summary is not None else 0.0,
+        outflow_total=summary.total_debits if summary is not None else 0.0,
+    )
+
+
+def _build_monitoring_run_record(run) -> MonitoringRunRecord:
+    suggestion = run.restructuring_suggestion
+    utilization = {}
+    if run.utilization is not None:
+        utilization = {
+            "supplier_inventory_pct": run.utilization.supplier_inventory_pct,
+            "transfer_wallet_pct": run.utilization.transfer_wallet_pct,
+            "personal_cash_pct": run.utilization.personal_cash_pct,
+            "unknown_pct": run.utilization.unknown_pct,
+        }
+    return MonitoringRunRecord(
+        id=str(run.id),
+        created_at=run.created_at,
+        current_risk_band=run.new_risk_band,
+        inflow_change_ratio=run.inflow_velocity_change_pct or 0.0,
+        stress_score=run.new_risk_score or 0.0,
+        restructuring_recommendation=suggestion.rationale if suggestion is not None else None,
+        utilization_breakdown=utilization,
+    )
+
+
 class CaseService:
     """Coordinates persistent case and kirana operations for lenders."""
 
@@ -345,34 +384,13 @@ class CaseService:
         for upload in self.repository.list_statement_uploads(org_id=org_id):
             if upload.case_id not in {case.id for case in cases}:
                 continue
-            statement_uploads.append(
-                StatementUploadRecord(
-                    id=str(upload.id),
-                    label=upload.file_name,
-                    status=upload.status.value if hasattr(upload.status, "value") else str(upload.status),
-                    created_at=upload.created_at,
-                    note=f"Uploaded {upload.file_name}",
-                    transaction_count=(upload.transaction_summary.credit_count + upload.transaction_summary.debit_count) if upload.transaction_summary else 0,
-                    inflow_total=upload.transaction_summary.total_credits if upload.transaction_summary else 0.0,
-                    outflow_total=upload.transaction_summary.total_debits if upload.transaction_summary else 0.0,
-                )
-            )
+            statement_uploads.append(_build_statement_upload_record(upload))
 
         monitoring_runs: list[MonitoringRunRecord] = []
         for run in self.repository.list_monitoring_runs(org_id=org_id):
             if run.case_id not in {case.id for case in cases}:
                 continue
-            monitoring_runs.append(
-                MonitoringRunRecord(
-                    id=str(run.id),
-                    created_at=run.created_at,
-                    current_risk_band=run.current_risk_band,
-                    inflow_change_ratio=run.inflow_change_ratio,
-                    stress_score=run.stress_score,
-                    restructuring_recommendation=run.restructuring_recommendation,
-                    utilization_breakdown=run.utilization_breakdown,
-                )
-            )
+            monitoring_runs.append(_build_monitoring_run_record(run))
 
         audit_events = self.repository.list_audit_events(entity_id=kirana.id)
         for case in cases:
@@ -398,6 +416,7 @@ class CaseService:
         self,
         org_id: uuid.UUID,
         store_name: str,
+        preferred_kirana_id: uuid.UUID | None = None,
         owner_name: str | None = None,
         owner_mobile: str | None = None,
         state: str | None = None,
@@ -413,8 +432,19 @@ class CaseService:
         safe_pin = pin_code or "000000"
         safe_state = state or "Unknown"
         safe_district = district or "Unknown"
+        safe_owner_name = (owner_name or "").strip() or "Unknown"
 
-        existing = self.repository.find_kirana(org_id, store_name, safe_pin)
+        raw_mobile = (owner_mobile or "").strip()
+        safe_owner_mobile = raw_mobile if len(raw_mobile) >= 8 else "00000000"
+
+        existing = None
+        if preferred_kirana_id is not None:
+            candidate = self.repository.get_kirana(preferred_kirana_id)
+            if candidate is not None and candidate.org_id == org_id:
+                existing = candidate
+
+        if existing is None:
+            existing = self.repository.find_kirana(org_id, store_name, safe_pin)
 
         metadata: dict = {}
         if shop_size:
@@ -425,12 +455,17 @@ class CaseService:
             metadata["years_in_operation"] = years_in_operation
 
         if existing is not None:
+            owner_updates = {}
+            if owner_name and owner_name.strip():
+                owner_updates["owner_name"] = owner_name.strip()
+            if owner_mobile and owner_mobile.strip() and len(owner_mobile.strip()) >= 8:
+                owner_updates["owner_mobile"] = owner_mobile.strip()
+
             updated = existing.model_copy(
                 update={
                     "metadata": {**existing.metadata, **metadata},
                     "updated_at": now,
-                    **({"owner_name": owner_name} if owner_name else {}),
-                    **({"owner_mobile": owner_mobile} if owner_mobile else {}),
+                    **owner_updates,
                 }
             )
             self.repository.update_kirana(updated)
@@ -439,8 +474,8 @@ class CaseService:
         kirana = KiranaProfile(
             org_id=org_id,
             store_name=store_name,
-            owner_name=owner_name or "Unknown",
-            owner_mobile=owner_mobile or "N/A",
+            owner_name=safe_owner_name,
+            owner_mobile=safe_owner_mobile,
             location=KiranaLocation(
                 state=safe_state,
                 district=safe_district,
@@ -555,7 +590,11 @@ class CaseService:
             raise ValueError("Latest assessment does not include an eligible underwriting recommendation")
 
         final_terms = UnderwritingTerms(
-            amount=payload.override_amount if payload.override_amount is not None else recommended_terms.amount,
+            amount=(
+                payload.override_approved_amount
+                if payload.override_approved_amount is not None
+                else recommended_terms.amount
+            ),
             tenure_months=(
                 payload.override_tenure_months
                 if payload.override_tenure_months is not None
@@ -569,7 +608,11 @@ class CaseService:
             estimated_installment=self._estimate_override_installment(
                 latest_summary=latest_summary,
                 recommended_terms=recommended_terms,
-                amount=payload.override_amount if payload.override_amount is not None else recommended_terms.amount,
+                amount=(
+                    payload.override_approved_amount
+                    if payload.override_approved_amount is not None
+                    else recommended_terms.amount
+                ),
                 tenure_months=(
                     payload.override_tenure_months
                     if payload.override_tenure_months is not None

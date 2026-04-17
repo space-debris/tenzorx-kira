@@ -15,5 +15,77 @@
       "json",
       "pdf"
     ]
+  },
+  {
+    "id": "002b78fe-08f0-4962-93e7-936ec763feb8",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "63333333-3333-3333-3333-333333333333",
+    "documents": {
+      "underwriting_summary": "generated",
+      "sanction_note": "generated",
+      "decision_override_sheet": "not_required",
+      "monitoring_history_summary": "pending",
+      "audit_event_export": "generated"
+    },
+    "created_at": "2026-04-17T15:19:02.274682",
+    "generated_by_user_id": null,
+    "export_formats": [
+      "json",
+      "pdf"
+    ]
+  },
+  {
+    "id": "be10e50c-b647-4519-bc39-df2e37fefd89",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "61111111-1111-1111-1111-111111111111",
+    "documents": {
+      "underwriting_summary": "generated",
+      "sanction_note": "generated",
+      "decision_override_sheet": "not_required",
+      "monitoring_history_summary": "pending",
+      "audit_event_export": "generated"
+    },
+    "created_at": "2026-04-17T16:05:40.788297",
+    "generated_by_user_id": null,
+    "export_formats": [
+      "json",
+      "pdf"
+    ]
+  },
+  {
+    "id": "56db09ab-251b-4ee3-bff4-4e292e946f60",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "4fa891cd-44c2-43d6-a2c1-41308c0f0ecc",
+    "documents": {
+      "underwriting_summary": "generated",
+      "sanction_note": "pending",
+      "decision_override_sheet": "not_required",
+      "monitoring_history_summary": "pending",
+      "audit_event_export": "generated"
+    },
+    "created_at": "2026-04-17T19:29:01.969787",
+    "generated_by_user_id": null,
+    "export_formats": [
+      "json",
+      "pdf"
+    ]
+  },
+  {
+    "id": "9d02045b-40c1-45db-8bc4-1a0f1ec49035",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "documents": {
+      "underwriting_summary": "generated",
+      "sanction_note": "pending",
+      "decision_override_sheet": "not_required",
+      "monitoring_history_summary": "pending",
+      "audit_event_export": "generated"
+    },
+    "created_at": "2026-04-17T19:44:09.281424",
+    "generated_by_user_id": null,
+    "export_formats": [
+      "json",
+      "pdf"
+    ]
   }
 ]

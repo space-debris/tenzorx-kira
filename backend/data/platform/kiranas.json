@@ -52,5 +52,41 @@
     },
     "created_at": "2026-04-08T18:56:47.300977",
     "updated_at": "2026-04-15T18:56:47.300977"
+  },
+  {
+    "id": "5883330b-bd09-4075-9c54-19d2e0305b66",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "Test Shop",
+    "owner_name": "Monu Jaat",
+    "owner_mobile": "4512789632",
+    "location": {
+      "state": "Unknown",
+      "district": "Delhi",
+      "pin_code": "000000",
+      "locality": "Chittaranjan Park"
+    },
+    "metadata": {
+      "shop_size": "500"
+    },
+    "created_at": "2026-04-17T19:18:31.631380",
+    "updated_at": "2026-04-17T19:18:31.631380"
+  },
+  {
+    "id": "2f0c10e2-1369-4587-99d1-752090773276",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "Mukesh Store",
+    "owner_name": "Mukesh",
+    "owner_mobile": "00000000",
+    "location": {
+      "state": "Unknown",
+      "district": "Delhi",
+      "pin_code": "000000",
+      "locality": "Chittaranjan Park"
+    },
+    "metadata": {
+      "shop_size": "500"
+    },
+    "created_at": "2026-04-17T19:43:03.615021",
+    "updated_at": "2026-04-17T19:43:03.615021"
   }
 ]

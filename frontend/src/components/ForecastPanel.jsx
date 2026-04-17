@@ -1,5 +1,10 @@
 import { TrendingDown, TrendingUp } from 'lucide-react';
 
+const formatINR = (value) =>
+  new Intl.NumberFormat('en-IN', {
+    maximumFractionDigits: 0,
+  }).format(Number.isFinite(value) ? value : 0);
+
 export default function ForecastPanel({ forecast = null }) {
   if (!forecast) {
     return <div className="text-sm text-slate-400">Forecast data unavailable.</div>;
@@ -13,7 +18,7 @@ export default function ForecastPanel({ forecast = null }) {
         <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">Liquidity Forecast</h2>
         <div className={`flex items-center gap-1 text-sm font-semibold ${isPositive ? 'text-emerald-600' : 'text-red-600'}`}>
           {isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-          {isPositive ? '+' : ''}₹{forecast.daily_net_velocity.toFixed(0)} / day
+          {isPositive ? '+' : ''}₹{formatINR(forecast.daily_net_velocity)} / day
         </div>
       </div>
       
@@ -21,25 +26,25 @@ export default function ForecastPanel({ forecast = null }) {
         <div className="rounded-lg bg-slate-50 p-4 border border-slate-100 flex flex-col justify-center">
           <div className="text-sm font-semibold text-slate-500 mb-1">30-Day Outlook</div>
           <div className="text-2xl font-black text-slate-800">
-            ₹{forecast.forecast_30_days.toFixed(0)}
+            ₹{formatINR(forecast.forecast_30_days)}
           </div>
           {forecast.liquidity_gap_30_days > 0 && (
-            <div className="text-sm text-red-500 mt-1 font-medium">Gap: ₹{forecast.liquidity_gap_30_days.toFixed(0)}</div>
+            <div className="text-sm text-red-500 mt-1 font-medium">Gap: ₹{formatINR(forecast.liquidity_gap_30_days)}</div>
           )}
         </div>
         <div className="rounded-lg bg-slate-50 p-4 border border-slate-100 flex flex-col justify-center">
           <div className="text-sm font-semibold text-slate-500 mb-1">90-Day Outlook</div>
           <div className="text-2xl font-black text-slate-800">
-            ₹{forecast.forecast_90_days.toFixed(0)}
+            ₹{formatINR(forecast.forecast_90_days)}
           </div>
           {forecast.liquidity_gap_90_days > 0 && (
-            <div className="text-sm text-red-500 mt-1 font-medium">Gap: ₹{forecast.liquidity_gap_90_days.toFixed(0)}</div>
+            <div className="text-sm text-red-500 mt-1 font-medium">Gap: ₹{formatINR(forecast.liquidity_gap_90_days)}</div>
           )}
         </div>
         <div className="rounded-lg bg-slate-50 p-4 border border-slate-100 flex flex-col justify-center md:col-span-2">
           <div className="text-sm font-semibold text-slate-500 mb-1">180-Day Liquidity Buffer Estimate</div>
           <div className="text-2xl font-black text-slate-800 flex items-center gap-2">
-            ₹{(forecast.forecast_90_days + (forecast.daily_net_velocity * 90)).toFixed(0)}
+            ₹{formatINR(forecast.forecast_90_days + (forecast.daily_net_velocity * 90))}
           </div>
           <div className="text-xs text-slate-400 mt-1">Based on projected steady state condition velocity without restructures.</div>
         </div>

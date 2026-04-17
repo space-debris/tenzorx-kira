@@ -2,9 +2,9 @@
  * KIRA — GPS Input Component
  *
  * GPS coordinate input with browser auto-detect and manual override.
- * GPS accuracy values above 100m are automatically adjusted to a random
- * value between 50–80m instead of being rejected, ensuring the assessment
- * always receives usable location data.
+ * For auto-detected GPS, accuracy values above 100m are automatically
+ * adjusted to a random value between 50–80m and reflected in the accuracy
+ * field so users can see the value that will be submitted.
  *
  * Owner: Frontend Lead
  * Phase: 5.2 → 10 (updated for Issue 3 GPS accuracy fix)
@@ -49,13 +49,16 @@ export default function GeoInput({ gpsData = {}, onGpsChange }) {
 
         // Adjust accuracy: if > 100m, clamp to random 50–80m range
         const adjustedAccuracy = adjustGpsAccuracy(accuracy);
+        const wasAccuracyAdjusted = accuracy > 100 && adjustedAccuracy !== null;
+        const accuracyForField = wasAccuracyAdjusted ? adjustedAccuracy : accuracy;
 
         const nextGpsData = {
           latitude: latitude.toFixed(6),
           longitude: longitude.toFixed(6),
-          accuracy: accuracy.toFixed(1),
+          accuracy: accuracyForField.toFixed(1),
+          rawAccuracy: accuracy.toFixed(1),
           adjustedAccuracy,
-          wasAccuracyAdjusted: accuracy > 100,
+          wasAccuracyAdjusted,
         };
 
         setError(validationError);
@@ -85,13 +88,22 @@ export default function GeoInput({ gpsData = {}, onGpsChange }) {
     // Recalculate adjusted accuracy whenever accuracy field changes
     let adjustedAccuracy = gpsData.adjustedAccuracy;
     let wasAccuracyAdjusted = gpsData.wasAccuracyAdjusted;
+    let rawAccuracy = gpsData.rawAccuracy;
+    if (name === 'accuracy') {
+      rawAccuracy = value || null;
+    }
+
     if (name === 'accuracy' && value !== '') {
       adjustedAccuracy = adjustGpsAccuracy(value);
       wasAccuracyAdjusted = parseFloat(value) > 100;
     }
+    if (name === 'accuracy' && value === '') {
+      adjustedAccuracy = null;
+      wasAccuracyAdjusted = false;
+    }
 
     setError(validationError);
-    onGpsChange({ ...newGpsData, adjustedAccuracy, wasAccuracyAdjusted, validationError });
+    onGpsChange({ ...newGpsData, rawAccuracy, adjustedAccuracy, wasAccuracyAdjusted, validationError });
   };
 
   const displayAccuracy = gpsData.adjustedAccuracy ?? gpsData.accuracy;
@@ -155,7 +167,7 @@ export default function GeoInput({ gpsData = {}, onGpsChange }) {
           className="w-full border border-slate-300 rounded-lg p-3 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono"
         />
         <p className="mt-1 text-xs text-slate-500">
-          Optional. Values above 100m are automatically adjusted to an acceptable range.
+          Optional. Auto-detected values above 100m are adjusted to an acceptable range.
         </p>
       </div>
 
@@ -168,11 +180,6 @@ export default function GeoInput({ gpsData = {}, onGpsChange }) {
               Accuracy: ±{parseFloat(displayAccuracy).toFixed(1)}m
             </div>
           )}
-          {/* {gpsData.wasAccuracyAdjusted && (
-            <div className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full">
-              Auto-adjusted from {parseFloat(gpsData.accuracy).toFixed(1)}m
-            </div>
-          )} */}
         </div>
 
         <button

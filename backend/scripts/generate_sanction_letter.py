@@ -176,10 +176,12 @@ def generate_sanction_letter(case_id_str: str):
         
     if assessment and assessment.estimated_emi:
         emi = assessment.estimated_emi
-        
-    if detail.underwriting_decision and detail.underwriting_decision.override_amount:
-        amount = detail.underwriting_decision.override_amount
-        emi = detail.underwriting_decision.override_installment
+
+    if detail.underwriting_decision and detail.underwriting_decision.final_terms:
+        amount = detail.underwriting_decision.final_terms.amount
+        emi = detail.underwriting_decision.final_terms.estimated_installment
+        tenure = detail.underwriting_decision.final_terms.tenure_months
+        rate = detail.underwriting_decision.final_terms.annual_interest_rate_pct
         
     amount = math.floor(amount) if amount else 50000
     emi = math.floor(emi) if emi else int(amount / tenure * 1.05)

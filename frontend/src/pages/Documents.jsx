@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FolderKanban, Loader2, AlertTriangle } from 'lucide-react';
-import { exportCaseDocuments, getCaseDocuments, listOrganizationCases, listOrganizationKiranas } from '../api/kiraApi';
+import { exportCaseDocuments, getCaseDocuments, listOrganizationCases, listOrganizationKiranas, resolveApiUrl } from '../api/kiraApi';
 import { useAuth } from '../context/useAuth';
 import DocumentCenter from '../components/DocumentCenter';
 
@@ -71,8 +71,7 @@ export default function Documents() {
       setBundle(res.data);
       
       // Fetch the actual Client-Facing Sanction HTML file
-      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
-      const sanctionUrl = `${API_BASE}/platform/cases/${selectedCaseId}/documents/sanction`;
+      const sanctionUrl = resolveApiUrl(`/platform/cases/${selectedCaseId}/documents/sanction`);
       const htmlRes = await fetch(sanctionUrl);
       if (!htmlRes.ok) throw new Error("Sanction Letter generation failed");
       const htmlContent = await htmlRes.text();

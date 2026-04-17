@@ -1,0 +1,87 @@
+{
+  "session_id": "791d6cc6-4636-4404-a26a-802e05b8b761",
+  "assessment_id": "d3ca2602-e31d-4c0e-9702-6a9b4e8d2235",
+  "timestamp": "2026-04-17T19:08:04.809131",
+  "status": "completed",
+  "revenue_estimate": {
+    "monthly_low": 188400.0,
+    "monthly_high": 253700.0,
+    "confidence": 0.7477,
+    "methodology": "inventory_turnover_model"
+  },
+  "risk_assessment": {
+    "risk_band": "MEDIUM",
+    "risk_score": 0.5688,
+    "confidence": 0.7477
+  },
+  "cv_signals": {
+    "shelf_density": 1.0,
+    "sku_diversity_score": 0.375,
+    "estimated_sku_count": 220,
+    "inventory_value_range": {
+      "low": 5071.5,
+      "high": 38318.0
+    },
+    "store_size_category": "small",
+    "brand_tier_mix": "value_dominant",
+    "consistency_score": 0.5456
+  },
+  "geo_signals": {
+    "area_type": "urban",
+    "footfall_score": 0.0385,
+    "competition_count": 0,
+    "competition_score": 1.0,
+    "catchment_population": 7853,
+    "demand_index": 1.0
+  },
+  "loan_recommendation": {
+    "eligible": false,
+    "loan_range": {
+      "low": 0.0,
+      "high": 0.0
+    },
+    "recommended_amount": null,
+    "suggested_tenure_months": 18,
+    "estimated_emi": 0.0,
+    "emi_to_income_ratio": 0.0,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null
+  },
+  "fraud_detection": {
+    "fraud_score": 0.37,
+    "is_flagged": true,
+    "flags": [
+      "Low image consistency (0.55): possible mismatched or reused images",
+      "brand_tier_mismatch: mass_dominant vs value_dominant",
+      "low_product_overlap: only 1/9 categories shared",
+      "low_product_overlap: only 1/7 categories shared",
+      "identical_image_quality: all images have nearly identical quality — unusual for real-world captures from different angles",
+      "Mismatched image resolutions: images from different devices",
+      "Statistical outlier: footfall_score=0.04 is 4.4σ from urban mean (0.70±0.15)"
+    ],
+    "checks_performed": [
+      "image_consistency",
+      "gps_visual_mismatch",
+      "signal_cross_validation",
+      "statistical_outlier"
+    ]
+  },
+  "explanation": {
+    "risk_narrative": "The store exhibits high shelf density (1.0) but limited product variety, characterized by a low SKU diversity score of 0.375 and a value-dominant brand tier. While the urban location benefits from a maximum demand index (1.0) and zero nearby competition, the very low footfall score (0.0385) suggests a significant lack of customer traffic. Despite estimated monthly revenues of up to ₹253,700, the profile is categorized as Medium risk and is further compromised by a critical fraud flag. Consequently, the recommended loan amount is ₹0, as the fraud alert and poor footfall outweigh the store's inventory density and market position.",
+    "summary": {
+      "strengths": [
+        "Well-stocked shelves (100%) indicate active inventory management",
+        "Favorable competitive position with manageable competition (100%)",
+        "Strong local demand (100%) indicates robust customer base"
+      ],
+      "concerns": [
+        "Fraud alert: Low image consistency (0.55): possible mismatched or reused images",
+        "Fraud alert: brand_tier_mismatch: mass_dominant vs value_dominant",
+        "Weak footfall potential (4%) limits customer acquisition"
+      ],
+      "recommendation": "Hold for manual review — assessment flagged for potential inconsistencies requiring human verification"
+    },
+    "decision_pack": null
+  }
+}

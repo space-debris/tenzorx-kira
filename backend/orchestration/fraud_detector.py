@@ -216,10 +216,24 @@ async def _check_image_consistency(
         consistency_flags = image_metadata.get("consistency_flags", [])
         if consistency_flags:
             flags.extend(consistency_flags)
-            score += min(0.4, 0.1 * len(consistency_flags))
+
+            # Weight severe mismatch flags higher than cosmetic inconsistencies.
+            critical_keywords = (
+                "duplicate",
+                "different store",
+                "store_size_mismatch",
+                "organization_mismatch",
+            )
+            critical_count = sum(
+                1
+                for flag in consistency_flags
+                if any(keyword in flag.lower() for keyword in critical_keywords)
+            )
+            mild_count = max(0, len(consistency_flags) - critical_count)
+            score += min(0.25, (0.12 * critical_count) + (0.03 * mild_count))
 
         if image_metadata.get("consistency_suspicious"):
-            score += 0.2
+            score += 0.15
 
         # Check for duplicate image hashes
         hashes = image_metadata.get("file_hashes", [])
@@ -230,7 +244,7 @@ async def _check_image_consistency(
         # Check for mismatched resolutions
         resolutions = image_metadata.get("resolutions", [])
         if resolutions and len(set(resolutions)) > 2:
-            score += 0.1
+            score += 0.03
             flags.append(
                 "Mismatched image resolutions: images from different devices"
             )

@@ -40,11 +40,21 @@ const STATUS_LABELS = {
 };
 
 const RISK_BAND_COLORS = {
-  LOW: 'bg-emerald-100 text-emerald-700',
-  MEDIUM: 'bg-blue-100 text-blue-700',
-  HIGH: 'bg-amber-100 text-amber-700',
-  VERY_HIGH: 'bg-red-100 text-red-700',
+  LOW: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  MEDIUM: 'bg-blue-100 text-blue-700 border-blue-200',
+  HIGH: 'bg-amber-100 text-amber-700 border-amber-200',
+  VERY_HIGH: 'bg-red-100 text-red-700 border-red-200',
 };
+
+const ALERT_SEVERITY_STYLES = {
+  critical: 'bg-rose-50 border-rose-200 text-rose-800',
+  warning: 'bg-amber-50 border-amber-200 text-amber-800',
+  info: 'bg-blue-50 border-blue-200 text-blue-800',
+};
+
+function formatCaseStatus(status = '') {
+  return String(status).replace(/_/g, ' ');
+}
 
 function formatDate(value) {
   if (!value) return '-';
@@ -92,27 +102,41 @@ export default function KiranaDetail() {
   }
 
   const { kirana, cases = [], assessment_history: assessmentHistory = [], loan_history: loanHistory = [], statement_uploads: statementUploads = [], monitoring_runs: monitoringRuns = [], alerts = [], audit_events: auditEvents = [] } = detail;
+  const openCases = cases.filter((caseItem) => caseItem.status !== 'closed').length;
 
   return (
-    <div className="animate-fade-in max-w-6xl mx-auto">
-      <Link to="/app/kiranas" className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-primary-600 transition mb-6">
+    <div className="animate-fade-in max-w-6xl mx-auto space-y-6">
+      <Link to="/app/kiranas" className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 hover:border-primary-200 hover:text-primary-700 transition">
         <ArrowLeft className="w-4 h-4" /> Back to Kiranas
       </Link>
 
-      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm mb-6">
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-linear-to-br from-white via-slate-50 to-primary-50/40 p-6 shadow-sm">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-r from-primary-500 via-indigo-400 to-cyan-400" />
         <div className="flex flex-col sm:flex-row items-start gap-5">
-          <div className="w-14 h-14 bg-primary-100 rounded-xl flex items-center justify-center text-primary-600 shrink-0">
+          <div className="w-14 h-14 bg-primary-100 ring-1 ring-primary-200/70 rounded-2xl flex items-center justify-center text-primary-700 shrink-0">
             <Store className="w-7 h-7" />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-extrabold text-slate-900 mb-1">{kirana.store_name}</h1>
+            <h1 className="text-3xl font-black tracking-tight text-slate-900 mb-1">{kirana.store_name}</h1>
             <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 mt-2">
               <span className="flex items-center gap-1.5"><User className="w-4 h-4" /> {kirana.owner_name}</span>
               <span className="flex items-center gap-1.5"><Phone className="w-4 h-4" /> {kirana.owner_mobile}</span>
             </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <span className="inline-flex items-center rounded-full border border-primary-200 bg-white px-3 py-1 text-xs font-bold text-primary-700">
+                {cases.length} total case{cases.length === 1 ? '' : 's'}
+              </span>
+              <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+                {openCases} open case{openCases === 1 ? '' : 's'}
+              </span>
+              <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+                {assessmentHistory.length} assessment{assessmentHistory.length === 1 ? '' : 's'}
+              </span>
+            </div>
           </div>
           {kirana.metadata?.shop_size && (
-            <span className="px-3 py-1 bg-primary-50 text-primary-700 text-sm font-bold rounded-lg capitalize border border-primary-100">
+            <span className="px-3 py-1 bg-primary-50 text-primary-700 text-sm font-bold rounded-xl capitalize border border-primary-100">
               {kirana.metadata.shop_size} store
             </span>
           )}
@@ -121,8 +145,8 @@ export default function KiranaDetail() {
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-[0.18em] mb-4 flex items-center gap-2">
               <MapPin className="w-4 h-4 text-purple-600" /> Location
             </h2>
             <div className="space-y-3 text-sm">
@@ -142,31 +166,34 @@ export default function KiranaDetail() {
               </div>
               <div>
                 <span className="text-xs font-semibold text-slate-400 uppercase">PIN Code</span>
-                <p className="font-bold text-slate-800 font-mono">{kirana.location?.pin_code}</p>
+                <p className="font-bold text-slate-800 font-mono tracking-wide">{kirana.location?.pin_code}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-2">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-2">
             <Link
               to={cases.length > 0 ? `/app/tools/assessment?caseId=${cases[0].id}` : '/app/tools/assessment'}
-              className="flex items-center justify-between w-full px-4 py-3 bg-primary-50 hover:bg-primary-100 text-primary-700 rounded-lg font-semibold text-sm transition"
+              className="flex items-center justify-between w-full rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm font-semibold text-primary-700 transition hover:-translate-y-0.5 hover:bg-primary-100"
             >
               Run New Assessment <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-[0.18em] mb-4 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-500" /> Risk Alerts
             </h2>
             {alerts.length > 0 ? (
-              <div className="space-y-3">
+              <div className="alerts-scroll space-y-3 max-h-96 overflow-y-auto pr-1">
                 {alerts.map((alertItem) => (
-                  <div key={alertItem.id} className="rounded-lg border border-amber-200 bg-amber-50 p-3">
-                    <div className="text-sm font-semibold text-amber-900">{alertItem.title}</div>
-                    <div className="text-xs text-amber-700 mt-1">{alertItem.description}</div>
-                    <div className="text-[11px] uppercase tracking-wide font-bold text-amber-500 mt-2">{alertItem.severity}</div>
+                  <div
+                    key={alertItem.id}
+                    className={`rounded-xl border p-3 ${ALERT_SEVERITY_STYLES[alertItem.severity] || 'bg-slate-50 border-slate-200 text-slate-800'}`}
+                  >
+                    <div className="text-sm font-semibold">{alertItem.title}</div>
+                    <div className="text-xs mt-1 opacity-90">{alertItem.description}</div>
+                    <div className="text-[11px] uppercase tracking-wide font-bold mt-2 opacity-80">{alertItem.severity}</div>
                   </div>
                 ))}
               </div>
@@ -177,17 +204,17 @@ export default function KiranaDetail() {
         </div>
 
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-[0.18em] mb-4 flex items-center gap-2">
               <Briefcase className="w-4 h-4 text-primary-600" /> Cases ({cases.length})
             </h2>
             {cases.length > 0 ? (
-              <div className="space-y-3">
+              <div className="alerts-scroll space-y-3 max-h-105 overflow-y-auto pr-1">
                 {cases.map((caseItem) => (
                   <Link
                     key={caseItem.id}
                     to={`/app/cases/${caseItem.id}`}
-                    className="flex items-center justify-between p-4 bg-slate-50 hover:bg-primary-50 rounded-lg border border-slate-100 hover:border-primary-200 transition group"
+                    className="group flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/80 p-4 transition hover:border-primary-200 hover:bg-primary-50"
                   >
                     <div>
                       <div className="flex items-center gap-2 mb-1">
@@ -196,7 +223,7 @@ export default function KiranaDetail() {
                           {STATUS_LABELS[caseItem.status] || caseItem.status}
                         </span>
                         {caseItem.latest_risk_band && (
-                          <span className={`px-2 py-0.5 rounded text-xs font-bold ${RISK_BAND_COLORS[caseItem.latest_risk_band] || ''}`}>
+                          <span className={`rounded-full border px-2 py-0.5 text-xs font-bold ${RISK_BAND_COLORS[caseItem.latest_risk_band] || 'bg-slate-100 text-slate-700 border-slate-200'}`}>
                             {caseItem.latest_risk_band}
                           </span>
                         )}
@@ -221,16 +248,16 @@ export default function KiranaDetail() {
           </div>
 
           <div className="grid xl:grid-cols-2 gap-6">
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-              <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+              <h2 className="text-xs font-bold text-slate-500 uppercase tracking-[0.18em] mb-4 flex items-center gap-2">
                 <FileSearch className="w-4 h-4 text-emerald-600" /> Assessment History
               </h2>
               {assessmentHistory.length > 0 ? (
-                <div className="space-y-3">
+                <div className="alerts-scroll space-y-3 max-h-90 overflow-y-auto pr-1">
                   {assessmentHistory.map((assessment) => (
-                    <div key={assessment.assessment_id} className="rounded-lg border border-slate-100 p-4">
+                    <div key={assessment.assessment_id} className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
                       <div className="flex items-center justify-between gap-3">
-                        <span className={`px-2 py-0.5 rounded text-xs font-bold ${RISK_BAND_COLORS[assessment.risk_band] || 'bg-slate-100 text-slate-700'}`}>
+                        <span className={`rounded-full border px-2 py-0.5 text-xs font-bold ${RISK_BAND_COLORS[assessment.risk_band] || 'bg-slate-100 text-slate-700 border-slate-200'}`}>
                           {assessment.risk_band || 'UNRATED'}
                         </span>
                         <span className="text-xs text-slate-400">{formatDate(assessment.completed_at)}</span>
@@ -249,16 +276,18 @@ export default function KiranaDetail() {
               )}
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-              <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+              <h2 className="text-xs font-bold text-slate-500 uppercase tracking-[0.18em] mb-4 flex items-center gap-2">
                 <Wallet className="w-4 h-4 text-sky-600" /> Loan History
               </h2>
               {loanHistory.length > 0 ? (
-                <div className="space-y-3">
+                <div className="alerts-scroll space-y-3 max-h-90 overflow-y-auto pr-1">
                   {loanHistory.map((loanItem) => (
-                    <div key={loanItem.case_id} className="rounded-lg border border-slate-100 p-4">
+                    <div key={loanItem.case_id} className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
                       <div className="flex items-center justify-between gap-3">
-                        <span className="text-sm font-semibold text-slate-800">{STATUS_LABELS[loanItem.status] || loanItem.status}</span>
+                        <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-700">
+                          {STATUS_LABELS[loanItem.status] || loanItem.status}
+                        </span>
                         <span className="text-xs text-slate-400">{formatDate(loanItem.updated_at)}</span>
                       </div>
                       <div className="text-sm text-slate-600 mt-2">
@@ -274,17 +303,17 @@ export default function KiranaDetail() {
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-[0.18em] mb-4 flex items-center gap-2">
               <Upload className="w-4 h-4 text-indigo-600" /> Statement Uploads
             </h2>
             {statementUploads.length > 0 ? (
-              <div className="space-y-3">
+              <div className="alerts-scroll space-y-3 max-h-90 overflow-y-auto pr-1">
                 {statementUploads.map((upload) => (
-                  <div key={upload.id} className="rounded-lg border border-slate-100 p-4">
+                  <div key={upload.id} className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-sm font-semibold text-slate-800">{upload.label}</span>
-                      <span className="text-xs uppercase tracking-wide font-bold text-indigo-500">{upload.status}</span>
+                      <span className="rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs uppercase tracking-wide font-bold text-indigo-600">{formatCaseStatus(upload.status)}</span>
                     </div>
                     <div className="text-xs text-slate-400 mt-2">{upload.note}</div>
                     <div className="text-sm text-slate-600 mt-2">
@@ -298,15 +327,15 @@ export default function KiranaDetail() {
             )}
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-[0.18em] mb-4 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-rose-500" /> Monitoring Runs
             </h2>
             <RiskTimeline runs={monitoringRuns} />
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-[0.18em] mb-4 flex items-center gap-2">
               <Building2 className="w-4 h-4 text-indigo-600" /> Activity Timeline
             </h2>
             <CaseTimeline events={auditEvents} />

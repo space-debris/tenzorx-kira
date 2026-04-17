@@ -20,6 +20,12 @@ import { submitAssessment, getCasePrefillData } from '../api/kiraApi';
 import { adjustGpsAccuracy } from '../utils/gpsUtils';
 import { useAuth } from '../context/useAuth';
 
+const SHOP_SIZE_PRESETS = [
+  { label: 'Small', value: '100' },
+  { label: 'Medium', value: '250' },
+  { label: 'Large', value: '500' },
+];
+
 export default function Assessment() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -41,6 +47,9 @@ export default function Assessment() {
   const [error, setError] = useState(null);
 
   const gpsValidationError = gpsData.validationError;
+  const imageCountValid = images.length >= 3 && images.length <= 5;
+  const gpsValid = Boolean(gpsData.latitude && gpsData.longitude && !gpsValidationError);
+  const canSubmit = !isSubmitting && imageCountValid && gpsValid;
 
   useEffect(() => {
     if (!caseId) return;
@@ -163,16 +172,35 @@ export default function Assessment() {
   }
 
   const content = (
-    <main className="max-w-4xl mx-auto px-6 animate-fade-in">
-      <header className="mb-8 text-center">
-        <h1 className="text-3xl font-extrabold text-slate-900 mb-2">New Store Assessment</h1>
-        <p className="text-slate-600">
-          Provide the baseline details required for our visual and spatial underwriting engine.
-        </p>
+    <main className="max-w-5xl mx-auto px-4 sm:px-6 animate-fade-in space-y-6">
+      <header className="relative overflow-hidden rounded-3xl border border-slate-200 bg-linear-to-br from-white via-slate-50 to-primary-50/40 p-6 sm:p-8 shadow-sm">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-r from-primary-500 via-indigo-400 to-cyan-400" />
+        <div className="space-y-4">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mb-2">
+              {caseId ? 'Continue Store Assessment' : 'New Store Assessment'}
+            </h1>
+            <p className="text-slate-600 max-w-3xl">
+              Capture storefront imagery, precise location, and borrower context for visual + spatial underwriting in one guided flow.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${imageCountValid ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-amber-200 bg-amber-50 text-amber-700'}`}>
+              {images.length}/5 images (min 3)
+            </span>
+            <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${gpsValid ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-100 text-slate-700'}`}>
+              GPS required
+            </span>
+            <span className="inline-flex items-center rounded-full border border-primary-200 bg-primary-50 px-3 py-1 text-xs font-bold text-primary-700">
+              AI Risk + Loan Sizing
+            </span>
+          </div>
+        </div>
       </header>
 
       {prefillSuccess && caseId && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl flex items-center justify-between gap-3 mb-8 shadow-sm">
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-2xl flex items-center justify-between gap-3 shadow-sm">
           <div className="flex items-center gap-3">
             <CheckCircle2 className="w-5 h-5 shrink-0" />
             <div className="font-medium text-sm">
@@ -188,19 +216,35 @@ export default function Assessment() {
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-xl flex items-start gap-3 mb-8 shadow-sm animate-scale-in">
+        <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-2xl flex items-start gap-3 shadow-sm animate-scale-in">
           <AlertCircle className="w-6 h-6 shrink-0 mt-0.5" />
           <div className="font-medium">{error}</div>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid sm:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-slate-200 bg-white/90 p-3 shadow-sm">
+            <p className="text-[11px] uppercase tracking-[0.16em] font-bold text-slate-400">Step 1</p>
+            <p className="text-sm font-semibold text-slate-700 mt-1">Upload Store Images</p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white/90 p-3 shadow-sm">
+            <p className="text-[11px] uppercase tracking-[0.16em] font-bold text-slate-400">Step 2</p>
+            <p className="text-sm font-semibold text-slate-700 mt-1">Capture GPS Coordinates</p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white/90 p-3 shadow-sm">
+            <p className="text-[11px] uppercase tracking-[0.16em] font-bold text-slate-400">Step 3</p>
+            <p className="text-sm font-semibold text-slate-700 mt-1">Add Store & Owner Context</p>
+          </div>
+        </div>
+
         <ImageUploader images={images} onImagesChange={setImages} />
 
         <GeoInput gpsData={gpsData} onGpsChange={setGpsData} />
 
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-          <h2 className="text-xl font-bold flex items-center gap-2 mb-4 text-slate-800">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-r from-indigo-500 via-sky-400 to-cyan-400" />
+          <h2 className="text-xl font-bold flex items-center gap-2 mb-5 text-slate-800">
             <Store className="text-indigo-600" /> Borrower & Store Details
           </h2>
           <div className="grid md:grid-cols-2 gap-4 mb-4">
@@ -212,7 +256,7 @@ export default function Assessment() {
                 required={!caseId}
                 onChange={(e) => setStoreName(e.target.value)}
                 placeholder="e.g., Gupta General Store"
-                className="w-full border border-slate-300 rounded-lg p-3 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-slate-800"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-slate-800 outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
               />
             </div>
 
@@ -227,7 +271,7 @@ export default function Assessment() {
                       value={ownerName}
                       onChange={(e) => setOwnerName(e.target.value)}
                       placeholder="e.g., Sanjay Gupta"
-                      className="w-full border border-slate-300 rounded-lg pl-10 pr-3 py-3 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-slate-800"
+                      className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-3 text-slate-800 outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
                     />
                   </div>
                 </div>
@@ -240,7 +284,7 @@ export default function Assessment() {
                       value={ownerMobile}
                       onChange={(e) => setOwnerMobile(e.target.value)}
                       placeholder="+91-9876543210"
-                      className="w-full border border-slate-300 rounded-lg pl-10 pr-3 py-3 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-slate-800"
+                      className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-3 text-slate-800 outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
                     />
                   </div>
                 </div>
@@ -250,9 +294,19 @@ export default function Assessment() {
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1.5">Shop Area (sq ft) (Optional)</label>
               <div className="flex gap-2 mb-2">
-                <button type="button" onClick={() => setShopSize('100')} className="flex-1 py-1.5 text-xs font-semibold rounded bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Small (100)</button>
-                <button type="button" onClick={() => setShopSize('250')} className="flex-1 py-1.5 text-xs font-semibold rounded bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Medium (250)</button>
-                <button type="button" onClick={() => setShopSize('500')} className="flex-1 py-1.5 text-xs font-semibold rounded bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Large (500)</button>
+                {SHOP_SIZE_PRESETS.map((preset) => {
+                  const isActive = shopSize === preset.value;
+                  return (
+                    <button
+                      key={preset.value}
+                      type="button"
+                      onClick={() => setShopSize(preset.value)}
+                      className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition ${isActive ? 'border border-indigo-300 bg-indigo-50 text-indigo-700' : 'border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                    >
+                      {preset.label} ({preset.value})
+                    </button>
+                  );
+                })}
               </div>
               <input
                 type="number"
@@ -260,7 +314,7 @@ export default function Assessment() {
                 value={shopSize}
                 onChange={(e) => setShopSize(e.target.value)}
                 placeholder="e.g., 7500"
-                className="w-full border border-slate-300 rounded-lg p-3 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-slate-800"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-slate-800 outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
               />
             </div>
 
@@ -273,7 +327,7 @@ export default function Assessment() {
                 value={yearsInOperation}
                 onChange={(e) => setYearsInOperation(e.target.value)}
                 placeholder="e.g., 5.5"
-                className="w-full border border-slate-300 rounded-lg p-3 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-slate-800"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-slate-800 outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
               />
             </div>
 
@@ -285,7 +339,7 @@ export default function Assessment() {
                 value={rent}
                 onChange={(e) => setRent(e.target.value)}
                 placeholder="e.g., 15000"
-                className="w-full border border-slate-300 rounded-lg p-3 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-slate-800"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-slate-800 outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
               />
             </div>
           </div>
@@ -296,17 +350,14 @@ export default function Assessment() {
           </p>
         </div>
 
-        <div className="pt-4 border-t border-slate-200 flex justify-end">
+        <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm">
+          <div className="text-xs text-slate-500">
+            Required to submit: 3-5 images and valid GPS coordinates.
+          </div>
           <button
             type="submit"
-            disabled={
-              isSubmitting ||
-              images.length < 3 ||
-              !gpsData.latitude ||
-              !gpsData.longitude ||
-              Boolean(gpsValidationError)
-            }
-            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-md w-full sm:w-auto min-w-[200px]"
+            disabled={!canSubmit}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-8 py-4 text-lg font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-indigo-700 disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-slate-300"
           >
             {isSubmitting ? (
               <>

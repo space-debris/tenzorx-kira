@@ -1,54 +1,145 @@
 import { useState } from 'react';
-import { Activity } from 'lucide-react';
+import { Activity, ShieldAlert, ArrowRight, TrendingDown, Loader2 } from 'lucide-react';
 
 export default function ScenarioSimulator({ currentRevenue, onSimulate }) {
   const [scenario, setScenario] = useState('monsoon_shock');
   const [result, setResult] = useState(null);
+  const [isSimulating, setIsSimulating] = useState(false);
 
   const handleSimulate = async () => {
     if (onSimulate) {
-      const simResult = await onSimulate(scenario);
-      setResult(simResult);
+      setIsSimulating(true);
+      try {
+        const simResult = await onSimulate(scenario);
+        setResult(simResult);
+      } finally {
+        setIsSimulating(false);
+      }
     }
   };
 
+  const formatCurrency = (val) => {
+    if (val == null) return 'N/A';
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0,
+    }).format(val);
+  };
+
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
-      <div className="flex items-center gap-2 mb-2">
-        <Activity className="w-5 h-5 text-primary-600" />
-        <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">Stress Testing Simulator</h2>
+    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-5">
+
+      {/* Header */}
+      <div className="space-y-1">
+        <div className="flex items-center gap-2">
+          <Activity className="w-4 h-4 text-primary-600 flex-shrink-0" />
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 leading-none">
+            Stress Testing Simulator
+          </h2>
+        </div>
+        <p className="text-sm text-slate-900 font-medium leading-tight">
+          Simulate macroeconomic shocks on borrower revenue.
+        </p>
       </div>
-      <p className="text-sm text-slate-500">Test how the borrower might perform under different macroeconomic shocks.</p>
-      
-      <div className="flex flex-col gap-3">
-        <select 
-          className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
-          value={scenario}
-          onChange={(e) => setScenario(e.target.value)}
-        >
-          <option value="monsoon_shock">Monsoon Shock (30% drop)</option>
-          <option value="locality_demand_shock">Locality Demand Shock (15% drop)</option>
-          <option value="supply_chain_disruption">Supply Chain Disruption (10% drop)</option>
-        </select>
-        <button 
+
+      {/* Controls - STACKED */}
+      <div className="space-y-3">
+
+        {/* Full-width Dropdown */}
+        <div className="relative">
+          <select
+            className="w-full h-[44px] appearance-none border border-slate-300 rounded-lg pl-3 pr-10 text-sm bg-slate-50 text-slate-700 
+            focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 
+            transition-colors cursor-pointer"
+            value={scenario}
+            onChange={(e) => {
+              setScenario(e.target.value);
+              setResult(null);
+            }}
+          >
+            <option value="monsoon_shock">Monsoon Shock (-30%)</option>
+            <option value="locality_demand_shock">Locality Demand Shock (-15%)</option>
+            <option value="supply_chain_disruption">Supply Chain Disruption (-10%)</option>
+          </select>
+
+          {/* Arrow */}
+          <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-500">
+            <svg className="fill-current h-4 w-4" viewBox="0 0 20 20">
+              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+            </svg>
+          </div>
+        </div>
+
+        {/* Full-width Button (Next Line) */}
+        <button
           onClick={handleSimulate}
-          className="bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition"
+          disabled={isSimulating}
+          className="w-full h-[44px] flex items-center justify-center bg-slate-900 hover:bg-slate-800 
+          disabled:bg-slate-400 text-white font-medium rounded-lg text-sm transition-all active:scale-[0.98]"
         >
-          Simulate
+          {isSimulating ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            'Run Simulation'
+          )}
         </button>
       </div>
 
+      {/* Results */}
       {result && (
-        <div className="mt-4 p-4 rounded-lg border border-amber-200 bg-amber-50">
-          <div className="text-sm font-semibold text-amber-800 mb-1">Scenario Result</div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-amber-700">Projected Revenue:</span>
-            <span className="font-bold text-amber-900">₹{result.stressed_revenue.toLocaleString(undefined, {maximumFractionDigits: 0})}</span>
+        <div className="mt-2 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 animate-in fade-in slide-in-from-bottom-2 duration-300">
+
+          {/* Result Header */}
+          <div className="border-b border-slate-200 bg-slate-100/50 px-4 py-2.5">
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-700 leading-none">
+              <ShieldAlert className="h-4 w-4 text-rose-500" />
+              Scenario Impact Analysis
+            </div>
           </div>
-          <div className="w-full bg-amber-200 rounded-full h-1.5 mt-2">
-            <div className="bg-amber-600 h-1.5 rounded-full" style={{ width: `${100 - result.impact_percentage}%` }}></div>
+
+          <div className="p-4 space-y-5">
+
+            {/* Before / After */}
+            <div className="grid grid-cols-3 items-center">
+              <div>
+                <p className="text-xs text-slate-500">Base Revenue</p>
+                <p className="text-sm font-semibold text-slate-700">
+                  {formatCurrency(currentRevenue)}
+                </p>
+              </div>
+
+              <div className="flex justify-center">
+                <ArrowRight className="h-4 w-4 text-slate-300" />
+              </div>
+
+              <div className="text-right">
+                <p className="text-xs text-slate-500">Stressed Revenue</p>
+                <p className="text-lg font-bold text-slate-900">
+                  {formatCurrency(result.stressed_revenue)}
+                </p>
+              </div>
+            </div>
+
+            {/* Impact Bar */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center text-xs font-semibold">
+                <span className="text-slate-600">Revenue Retained</span>
+                <span className="text-rose-600 flex items-center gap-1">
+                  <TrendingDown className="h-3 w-3" />
+                  {result.impact_percentage.toFixed(1)}% Drop
+                </span>
+              </div>
+
+              <div className="h-2 w-full overflow-hidden rounded-full bg-rose-100">
+                <div
+                  className="h-full rounded-full bg-slate-900 transition-all duration-700 ease-out"
+                  style={{ width: `${100 - result.impact_percentage}%` }}
+                />
+              </div>
+            </div>
+
           </div>
-          <div className="text-xs text-right text-amber-700 mt-1">-{result.impact_percentage.toFixed(0)}% Impact</div>
         </div>
       )}
     </div>

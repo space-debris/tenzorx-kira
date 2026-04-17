@@ -571,9 +571,11 @@ class PlatformRepository:
         return sorted(decisions, key=lambda item: item.created_at, reverse=True)
 
     def get_latest_underwriting_decision(
-        self, case_id: uuid.UUID, session_id: uuid.UUID
+        self, case_id: uuid.UUID, session_id: uuid.UUID | None = None
     ) -> UnderwritingDecision | None:
         decisions = self.list_underwriting_decisions(case_id=case_id)
+        if session_id is None:
+            return decisions[0] if decisions else None
         for dec in decisions:
             if dec.assessment_session_id == session_id:
                 return dec
@@ -648,7 +650,7 @@ class PlatformRepository:
         if case_id is not None:
             runs = [run for run in runs if run.case_id == case_id]
         if loan_account_id is not None:
-            runs = [run for run in runs if run.loan_account_id == loan_account_id]
+            runs = [run for run in runs if run.loan_id == loan_account_id]
         return sorted(runs, key=lambda item: item.created_at, reverse=True)
 
     def get_latest_monitoring_run(self, case_id: uuid.UUID) -> MonitoringRun | None:

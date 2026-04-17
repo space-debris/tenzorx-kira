@@ -1,14 +1,54 @@
 import axios from 'axios';
 
-let API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+const ENV_API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/+$/, '');
+const API_BASE_URL = ENV_API_BASE_URL || '/api/v1';
+const ABSOLUTE_URL_PATTERN = /^https?:\/\//i;
+const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '0.0.0.0']);
 
-// Auto-adjust backend target if user is accessing via a network IP instead of localhost
-if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-  API_BASE_URL = `${window.location.protocol}//${window.location.hostname}:8000/api/v1`;
+function getResolvedApiBaseUrl() {
+  if (typeof window === 'undefined' || !ABSOLUTE_URL_PATTERN.test(API_BASE_URL)) {
+    return API_BASE_URL;
+  }
+
+  try {
+    const parsed = new URL(API_BASE_URL);
+    const currentHostname = window.location.hostname;
+    if (LOCAL_HOSTNAMES.has(parsed.hostname) && !LOCAL_HOSTNAMES.has(currentHostname)) {
+      parsed.hostname = currentHostname;
+      parsed.protocol = window.location.protocol;
+      return parsed.toString().replace(/\/+$/, '');
+    }
+  } catch (error) {
+    console.warn('Invalid VITE_API_BASE_URL. Falling back to configured value.', error);
+  }
+
+  return API_BASE_URL;
+}
+
+const RESOLVED_API_BASE_URL = getResolvedApiBaseUrl();
+
+function normalizePath(path = '') {
+  if (!path) return '';
+  return path.startsWith('/') ? path : `/${path}`;
+}
+
+export function resolveApiUrl(path = '') {
+  const normalizedPath = normalizePath(path);
+
+  if (ABSOLUTE_URL_PATTERN.test(RESOLVED_API_BASE_URL)) {
+    return `${RESOLVED_API_BASE_URL}${normalizedPath}`;
+  }
+
+  const basePath = RESOLVED_API_BASE_URL.startsWith('/') ? RESOLVED_API_BASE_URL : `/${RESOLVED_API_BASE_URL}`;
+  if (typeof window !== 'undefined') {
+    return new URL(`${basePath}${normalizedPath}`, window.location.origin).toString();
+  }
+
+  return `${basePath}${normalizedPath}`;
 }
 
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: RESOLVED_API_BASE_URL,
   timeout: 300000,
 });
 

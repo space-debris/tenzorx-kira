@@ -107,17 +107,18 @@ export default function CaseList() {
     <div className="animate-fade-in max-w-7xl mx-auto">
       <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+          <h1 className="text-3xl font-black tracking-tight text-slate-900 flex items-center gap-2">
             <Briefcase className="w-6 h-6 text-primary-600" /> Cases
           </h1>
-          <p className="text-slate-500 font-medium mt-1">{cases.length} total case{cases.length !== 1 ? 's' : ''}</p>
+          <p className="text-slate-600 font-medium mt-2">{cases.length} total case{cases.length !== 1 ? 's' : ''}</p>
         </div>
-        <Link to="/app/new-case" className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all shadow-sm flex items-center gap-1.5">
+        <Link to="/app/new-case" className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 flex items-center gap-1.5">
           + New Case
         </Link>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+      <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex-1 relative">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
@@ -131,7 +132,7 @@ export default function CaseList() {
         <select
           value={filterStatus}
           onChange={(event) => setFilterStatus(event.target.value)}
-          className="appearance-none px-4 py-2.5 border border-slate-300 bg-white rounded-xl outline-none focus:border-primary-500 text-sm font-medium text-slate-700 min-w-[150px]"
+          className="appearance-none px-4 py-2.5 border border-slate-300 bg-white rounded-xl outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 text-sm font-medium text-slate-700 min-w-40"
         >
           <option value="">All Statuses</option>
           {Object.entries(STATUS_LABELS).map(([value, label]) => (
@@ -141,7 +142,7 @@ export default function CaseList() {
         <select
           value={filterRisk}
           onChange={(event) => setFilterRisk(event.target.value)}
-          className="appearance-none px-4 py-2.5 border border-slate-300 bg-white rounded-xl outline-none focus:border-primary-500 text-sm font-medium text-slate-700 min-w-[130px]"
+          className="appearance-none px-4 py-2.5 border border-slate-300 bg-white rounded-xl outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 text-sm font-medium text-slate-700 min-w-32"
         >
           <option value="">All Risk</option>
           <option value="LOW">Low</option>
@@ -150,13 +151,14 @@ export default function CaseList() {
           <option value="VERY_HIGH">Very High</option>
         </select>
       </div>
+      </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         {filtered.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-slate-50 text-left">
+                <tr className="bg-slate-50/80 text-left">
                   <th className="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Store</th>
                   <th className="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Risk</th>
@@ -165,11 +167,11 @@ export default function CaseList() {
                   <th className="px-6 py-3"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 bg-white">
                 {filtered.map((caseItem) => {
                   const kirana = kiranaMap[caseItem.kirana_id];
                   return (
-                    <tr key={caseItem.id} className="hover:bg-slate-50 transition-colors">
+                    <tr key={caseItem.id} className="hover:bg-slate-50/70 transition-colors">
                       <td className="px-6 py-4">
                         <div className="font-semibold text-slate-900 text-sm">{kirana?.store_name || 'Unknown'}</div>
                         <div className="text-xs text-slate-400">{kirana?.owner_name}</div>
@@ -193,7 +195,7 @@ export default function CaseList() {
                       <td className="px-6 py-4 text-sm font-medium text-slate-700">
                         {caseItem.latest_loan_range ? (
                           (caseItem.latest_loan_range.low === 0 && caseItem.latest_loan_range.high === 0) ? (
-                            <span className="text-red-700 font-bold bg-red-50 px-2 py-1 rounded text-xs border border-red-200">Not Recommended</span>
+                            <span className="text-red-700 font-bold bg-red-50 px-2.5 py-1 rounded-full text-xs border border-red-200">Not Recommended</span>
                           ) : (
                             `${formatCurrency(caseItem.latest_loan_range.low)} - ${formatCurrency(caseItem.latest_loan_range.high)}`
                           )
@@ -215,7 +217,7 @@ export default function CaseList() {
             </table>
           </div>
         ) : (
-          <div className="text-center py-16 text-slate-400 text-sm">
+          <div className="text-center py-16 text-slate-500 text-sm">
             <Briefcase className="w-10 h-10 mx-auto mb-3 opacity-30" />
             {cases.length === 0 ? 'No cases yet. Create your first case.' : 'No cases match your current filters.'}
           </div>

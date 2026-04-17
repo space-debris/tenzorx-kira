@@ -74,7 +74,7 @@ export default function LoanAccount() {
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="bg-slate-50 rounded-xl px-4 py-3">
               <div className="text-xs uppercase tracking-wide font-bold text-slate-400">Outstanding</div>
-              <div className="text-xl font-black text-slate-900 mt-1">{formatCurrency(account.outstanding_amount)}</div>
+              <div className="text-xl font-black text-slate-900 mt-1">{formatCurrency(account.outstanding_principal)}</div>
             </div>
             <div className="bg-slate-50 rounded-xl px-4 py-3">
               <div className="text-xs uppercase tracking-wide font-bold text-slate-400">Cadence</div>

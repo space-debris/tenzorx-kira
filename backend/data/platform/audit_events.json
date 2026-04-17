@@ -855,5 +855,616 @@
       "note": "as per our confidence level and manual inspection we feel we can increase the amount and tenure xxx\n\n[Restructure]: as per our confidence level and manual inspection we feel we can increase the amount and tenure xxxfngfj\n\n[Restructure]: as per our confidence level and manual inspection we feel we can increase the amount and tenure xxxfngfjnbvcx\n\n[Restructure]: as per our confidence level and manual inspection we feel we can increase the amount and tenure xxxfngfjnbvcx"
     },
     "created_at": "2026-04-17T09:57:59.263030"
+  },
+  {
+    "id": "ccae7d5e-09dd-4b4a-b388-2e64bdcd8442",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "loan",
+    "entity_id": "52be554c-ac5b-4a58-a6ce-daf5540d3139",
+    "action": "decision_recorded",
+    "description": "Recorded loan decision for case 61111111-1111-1111-1111-111111111111",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "case_id": "61111111-1111-1111-1111-111111111111",
+      "approved_amount": 135000.0,
+      "repayment_cadence": "weekly"
+    },
+    "created_at": "2026-04-17T16:05:12.148508"
+  },
+  {
+    "id": "e43519bb-f2d2-4df3-b1fa-94f58f43117d",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "61111111-1111-1111-1111-111111111111",
+    "action": "status_changed",
+    "description": "Changed case status from under_review to approved",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "under_review",
+      "new_status": "approved",
+      "note": null
+    },
+    "created_at": "2026-04-17T16:05:12.154002"
+  },
+  {
+    "id": "fb8a5a54-9e1c-4faa-a1e9-70e55445c90c",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "61111111-1111-1111-1111-111111111111",
+    "action": "exported",
+    "description": "Exported deterministic case bundle",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "document_bundle_id": "be10e50c-b647-4519-bc39-df2e37fefd89",
+      "formats": [
+        "json",
+        "pdf"
+      ]
+    },
+    "created_at": "2026-04-17T16:24:12.402687"
+  },
+  {
+    "id": "fbc9a788-bd7a-4a2f-9d24-a39d04c8031d",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "61111111-1111-1111-1111-111111111111",
+    "action": "exported",
+    "description": "Exported deterministic case bundle",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "document_bundle_id": "be10e50c-b647-4519-bc39-df2e37fefd89",
+      "formats": [
+        "json",
+        "pdf"
+      ]
+    },
+    "created_at": "2026-04-17T18:16:08.179297"
+  },
+  {
+    "id": "50b0f21f-a754-47e2-9db7-813b928796e6",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "61111111-1111-1111-1111-111111111111",
+    "action": "exported",
+    "description": "Exported deterministic case bundle",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "document_bundle_id": "be10e50c-b647-4519-bc39-df2e37fefd89",
+      "formats": [
+        "json",
+        "pdf"
+      ]
+    },
+    "created_at": "2026-04-17T18:23:51.689537"
+  },
+  {
+    "id": "88f34b68-4dc9-4884-9a37-33e717a6605d",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "61111111-1111-1111-1111-111111111111",
+    "action": "exported",
+    "description": "Exported deterministic case bundle",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "document_bundle_id": "be10e50c-b647-4519-bc39-df2e37fefd89",
+      "formats": [
+        "json",
+        "pdf"
+      ]
+    },
+    "created_at": "2026-04-17T18:24:56.003493"
+  },
+  {
+    "id": "3f5e770c-21c5-47a0-a764-585c86435eec",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "62222222-2222-2222-2222-222222222222",
+    "action": "exported",
+    "description": "Exported deterministic case bundle",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "document_bundle_id": "95555555-5555-5555-5555-555555555555",
+      "formats": [
+        "json",
+        "pdf"
+      ]
+    },
+    "created_at": "2026-04-17T18:26:46.249822"
+  },
+  {
+    "id": "5b4653ba-2d23-406b-985a-28c829d4c5a4",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "61111111-1111-1111-1111-111111111111",
+    "action": "exported",
+    "description": "Exported deterministic case bundle",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "document_bundle_id": "be10e50c-b647-4519-bc39-df2e37fefd89",
+      "formats": [
+        "json",
+        "pdf"
+      ]
+    },
+    "created_at": "2026-04-17T18:27:30.623366"
+  },
+  {
+    "id": "e6fc916c-be72-4b37-b4d1-5be9c816ab12",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "62222222-2222-2222-2222-222222222222",
+    "action": "statement_uploaded",
+    "description": "Uploaded statement statement-refresh.csv",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "statement_upload_id": "b17917ae-8b91-4276-ac70-0abec2af9f10",
+      "transaction_count": 2
+    },
+    "created_at": "2026-04-17T18:55:34.341235"
+  },
+  {
+    "id": "e7dbc447-cb68-4ee0-be53-8f4391e7f797",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "62222222-2222-2222-2222-222222222222",
+    "action": "monitoring_run_completed",
+    "description": "Completed monitoring run from statement statement-refresh.csv",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "monitoring_run_id": "a0f182c4-2a31-486f-8edb-5dd43313c407",
+      "stress_score": 0.625,
+      "current_risk_band": "HIGH"
+    },
+    "created_at": "2026-04-17T18:55:34.344232"
+  },
+  {
+    "id": "07b4d34d-d8ef-4b53-b0e8-920623f0b14b",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "61111111-1111-1111-1111-111111111111",
+    "action": "exported",
+    "description": "Exported deterministic case bundle",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "document_bundle_id": "be10e50c-b647-4519-bc39-df2e37fefd89",
+      "formats": [
+        "json",
+        "pdf"
+      ]
+    },
+    "created_at": "2026-04-17T18:55:49.795765"
+  },
+  {
+    "id": "fd8436fe-8880-415f-a1a9-4529b43b0335",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "61111111-1111-1111-1111-111111111111",
+    "action": "exported",
+    "description": "Exported deterministic case bundle",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "document_bundle_id": "be10e50c-b647-4519-bc39-df2e37fefd89",
+      "formats": [
+        "json",
+        "pdf"
+      ]
+    },
+    "created_at": "2026-04-17T19:00:24.957894"
+  },
+  {
+    "id": "62eb08d9-1038-45b8-b20a-a5650c775b2d",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "61111111-1111-1111-1111-111111111111",
+    "action": "exported",
+    "description": "Exported deterministic case bundle",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "document_bundle_id": "be10e50c-b647-4519-bc39-df2e37fefd89",
+      "formats": [
+        "json",
+        "pdf"
+      ]
+    },
+    "created_at": "2026-04-17T19:01:01.592510"
+  },
+  {
+    "id": "da3726e8-031f-42c1-b91a-2bc9bb813905",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "61111111-1111-1111-1111-111111111111",
+    "action": "exported",
+    "description": "Exported deterministic case bundle",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "document_bundle_id": "be10e50c-b647-4519-bc39-df2e37fefd89",
+      "formats": [
+        "json",
+        "pdf"
+      ]
+    },
+    "created_at": "2026-04-17T19:02:48.934071"
+  },
+  {
+    "id": "ec237cb3-dc28-4c39-b19b-d534ca65c503",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "61111111-1111-1111-1111-111111111111",
+    "action": "exported",
+    "description": "Exported deterministic case bundle",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "document_bundle_id": "be10e50c-b647-4519-bc39-df2e37fefd89",
+      "formats": [
+        "json",
+        "pdf"
+      ]
+    },
+    "created_at": "2026-04-17T19:03:01.155773"
+  },
+  {
+    "id": "dcd3ac8c-c6cd-42ed-be5e-e779a7f3fd44",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "61111111-1111-1111-1111-111111111111",
+    "action": "exported",
+    "description": "Exported deterministic case bundle",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "document_bundle_id": "be10e50c-b647-4519-bc39-df2e37fefd89",
+      "formats": [
+        "json",
+        "pdf"
+      ]
+    },
+    "created_at": "2026-04-17T19:03:26.562724"
+  },
+  {
+    "id": "7e6f2d6f-fde0-4ea2-829b-fcb4a15fc7de",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "4fa891cd-44c2-43d6-a2c1-41308c0f0ecc",
+    "action": "created",
+    "description": "Auto-created case for Test Shop from assessment",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "source": "standalone_assessment",
+      "session_id": "bee61da6-5d21-4f03-98fa-34bdfd28607e"
+    },
+    "created_at": "2026-04-17T19:18:31.632383"
+  },
+  {
+    "id": "3378f520-151b-476b-b4da-e119bda5c5a7",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "assessment",
+    "entity_id": "d64a60db-a958-40c9-98e9-30add2e412b7",
+    "action": "assessment_linked",
+    "description": "Linked assessment bee61da6-5d21-4f03-98fa-34bdfd28607e to auto-created case 4fa891cd-44c2-43d6-a2c1-41308c0f0ecc",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "case_id": "4fa891cd-44c2-43d6-a2c1-41308c0f0ecc",
+      "session_id": "bee61da6-5d21-4f03-98fa-34bdfd28607e"
+    },
+    "created_at": "2026-04-17T19:18:31.635380"
+  },
+  {
+    "id": "dd83482e-dc9e-4040-8de8-6939ffb86773",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "4fa891cd-44c2-43d6-a2c1-41308c0f0ecc",
+    "action": "exported",
+    "description": "Exported deterministic case bundle",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "document_bundle_id": "56db09ab-251b-4ee3-bff4-4e292e946f60",
+      "formats": [
+        "json",
+        "pdf"
+      ]
+    },
+    "created_at": "2026-04-17T19:29:07.711308"
+  },
+  {
+    "id": "3090fa4e-b55f-42b5-8549-67c77e971d12",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "created",
+    "description": "Auto-created case for Mukesh Store from assessment",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "source": "standalone_assessment",
+      "session_id": "70009568-094a-4204-9ae9-912a8dbe476f"
+    },
+    "created_at": "2026-04-17T19:43:03.616021"
+  },
+  {
+    "id": "84593560-4743-43f8-bded-3e74d9e819d6",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "assessment",
+    "entity_id": "ecb21b1d-86bd-4ed6-8e35-63abba74460f",
+    "action": "assessment_linked",
+    "description": "Linked assessment 70009568-094a-4204-9ae9-912a8dbe476f to auto-created case 6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "case_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+      "session_id": "70009568-094a-4204-9ae9-912a8dbe476f"
+    },
+    "created_at": "2026-04-17T19:43:03.617021"
+  },
+  {
+    "id": "c4880fc8-e100-4f4e-8034-5c46382de20a",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "loan",
+    "entity_id": "bb1090b4-a3f1-4044-89e5-b7d14337cf24",
+    "action": "decision_recorded",
+    "description": "Recorded loan decision for case 6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "case_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+      "approved_amount": 133500.0,
+      "repayment_cadence": "weekly"
+    },
+    "created_at": "2026-04-17T19:47:49.152796"
+  },
+  {
+    "id": "9a068323-afe4-4bf9-8ae9-4a924916d2b4",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "status_changed",
+    "description": "Changed case status from under_review to approved",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "under_review",
+      "new_status": "approved",
+      "note": null
+    },
+    "created_at": "2026-04-17T19:47:49.155215"
+  },
+  {
+    "id": "9e1a1a2c-5d5f-4dfa-83cb-c78d642902d1",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "loan",
+    "entity_id": "fb5022a0-6f5c-4978-8e8f-359fb02498f4",
+    "action": "created",
+    "description": "Booked loan account for case 6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "case_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+      "principal_amount": 133500.0
+    },
+    "created_at": "2026-04-17T19:47:50.828334"
+  },
+  {
+    "id": "16be4a4d-9dbd-4e2a-b662-368a065f9dff",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "status_changed",
+    "description": "Changed case status from approved to disbursed",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "approved",
+      "new_status": "disbursed",
+      "note": null
+    },
+    "created_at": "2026-04-17T19:47:50.831105"
+  },
+  {
+    "id": "b70cb31b-2fa0-4bf4-ac85-75e5f555fde7",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "statement_uploaded",
+    "description": "Uploaded statement statement-refresh.csv",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "statement_upload_id": "cea386f8-842e-4367-a1ab-5f769556963a",
+      "transaction_count": 2
+    },
+    "created_at": "2026-04-17T20:07:40.933671"
+  },
+  {
+    "id": "7469397b-ad83-48b2-b7fb-975559b9d29e",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "monitoring_run_completed",
+    "description": "Completed monitoring run from statement statement-refresh.csv",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "monitoring_run_id": "89ce0821-9ad1-496d-8eb9-548aa71f3e35",
+      "stress_score": 0.57,
+      "current_risk_band": "HIGH"
+    },
+    "created_at": "2026-04-17T20:07:40.939177"
+  },
+  {
+    "id": "38374e23-c4e4-4dd9-9dd8-24ff058598e5",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "statement_uploaded",
+    "description": "Uploaded statement statement-refresh.csv",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "statement_upload_id": "2d7c9b1a-0510-4bfc-9d80-ad7bb739942c",
+      "transaction_count": 2
+    },
+    "created_at": "2026-04-17T20:07:44.459606"
+  },
+  {
+    "id": "78ee8482-455c-4d00-97a7-2ca29251a32f",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "monitoring_run_completed",
+    "description": "Completed monitoring run from statement statement-refresh.csv",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "monitoring_run_id": "ae2b8196-ee42-49b4-b644-ef54492147fa",
+      "stress_score": 0.0,
+      "current_risk_band": "HIGH"
+    },
+    "created_at": "2026-04-17T20:07:44.463131"
+  },
+  {
+    "id": "ecb538d7-faee-4540-8ed3-8f0c43450fd3",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "statement_uploaded",
+    "description": "Uploaded statement statement-refresh.csv",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "statement_upload_id": "0f075614-eeb4-4513-aeec-afcc2f5938a8",
+      "transaction_count": 2
+    },
+    "created_at": "2026-04-17T20:11:07.700340"
+  },
+  {
+    "id": "e5d11409-6bb9-4d5e-922d-c1614a551036",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "monitoring_run_completed",
+    "description": "Completed monitoring run from statement statement-refresh.csv",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "monitoring_run_id": "d48f3425-664e-4369-80bd-9318e030e65f",
+      "stress_score": 0.0,
+      "current_risk_band": "HIGH"
+    },
+    "created_at": "2026-04-17T20:11:07.704349"
+  },
+  {
+    "id": "4a721d73-aeb9-4da8-bd56-3f9d1566c9d1",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "statement_uploaded",
+    "description": "Uploaded statement Paytm_Statement_March_2026.pdf",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "statement_upload_id": "838d4fe1-c1a1-40bf-8d96-016f08a8391d",
+      "transaction_count": 0
+    },
+    "created_at": "2026-04-17T20:25:30.566491"
+  },
+  {
+    "id": "80bc99a4-df26-4e3b-8884-2fec4e408458",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "monitoring_run_completed",
+    "description": "Completed monitoring run from statement Paytm_Statement_March_2026.pdf",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "monitoring_run_id": "9fad5f2c-c80c-49e3-987b-d0e54438a844",
+      "stress_score": 0.8,
+      "current_risk_band": "VERY_HIGH"
+    },
+    "created_at": "2026-04-17T20:25:30.570549"
+  },
+  {
+    "id": "1e97bee9-044e-47b3-b691-d3bec539c2d3",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "statement_uploaded",
+    "description": "Uploaded statement statement-refresh.csv",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "statement_upload_id": "d96f9769-0010-4fc4-90fa-a9f6ed1a5120",
+      "transaction_count": 2
+    },
+    "created_at": "2026-04-17T20:31:11.763316"
+  },
+  {
+    "id": "ffe63a8f-123c-48ee-bcae-c3d63bbea6ae",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "monitoring_run_completed",
+    "description": "Completed monitoring run from statement statement-refresh.csv",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "monitoring_run_id": "1bb406c1-e90e-48a0-9a46-a4693311a33e",
+      "stress_score": 0.0,
+      "current_risk_band": "HIGH"
+    },
+    "created_at": "2026-04-17T20:31:11.766313"
+  },
+  {
+    "id": "96b36dc6-3632-46b5-8038-c2cc954861bd",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "exported",
+    "description": "Exported deterministic case bundle",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "document_bundle_id": "9d02045b-40c1-45db-8bc4-1a0f1ec49035",
+      "formats": [
+        "json",
+        "pdf"
+      ]
+    },
+    "created_at": "2026-04-17T20:48:12.521032"
+  },
+  {
+    "id": "9080a1dd-0c93-454c-b139-9038a3beebc8",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "exported",
+    "description": "Exported deterministic case bundle",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "document_bundle_id": "9d02045b-40c1-45db-8bc4-1a0f1ec49035",
+      "formats": [
+        "json",
+        "pdf"
+      ]
+    },
+    "created_at": "2026-04-17T21:24:58.893769"
   }
 ]

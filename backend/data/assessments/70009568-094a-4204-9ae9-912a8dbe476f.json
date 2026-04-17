@@ -1,0 +1,99 @@
+{
+  "session_id": "70009568-094a-4204-9ae9-912a8dbe476f",
+  "assessment_id": "ecb21b1d-86bd-4ed6-8e35-63abba74460f",
+  "timestamp": "2026-04-17T19:43:03.613016",
+  "status": "completed",
+  "revenue_estimate": {
+    "monthly_low": 118400.0,
+    "monthly_high": 173400.0,
+    "confidence": 0.8201,
+    "methodology": "inventory_turnover_model"
+  },
+  "risk_assessment": {
+    "risk_band": "HIGH",
+    "risk_score": 0.6226,
+    "confidence": 0.8201
+  },
+  "cv_signals": {
+    "shelf_density": 1.0,
+    "sku_diversity_score": 0.216,
+    "estimated_sku_count": 16,
+    "inventory_value_range": {
+      "low": 5355.0,
+      "high": 40628.0
+    },
+    "store_size_category": "medium",
+    "brand_tier_mix": "value_dominant",
+    "consistency_score": 0.5808
+  },
+  "geo_signals": {
+    "area_type": "urban",
+    "footfall_score": 0.0385,
+    "competition_count": 1,
+    "competition_score": 1.0,
+    "catchment_population": 7853,
+    "demand_index": 0.7764
+  },
+  "loan_recommendation": {
+    "eligible": true,
+    "loan_range": {
+      "low": 100000.0,
+      "high": 167000.0
+    },
+    "recommended_amount": 132000.0,
+    "suggested_tenure_months": 18,
+    "estimated_emi": 8422.36,
+    "emi_to_income_ratio": 0.0711,
+    "repayment_cadence": "weekly",
+    "estimated_installment": 1945.12,
+    "pricing_recommendation": {
+      "annual_interest_rate_pct": 21.0,
+      "processing_fee_pct": 2.0,
+      "annual_interest_rate_band": {
+        "low": 19.5,
+        "high": 22.5
+      },
+      "processing_fee_band": {
+        "low": 1.5,
+        "high": 2.5
+      },
+      "pricing_tier": "protected",
+      "rationale": "HIGH risk band anchors pricing to the protected tier. strong confidence supports tighter pricing."
+    }
+  },
+  "fraud_detection": {
+    "fraud_score": 0.256,
+    "is_flagged": false,
+    "flags": [
+      "Low image consistency (0.58): possible mismatched or reused images",
+      "low_product_overlap: only 0/4 categories shared",
+      "brand_tier_mismatch: value_dominant vs mixed",
+      "low_product_overlap: only 0/5 categories shared",
+      "Mismatched image resolutions: images from different devices",
+      "Statistical outlier: footfall_score=0.04 is 4.4σ from urban mean (0.70±0.15)"
+    ],
+    "checks_performed": [
+      "image_consistency",
+      "gps_visual_mismatch",
+      "signal_cross_validation",
+      "statistical_outlier"
+    ]
+  },
+  "explanation": {
+    "risk_narrative": "The store exhibits high shelf density (1.0) but suffers from critically low SKU diversity (0.216), indicating a very limited product range of approximately 16 value-tier items. While the urban location benefits from a strong demand index (0.7764) and minimal competition, the footfall score is alarmingly low at 0.0385. These factors, combined with a \"High\" risk band, suggest that the business lacks the customer traction and inventory breadth necessary to reliably service debt. Consequently, a loan amount of ₹0 is recommended as the current operational signals do not justify the credit risk.",
+    "summary": {
+      "strengths": [
+        "Well-stocked shelves (100%) indicate active inventory management",
+        "Favorable competitive position with manageable competition (100%)",
+        "Strong local demand (78%) indicates robust customer base"
+      ],
+      "concerns": [
+        "Fraud alert: Low image consistency (0.58): possible mismatched or reused images",
+        "Fraud alert: low_product_overlap: only 0/4 categories shared",
+        "Weak footfall potential (4%) limits customer acquisition"
+      ],
+      "recommendation": "Refer for detailed manual review"
+    },
+    "decision_pack": null
+  }
+}

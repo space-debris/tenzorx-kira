@@ -1,0 +1,85 @@
+{
+  "session_id": "151e5d64-150e-45a0-8972-724ec9cf2a86",
+  "assessment_id": "525905e3-02dd-42d5-8265-f5971ad8afc8",
+  "timestamp": "2026-04-17T19:27:58.428883",
+  "status": "completed",
+  "revenue_estimate": {
+    "monthly_low": 195600.0,
+    "monthly_high": 270400.0,
+    "confidence": 0.7688,
+    "methodology": "inventory_turnover_model"
+  },
+  "risk_assessment": {
+    "risk_band": "MEDIUM",
+    "risk_score": 0.5422,
+    "confidence": 0.7688
+  },
+  "cv_signals": {
+    "shelf_density": 1.0,
+    "sku_diversity_score": 0.245,
+    "estimated_sku_count": 17,
+    "inventory_value_range": {
+      "low": 1890.0,
+      "high": 14360.0
+    },
+    "store_size_category": "small",
+    "brand_tier_mix": "mass_dominant",
+    "consistency_score": 0.5908
+  },
+  "geo_signals": {
+    "area_type": "urban",
+    "footfall_score": 0.3923,
+    "competition_count": 0,
+    "competition_score": 1.0,
+    "catchment_population": 7853,
+    "demand_index": 1.0
+  },
+  "loan_recommendation": {
+    "eligible": false,
+    "loan_range": {
+      "low": 0.0,
+      "high": 0.0
+    },
+    "recommended_amount": null,
+    "suggested_tenure_months": 18,
+    "estimated_emi": 0.0,
+    "emi_to_income_ratio": 0.0,
+    "repayment_cadence": null,
+    "estimated_installment": null,
+    "pricing_recommendation": null
+  },
+  "fraud_detection": {
+    "fraud_score": 0.3,
+    "is_flagged": true,
+    "flags": [
+      "Low image consistency (0.59): possible mismatched or reused images",
+      "brand_tier_mismatch: value_dominant vs mass_dominant",
+      "low_product_overlap: only 0/4 categories shared",
+      "low_product_overlap: only 0/5 categories shared",
+      "Mismatched image resolutions: images from different devices"
+    ],
+    "checks_performed": [
+      "image_consistency",
+      "gps_visual_mismatch",
+      "signal_cross_validation",
+      "statistical_outlier"
+    ]
+  },
+  "explanation": {
+    "risk_narrative": "The store exhibits high shelf density (1.0) but suffers from critically low SKU diversity (0.245) and limited inventory value, suggesting a narrow product range that may not fully meet consumer needs. While the urban location benefits from a high demand index (1.0) and zero immediate competition, the low footfall score (0.3923) indicates that the store is not currently capturing its full market potential. Despite estimated monthly revenues reaching up to ₹270,400, the overall risk is categorized as medium and is further complicated by a flagged fraud alert. Consequently, a loan amount of ₹0 is recommended to mitigate significant integrity and credit risks.",
+    "summary": {
+      "strengths": [
+        "Well-stocked shelves (100%) indicate active inventory management",
+        "Favorable competitive position with manageable competition (100%)",
+        "Strong local demand (100%) indicates robust customer base"
+      ],
+      "concerns": [
+        "Fraud alert: Low image consistency (0.59): possible mismatched or reused images",
+        "Fraud alert: brand_tier_mismatch: value_dominant vs mass_dominant",
+        "Low inventory investment raises concerns about business viability"
+      ],
+      "recommendation": "Hold for manual review — assessment flagged for potential inconsistencies requiring human verification"
+    },
+    "decision_pack": null
+  }
+}

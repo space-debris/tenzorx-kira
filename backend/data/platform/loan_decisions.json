@@ -32,5 +32,39 @@
     "override_reason": null,
     "created_by_user_id": "21111111-1111-1111-1111-111111111111",
     "created_at": "2026-04-16T18:59:46.107726"
+  },
+  {
+    "id": "52be554c-ac5b-4a58-a6ce-daf5540d3139",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "61111111-1111-1111-1111-111111111111",
+    "assessment_session_id": "41111111-1111-1111-1111-111111111111",
+    "recommended_amount": 135000.0,
+    "approved_amount": 135000.0,
+    "recommended_tenure_months": 12,
+    "approved_tenure_months": 12,
+    "pricing_rate_annual": 22.0,
+    "processing_fee_rate": 1.5,
+    "repayment_cadence": "weekly",
+    "decision_reason": "Decision generated from latest assessment and policy guardrails.",
+    "override_reason": null,
+    "created_by_user_id": "21111111-1111-1111-1111-111111111111",
+    "created_at": "2026-04-17T16:05:12.146496"
+  },
+  {
+    "id": "bb1090b4-a3f1-4044-89e5-b7d14337cf24",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "assessment_session_id": "70009568-094a-4204-9ae9-912a8dbe476f",
+    "recommended_amount": 133500.0,
+    "approved_amount": 133500.0,
+    "recommended_tenure_months": 12,
+    "approved_tenure_months": 12,
+    "pricing_rate_annual": 26.0,
+    "processing_fee_rate": 1.5,
+    "repayment_cadence": "weekly",
+    "decision_reason": "Decision generated from latest assessment and policy guardrails.",
+    "override_reason": null,
+    "created_by_user_id": "21111111-1111-1111-1111-111111111111",
+    "created_at": "2026-04-17T19:47:49.151485"
   }
 ]
