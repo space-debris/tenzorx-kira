@@ -350,12 +350,12 @@ class CaseService:
                 StatementUploadRecord(
                     id=str(upload.id),
                     label=upload.file_name,
-                    status=upload.parse_status,
-                    created_at=upload.uploaded_at,
-                    note=f"{upload.source_kind.upper()} upload • confidence {round(upload.parse_confidence * 100)}%",
-                    transaction_count=upload.transaction_count,
-                    inflow_total=upload.inflow_total,
-                    outflow_total=upload.outflow_total,
+                    status=upload.status.value if hasattr(upload.status, "value") else str(upload.status),
+                    created_at=upload.created_at,
+                    note=f"Uploaded {upload.file_name}",
+                    transaction_count=(upload.transaction_summary.credit_count + upload.transaction_summary.debit_count) if upload.transaction_summary else 0,
+                    inflow_total=upload.transaction_summary.total_credits if upload.transaction_summary else 0.0,
+                    outflow_total=upload.transaction_summary.total_debits if upload.transaction_summary else 0.0,
                 )
             )
 

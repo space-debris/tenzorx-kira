@@ -620,16 +620,16 @@ class PlatformRepository:
         self,
         org_id: uuid.UUID | None = None,
         case_id: uuid.UUID | None = None,
-        loan_account_id: uuid.UUID | None = None,
+        loan_id: uuid.UUID | None = None,
     ) -> list[StatementUpload]:
         uploads = list(self.statement_uploads.values())
         if org_id is not None:
             uploads = [upload for upload in uploads if upload.org_id == org_id]
         if case_id is not None:
             uploads = [upload for upload in uploads if upload.case_id == case_id]
-        if loan_account_id is not None:
-            uploads = [upload for upload in uploads if upload.loan_account_id == loan_account_id]
-        return sorted(uploads, key=lambda item: item.uploaded_at, reverse=True)
+        if loan_id is not None:
+            uploads = [upload for upload in uploads if upload.loan_id == loan_id]
+        return sorted(uploads, key=lambda item: item.created_at, reverse=True)
 
     def create_statement_upload(self, upload: StatementUpload) -> StatementUpload:
         self.statement_uploads[str(upload.id)] = upload
