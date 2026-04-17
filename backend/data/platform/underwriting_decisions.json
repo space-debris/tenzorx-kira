@@ -1,1 +1,277 @@
-[]
+[
+  {
+    "id": "e4cd27c7-bb81-4e37-802b-2263185fd846",
+    "case_id": "63333333-3333-3333-3333-333333333333",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "assessment_session_id": "43333333-3333-3333-3333-333333333333",
+    "assessment_id": "53333333-3333-3333-3333-333333333333",
+    "eligible": true,
+    "recommended_terms": {
+      "amount": 60000.0,
+      "tenure_months": 18,
+      "repayment_cadence": "weekly",
+      "estimated_installment": 0.0,
+      "annual_interest_rate_pct": 18.0,
+      "processing_fee_pct": 1.5
+    },
+    "final_terms": {
+      "amount": 80000.0,
+      "tenure_months": 24,
+      "repayment_cadence": "weekly",
+      "estimated_installment": 0.0,
+      "annual_interest_rate_pct": 18.0,
+      "processing_fee_pct": 1.5
+    },
+    "loan_range_guardrail": {
+      "low": 40000.0,
+      "high": 80000.0
+    },
+    "pricing_recommendation": null,
+    "policy_exception_flags": [
+      "amount_changed_from_recommendation",
+      "tenure_changed_from_recommendation"
+    ],
+    "has_override": true,
+    "override_reason": "as per our confidence level and manual inspection we feel we can increase the amount and tenure",
+    "overridden_by_user_id": "21111111-1111-1111-1111-111111111111",
+    "overridden_at": "2026-04-17T09:31:40.365243",
+    "created_at": "2026-04-17T09:31:40.365243",
+    "updated_at": "2026-04-17T09:31:40.365243"
+  },
+  {
+    "id": "37301d85-5c8e-4dd2-a60e-62820dc33d5a",
+    "case_id": "63333333-3333-3333-3333-333333333333",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "assessment_session_id": "43333333-3333-3333-3333-333333333333",
+    "assessment_id": "53333333-3333-3333-3333-333333333333",
+    "eligible": true,
+    "recommended_terms": {
+      "amount": 60000.0,
+      "tenure_months": 18,
+      "repayment_cadence": "weekly",
+      "estimated_installment": 0.0,
+      "annual_interest_rate_pct": 18.0,
+      "processing_fee_pct": 1.5
+    },
+    "final_terms": {
+      "amount": 90000.0,
+      "tenure_months": 24,
+      "repayment_cadence": "weekly",
+      "estimated_installment": 0.0,
+      "annual_interest_rate_pct": 18.0,
+      "processing_fee_pct": 1.5
+    },
+    "loan_range_guardrail": {
+      "low": 40000.0,
+      "high": 80000.0
+    },
+    "pricing_recommendation": null,
+    "policy_exception_flags": [
+      "amount_outside_policy_range",
+      "amount_changed_from_recommendation",
+      "tenure_changed_from_recommendation"
+    ],
+    "has_override": true,
+    "override_reason": "as per our confidence level and manual inspection we feel we can increase the amount and tenure",
+    "overridden_by_user_id": "21111111-1111-1111-1111-111111111111",
+    "overridden_at": "2026-04-17T09:32:29.929955",
+    "created_at": "2026-04-17T09:32:29.929955",
+    "updated_at": "2026-04-17T09:32:29.929955"
+  },
+  {
+    "id": "e52572f6-b2c1-44a9-b7f0-ae2e5f77a50b",
+    "case_id": "63333333-3333-3333-3333-333333333333",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "assessment_session_id": "43333333-3333-3333-3333-333333333333",
+    "assessment_id": "53333333-3333-3333-3333-333333333333",
+    "eligible": true,
+    "recommended_terms": {
+      "amount": 60000.0,
+      "tenure_months": 18,
+      "repayment_cadence": "weekly",
+      "estimated_installment": 0.0,
+      "annual_interest_rate_pct": 18.0,
+      "processing_fee_pct": 1.5
+    },
+    "final_terms": {
+      "amount": 50000.0,
+      "tenure_months": 24,
+      "repayment_cadence": "weekly",
+      "estimated_installment": 0.0,
+      "annual_interest_rate_pct": 18.0,
+      "processing_fee_pct": 1.5
+    },
+    "loan_range_guardrail": {
+      "low": 40000.0,
+      "high": 80000.0
+    },
+    "pricing_recommendation": null,
+    "policy_exception_flags": [
+      "amount_changed_from_recommendation",
+      "tenure_changed_from_recommendation"
+    ],
+    "has_override": true,
+    "override_reason": "as per our confidence level and manual inspection we feel we can increase the amount and tenure",
+    "overridden_by_user_id": "21111111-1111-1111-1111-111111111111",
+    "overridden_at": "2026-04-17T09:32:49.843358",
+    "created_at": "2026-04-17T09:32:49.843358",
+    "updated_at": "2026-04-17T09:32:49.843358"
+  },
+  {
+    "id": "7d7509b5-bdb4-4177-b511-ed1d3f07afd5",
+    "case_id": "63333333-3333-3333-3333-333333333333",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "assessment_session_id": "43333333-3333-3333-3333-333333333333",
+    "assessment_id": "53333333-3333-3333-3333-333333333333",
+    "eligible": true,
+    "recommended_terms": {
+      "amount": 60000.0,
+      "tenure_months": 18,
+      "repayment_cadence": "weekly",
+      "estimated_installment": 0.0,
+      "annual_interest_rate_pct": 18.0,
+      "processing_fee_pct": 1.5
+    },
+    "final_terms": {
+      "amount": 50000.0,
+      "tenure_months": 24,
+      "repayment_cadence": "weekly",
+      "estimated_installment": 0.0,
+      "annual_interest_rate_pct": 18.0,
+      "processing_fee_pct": 1.5
+    },
+    "loan_range_guardrail": {
+      "low": 40000.0,
+      "high": 80000.0
+    },
+    "pricing_recommendation": null,
+    "policy_exception_flags": [
+      "amount_changed_from_recommendation",
+      "tenure_changed_from_recommendation"
+    ],
+    "has_override": true,
+    "override_reason": "as per our confidence level and manual inspection we feel we can increase the amount and tenure xxx",
+    "overridden_by_user_id": "21111111-1111-1111-1111-111111111111",
+    "overridden_at": "2026-04-17T09:33:48.214128",
+    "created_at": "2026-04-17T09:33:48.214128",
+    "updated_at": "2026-04-17T09:33:48.214128"
+  },
+  {
+    "id": "c343ec6f-33a2-497f-9a72-881c49200a28",
+    "case_id": "63333333-3333-3333-3333-333333333333",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "assessment_session_id": "43333333-3333-3333-3333-333333333333",
+    "assessment_id": "53333333-3333-3333-3333-333333333333",
+    "eligible": true,
+    "recommended_terms": {
+      "amount": 60000.0,
+      "tenure_months": 18,
+      "repayment_cadence": "weekly",
+      "estimated_installment": 0.0,
+      "annual_interest_rate_pct": 18.0,
+      "processing_fee_pct": 1.5
+    },
+    "final_terms": {
+      "amount": 50000.0,
+      "tenure_months": 24,
+      "repayment_cadence": "weekly",
+      "estimated_installment": 0.0,
+      "annual_interest_rate_pct": 18.0,
+      "processing_fee_pct": 1.5
+    },
+    "loan_range_guardrail": {
+      "low": 40000.0,
+      "high": 80000.0
+    },
+    "pricing_recommendation": null,
+    "policy_exception_flags": [
+      "amount_changed_from_recommendation",
+      "tenure_changed_from_recommendation"
+    ],
+    "has_override": true,
+    "override_reason": "as per our confidence level and manual inspection we feel we can increase the amount and tenure xxxfngfj",
+    "overridden_by_user_id": "21111111-1111-1111-1111-111111111111",
+    "overridden_at": "2026-04-17T09:57:11.171683",
+    "created_at": "2026-04-17T09:57:11.171683",
+    "updated_at": "2026-04-17T09:57:11.171683"
+  },
+  {
+    "id": "cec4a694-123b-4292-a2d4-b205a422aadd",
+    "case_id": "63333333-3333-3333-3333-333333333333",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "assessment_session_id": "43333333-3333-3333-3333-333333333333",
+    "assessment_id": "53333333-3333-3333-3333-333333333333",
+    "eligible": true,
+    "recommended_terms": {
+      "amount": 60000.0,
+      "tenure_months": 18,
+      "repayment_cadence": "weekly",
+      "estimated_installment": 0.0,
+      "annual_interest_rate_pct": 18.0,
+      "processing_fee_pct": 1.5
+    },
+    "final_terms": {
+      "amount": 70000.0,
+      "tenure_months": 24,
+      "repayment_cadence": "weekly",
+      "estimated_installment": 0.0,
+      "annual_interest_rate_pct": 18.0,
+      "processing_fee_pct": 1.5
+    },
+    "loan_range_guardrail": {
+      "low": 40000.0,
+      "high": 80000.0
+    },
+    "pricing_recommendation": null,
+    "policy_exception_flags": [
+      "amount_changed_from_recommendation",
+      "tenure_changed_from_recommendation"
+    ],
+    "has_override": true,
+    "override_reason": "as per our confidence level and manual inspection we feel we can increase the amount and tenure xxxfngfjnbvcx",
+    "overridden_by_user_id": "21111111-1111-1111-1111-111111111111",
+    "overridden_at": "2026-04-17T09:57:45.512838",
+    "created_at": "2026-04-17T09:57:45.512838",
+    "updated_at": "2026-04-17T09:57:45.512838"
+  },
+  {
+    "id": "38a18c77-21e0-425a-b033-46997e63b2dc",
+    "case_id": "63333333-3333-3333-3333-333333333333",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "assessment_session_id": "43333333-3333-3333-3333-333333333333",
+    "assessment_id": "53333333-3333-3333-3333-333333333333",
+    "eligible": true,
+    "recommended_terms": {
+      "amount": 60000.0,
+      "tenure_months": 18,
+      "repayment_cadence": "weekly",
+      "estimated_installment": 0.0,
+      "annual_interest_rate_pct": 18.0,
+      "processing_fee_pct": 1.5
+    },
+    "final_terms": {
+      "amount": 170000.0,
+      "tenure_months": 24,
+      "repayment_cadence": "weekly",
+      "estimated_installment": 0.0,
+      "annual_interest_rate_pct": 18.0,
+      "processing_fee_pct": 1.5
+    },
+    "loan_range_guardrail": {
+      "low": 40000.0,
+      "high": 80000.0
+    },
+    "pricing_recommendation": null,
+    "policy_exception_flags": [
+      "amount_outside_policy_range",
+      "amount_changed_from_recommendation",
+      "tenure_changed_from_recommendation"
+    ],
+    "has_override": true,
+    "override_reason": "as per our confidence level and manual inspection we feel we can increase the amount and tenure xxxfngfjnbvcx",
+    "overridden_by_user_id": "21111111-1111-1111-1111-111111111111",
+    "overridden_at": "2026-04-17T09:57:59.212274",
+    "created_at": "2026-04-17T09:57:59.212274",
+    "updated_at": "2026-04-17T09:57:59.212274"
+  }
+]

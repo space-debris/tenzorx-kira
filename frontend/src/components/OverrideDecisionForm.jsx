@@ -29,7 +29,7 @@ function buildFormState(decision) {
   };
 }
 
-export default function OverrideDecisionForm({ decision, isSubmitting, onSubmit, onCancel }) {
+export default function OverrideDecisionForm({ decision, isSubmitting, onSubmit, onCancel, mode = 'override' }) {
   const [form, setForm] = useState(buildFormState(decision));
 
   useEffect(() => {
@@ -55,7 +55,7 @@ export default function OverrideDecisionForm({ decision, isSubmitting, onSubmit,
     return (
       <section className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
         <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-2">
-          Officer Override
+          {mode === 'restructure' ? 'Restructure Loan' : 'Officer Override'}
         </h2>
         <p className="text-sm text-slate-500">
           An override form becomes available once the case has an eligible underwriting recommendation.
@@ -100,11 +100,13 @@ export default function OverrideDecisionForm({ decision, isSubmitting, onSubmit,
           <div className="flex items-center gap-2 mb-2">
             <ShieldCheck className="w-5 h-5 text-indigo-600" />
             <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
-              Officer Override
+              {mode === 'restructure' ? 'Restructure Loan' : 'Officer Override'}
             </h2>
           </div>
           <p className="text-sm text-slate-500">
-            Override amount, cadence, tenure, or pricing. Every change is recorded against the case audit trail.
+            {mode === 'restructure' 
+              ? 'Update the amount, cadence, tenure, or pricing for the restructured loan.' 
+              : 'Override amount, cadence, tenure, or pricing. Every change is recorded against the case audit trail.'}
           </p>
         </div>
         <button
@@ -113,7 +115,7 @@ export default function OverrideDecisionForm({ decision, isSubmitting, onSubmit,
           className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-50 transition"
         >
           <RotateCcw className="w-4 h-4" />
-          Reset to Recommendation
+          {mode === 'restructure' ? 'Reset Form' : 'Reset to Recommendation'}
         </button>
       </div>
 
@@ -126,22 +128,26 @@ export default function OverrideDecisionForm({ decision, isSubmitting, onSubmit,
             {formatCurrency(decision.loan_range_guardrail?.low)} - {formatCurrency(decision.loan_range_guardrail?.high)}
           </div>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
-          <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-            Rate Band
+        {pricing?.annual_interest_rate_band?.low != null && (
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
+            <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+              Rate Band
+            </div>
+            <div className="font-black text-slate-800">
+              {formatPercent(pricing.annual_interest_rate_band.low)} - {formatPercent(pricing.annual_interest_rate_band.high)}
+            </div>
           </div>
-          <div className="font-black text-slate-800">
-            {formatPercent(pricing?.annual_interest_rate_band?.low)} - {formatPercent(pricing?.annual_interest_rate_band?.high)}
+        )}
+        {pricing?.processing_fee_band?.low != null && (
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
+            <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+              Fee Band
+            </div>
+            <div className="font-black text-slate-800">
+              {formatPercent(pricing.processing_fee_band.low)} - {formatPercent(pricing.processing_fee_band.high)}
+            </div>
           </div>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
-          <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-            Fee Band
-          </div>
-          <div className="font-black text-slate-800">
-            {formatPercent(pricing?.processing_fee_band?.low)} - {formatPercent(pricing?.processing_fee_band?.high)}
-          </div>
-        </div>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -213,7 +219,9 @@ export default function OverrideDecisionForm({ decision, isSubmitting, onSubmit,
         </div>
 
         <label className="block">
-          <span className="text-sm font-semibold text-slate-700 mb-1 block">Override Reason</span>
+          <span className="text-sm font-semibold text-slate-700 mb-1 block">
+            {mode === 'restructure' ? 'Restructure Reason' : 'Override Reason'}
+          </span>
           <textarea
             rows="3"
             value={form.reason}
@@ -245,10 +253,10 @@ export default function OverrideDecisionForm({ decision, isSubmitting, onSubmit,
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Saving Override...
+                  Saving...
                 </>
               ) : (
-                'Save Override'
+                mode === 'restructure' ? 'Restructure Loan' : 'Save Override'
               )}
             </button>
           </div>

@@ -304,5 +304,556 @@
       "note": null
     },
     "created_at": "2026-04-16T19:05:16.582628"
+  },
+  {
+    "id": "d2a3dc46-4573-4123-9775-c7721ed15946",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "status_changed",
+    "description": "Changed case status from monitoring to restructured",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "monitoring",
+      "new_status": "restructured",
+      "note": null
+    },
+    "created_at": "2026-04-17T09:16:07.647722"
+  },
+  {
+    "id": "dd3955e2-f292-45e1-b06c-8b240934aa12",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "status_changed",
+    "description": "Changed case status from restructured to monitoring",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "restructured",
+      "new_status": "monitoring",
+      "note": null
+    },
+    "created_at": "2026-04-17T09:16:08.270278"
+  },
+  {
+    "id": "9a922d21-5373-4807-b0bf-d0f6d06d8682",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "status_changed",
+    "description": "Changed case status from monitoring to restructured",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "monitoring",
+      "new_status": "restructured",
+      "note": null
+    },
+    "created_at": "2026-04-17T09:16:08.917909"
+  },
+  {
+    "id": "ade8983d-9cd8-43d3-9f35-ca3c5c742032",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "status_changed",
+    "description": "Changed case status from restructured to monitoring",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "restructured",
+      "new_status": "monitoring",
+      "note": null
+    },
+    "created_at": "2026-04-17T09:16:09.328706"
+  },
+  {
+    "id": "86bdfb22-eda9-4cc3-94a9-86e7182ea615",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "status_changed",
+    "description": "Changed case status from monitoring to restructured",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "monitoring",
+      "new_status": "restructured",
+      "note": null
+    },
+    "created_at": "2026-04-17T09:19:25.537152"
+  },
+  {
+    "id": "9509b990-cc44-4def-9270-e2b022e1db8d",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "status_changed",
+    "description": "Changed case status from restructured to monitoring",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "restructured",
+      "new_status": "monitoring",
+      "note": null
+    },
+    "created_at": "2026-04-17T09:19:26.143545"
+  },
+  {
+    "id": "136bfbdb-5071-4fd2-91c7-dfa71dc69d7c",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "underwriting_overridden",
+    "description": "Captured underwriting override for latest assessment",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "assessment_session_id": "43333333-3333-3333-3333-333333333333",
+      "reason": "as per our confidence level and manual inspection we feel we can increase the amount and tenure",
+      "policy_exception_flags": [
+        "amount_changed_from_recommendation",
+        "tenure_changed_from_recommendation"
+      ],
+      "recommended_terms": {
+        "amount": 60000.0,
+        "tenure_months": 18,
+        "repayment_cadence": "weekly",
+        "estimated_installment": 0.0,
+        "annual_interest_rate_pct": 18.0,
+        "processing_fee_pct": 1.5
+      },
+      "final_terms": {
+        "amount": 80000.0,
+        "tenure_months": 24,
+        "repayment_cadence": "weekly",
+        "estimated_installment": 0.0,
+        "annual_interest_rate_pct": 18.0,
+        "processing_fee_pct": 1.5
+      }
+    },
+    "created_at": "2026-04-17T09:31:40.368790"
+  },
+  {
+    "id": "8ff5d40e-7096-4343-b519-ab36fe69fcd6",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "status_changed",
+    "description": "Changed case status from monitoring to restructured",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "monitoring",
+      "new_status": "restructured",
+      "note": "as per our confidence level and manual inspection we feel we can increase the amount and tenure"
+    },
+    "created_at": "2026-04-17T09:31:40.412149"
+  },
+  {
+    "id": "3594b04e-9a15-4207-8492-13a9e9821563",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "status_changed",
+    "description": "Changed case status from restructured to monitoring",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "restructured",
+      "new_status": "monitoring",
+      "note": null
+    },
+    "created_at": "2026-04-17T09:32:18.726976"
+  },
+  {
+    "id": "9281460a-5024-41ca-8ce0-d6fa96d3c503",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "underwriting_overridden",
+    "description": "Captured underwriting override for latest assessment",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "assessment_session_id": "43333333-3333-3333-3333-333333333333",
+      "reason": "as per our confidence level and manual inspection we feel we can increase the amount and tenure",
+      "policy_exception_flags": [
+        "amount_outside_policy_range",
+        "amount_changed_from_recommendation",
+        "tenure_changed_from_recommendation"
+      ],
+      "recommended_terms": {
+        "amount": 60000.0,
+        "tenure_months": 18,
+        "repayment_cadence": "weekly",
+        "estimated_installment": 0.0,
+        "annual_interest_rate_pct": 18.0,
+        "processing_fee_pct": 1.5
+      },
+      "final_terms": {
+        "amount": 90000.0,
+        "tenure_months": 24,
+        "repayment_cadence": "weekly",
+        "estimated_installment": 0.0,
+        "annual_interest_rate_pct": 18.0,
+        "processing_fee_pct": 1.5
+      }
+    },
+    "created_at": "2026-04-17T09:32:29.932581"
+  },
+  {
+    "id": "dd3e88c4-bdc3-4039-aae6-64479170ae81",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "status_changed",
+    "description": "Changed case status from monitoring to restructured",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "monitoring",
+      "new_status": "restructured",
+      "note": "as per our confidence level and manual inspection we feel we can increase the amount and tenure"
+    },
+    "created_at": "2026-04-17T09:32:29.976149"
+  },
+  {
+    "id": "ea65a9d2-7344-474d-ac54-b414574a563a",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "status_changed",
+    "description": "Changed case status from restructured to monitoring",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "restructured",
+      "new_status": "monitoring",
+      "note": null
+    },
+    "created_at": "2026-04-17T09:32:40.562378"
+  },
+  {
+    "id": "38389585-0eb2-497c-941e-de6d25e84e4c",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "underwriting_overridden",
+    "description": "Captured underwriting override for latest assessment",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "assessment_session_id": "43333333-3333-3333-3333-333333333333",
+      "reason": "as per our confidence level and manual inspection we feel we can increase the amount and tenure",
+      "policy_exception_flags": [
+        "amount_changed_from_recommendation",
+        "tenure_changed_from_recommendation"
+      ],
+      "recommended_terms": {
+        "amount": 60000.0,
+        "tenure_months": 18,
+        "repayment_cadence": "weekly",
+        "estimated_installment": 0.0,
+        "annual_interest_rate_pct": 18.0,
+        "processing_fee_pct": 1.5
+      },
+      "final_terms": {
+        "amount": 50000.0,
+        "tenure_months": 24,
+        "repayment_cadence": "weekly",
+        "estimated_installment": 0.0,
+        "annual_interest_rate_pct": 18.0,
+        "processing_fee_pct": 1.5
+      }
+    },
+    "created_at": "2026-04-17T09:32:49.844863"
+  },
+  {
+    "id": "21ced699-0c2c-4ff3-8f95-23b52661481d",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "status_changed",
+    "description": "Changed case status from monitoring to restructured",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "monitoring",
+      "new_status": "restructured",
+      "note": "as per our confidence level and manual inspection we feel we can increase the amount and tenure"
+    },
+    "created_at": "2026-04-17T09:32:49.884723"
+  },
+  {
+    "id": "3bbc08e9-16d4-4a16-9075-6b5fd9438f2f",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "status_changed",
+    "description": "Changed case status from restructured to monitoring",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "restructured",
+      "new_status": "monitoring",
+      "note": null
+    },
+    "created_at": "2026-04-17T09:33:43.993511"
+  },
+  {
+    "id": "de995ec9-e2ed-460d-ba73-79bb6069e3a0",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "underwriting_overridden",
+    "description": "Captured underwriting override for latest assessment",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "assessment_session_id": "43333333-3333-3333-3333-333333333333",
+      "reason": "as per our confidence level and manual inspection we feel we can increase the amount and tenure xxx",
+      "policy_exception_flags": [
+        "amount_changed_from_recommendation",
+        "tenure_changed_from_recommendation"
+      ],
+      "recommended_terms": {
+        "amount": 60000.0,
+        "tenure_months": 18,
+        "repayment_cadence": "weekly",
+        "estimated_installment": 0.0,
+        "annual_interest_rate_pct": 18.0,
+        "processing_fee_pct": 1.5
+      },
+      "final_terms": {
+        "amount": 50000.0,
+        "tenure_months": 24,
+        "repayment_cadence": "weekly",
+        "estimated_installment": 0.0,
+        "annual_interest_rate_pct": 18.0,
+        "processing_fee_pct": 1.5
+      }
+    },
+    "created_at": "2026-04-17T09:33:48.216152"
+  },
+  {
+    "id": "994a3d39-90f2-42f0-a146-c8e892f92c43",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "status_changed",
+    "description": "Changed case status from monitoring to restructured",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "monitoring",
+      "new_status": "restructured",
+      "note": "as per our confidence level and manual inspection we feel we can increase the amount and tenure xxx"
+    },
+    "created_at": "2026-04-17T09:33:48.258125"
+  },
+  {
+    "id": "41f3339d-d662-4e01-9acd-5a43c9783ac0",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "status_changed",
+    "description": "Changed case status from restructured to monitoring",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "restructured",
+      "new_status": "monitoring",
+      "note": null
+    },
+    "created_at": "2026-04-17T09:34:01.782221"
+  },
+  {
+    "id": "72a11f1b-8383-4e2b-bdec-75e6fd265853",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "underwriting_overridden",
+    "description": "Captured underwriting override for latest assessment",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "assessment_session_id": "43333333-3333-3333-3333-333333333333",
+      "reason": "as per our confidence level and manual inspection we feel we can increase the amount and tenure xxxfngfj",
+      "policy_exception_flags": [
+        "amount_changed_from_recommendation",
+        "tenure_changed_from_recommendation"
+      ],
+      "recommended_terms": {
+        "amount": 60000.0,
+        "tenure_months": 18,
+        "repayment_cadence": "weekly",
+        "estimated_installment": 0.0,
+        "annual_interest_rate_pct": 18.0,
+        "processing_fee_pct": 1.5
+      },
+      "final_terms": {
+        "amount": 50000.0,
+        "tenure_months": 24,
+        "repayment_cadence": "weekly",
+        "estimated_installment": 0.0,
+        "annual_interest_rate_pct": 18.0,
+        "processing_fee_pct": 1.5
+      }
+    },
+    "created_at": "2026-04-17T09:57:11.174684"
+  },
+  {
+    "id": "8d011ea3-2326-4ecb-991d-79bfae2470f6",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "status_changed",
+    "description": "Changed case status from monitoring to restructured",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "monitoring",
+      "new_status": "restructured",
+      "note": "as per our confidence level and manual inspection we feel we can increase the amount and tenure xxx\n\n[Restructure]: as per our confidence level and manual inspection we feel we can increase the amount and tenure xxxfngfj"
+    },
+    "created_at": "2026-04-17T09:57:11.200111"
+  },
+  {
+    "id": "bfe02500-e6d4-4084-a953-6fc5a92a9226",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "status_changed",
+    "description": "Changed case status from restructured to monitoring",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "restructured",
+      "new_status": "monitoring",
+      "note": null
+    },
+    "created_at": "2026-04-17T09:57:38.862005"
+  },
+  {
+    "id": "1cc5f108-91e9-4dd7-82c1-b72c69f88c3e",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "underwriting_overridden",
+    "description": "Captured underwriting override for latest assessment",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "assessment_session_id": "43333333-3333-3333-3333-333333333333",
+      "reason": "as per our confidence level and manual inspection we feel we can increase the amount and tenure xxxfngfjnbvcx",
+      "policy_exception_flags": [
+        "amount_changed_from_recommendation",
+        "tenure_changed_from_recommendation"
+      ],
+      "recommended_terms": {
+        "amount": 60000.0,
+        "tenure_months": 18,
+        "repayment_cadence": "weekly",
+        "estimated_installment": 0.0,
+        "annual_interest_rate_pct": 18.0,
+        "processing_fee_pct": 1.5
+      },
+      "final_terms": {
+        "amount": 70000.0,
+        "tenure_months": 24,
+        "repayment_cadence": "weekly",
+        "estimated_installment": 0.0,
+        "annual_interest_rate_pct": 18.0,
+        "processing_fee_pct": 1.5
+      }
+    },
+    "created_at": "2026-04-17T09:57:45.526534"
+  },
+  {
+    "id": "1b9d2c9a-5353-4066-ac87-ae97979cb3d8",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "status_changed",
+    "description": "Changed case status from monitoring to restructured",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "monitoring",
+      "new_status": "restructured",
+      "note": "as per our confidence level and manual inspection we feel we can increase the amount and tenure xxx\n\n[Restructure]: as per our confidence level and manual inspection we feel we can increase the amount and tenure xxxfngfj\n\n[Restructure]: as per our confidence level and manual inspection we feel we can increase the amount and tenure xxxfngfjnbvcx"
+    },
+    "created_at": "2026-04-17T09:57:45.569408"
+  },
+  {
+    "id": "f48852d3-d693-466b-ba19-ace6dcb8e726",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "status_changed",
+    "description": "Changed case status from restructured to monitoring",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "restructured",
+      "new_status": "monitoring",
+      "note": null
+    },
+    "created_at": "2026-04-17T09:57:52.586808"
+  },
+  {
+    "id": "2cd7ea1d-c2ab-473e-b71a-bce779378134",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "underwriting_overridden",
+    "description": "Captured underwriting override for latest assessment",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "assessment_session_id": "43333333-3333-3333-3333-333333333333",
+      "reason": "as per our confidence level and manual inspection we feel we can increase the amount and tenure xxxfngfjnbvcx",
+      "policy_exception_flags": [
+        "amount_outside_policy_range",
+        "amount_changed_from_recommendation",
+        "tenure_changed_from_recommendation"
+      ],
+      "recommended_terms": {
+        "amount": 60000.0,
+        "tenure_months": 18,
+        "repayment_cadence": "weekly",
+        "estimated_installment": 0.0,
+        "annual_interest_rate_pct": 18.0,
+        "processing_fee_pct": 1.5
+      },
+      "final_terms": {
+        "amount": 170000.0,
+        "tenure_months": 24,
+        "repayment_cadence": "weekly",
+        "estimated_installment": 0.0,
+        "annual_interest_rate_pct": 18.0,
+        "processing_fee_pct": 1.5
+      }
+    },
+    "created_at": "2026-04-17T09:57:59.220016"
+  },
+  {
+    "id": "37faa352-af70-4623-81c3-816a15a6fb3a",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "63333333-3333-3333-3333-333333333333",
+    "action": "status_changed",
+    "description": "Changed case status from monitoring to restructured",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "monitoring",
+      "new_status": "restructured",
+      "note": "as per our confidence level and manual inspection we feel we can increase the amount and tenure xxx\n\n[Restructure]: as per our confidence level and manual inspection we feel we can increase the amount and tenure xxxfngfj\n\n[Restructure]: as per our confidence level and manual inspection we feel we can increase the amount and tenure xxxfngfjnbvcx\n\n[Restructure]: as per our confidence level and manual inspection we feel we can increase the amount and tenure xxxfngfjnbvcx"
+    },
+    "created_at": "2026-04-17T09:57:59.263030"
   }
 ]

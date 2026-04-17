@@ -17,6 +17,19 @@ function formatCurrency(value) {
   }).format(Number(value));
 }
 
+function calculateInstallment(amount, tenureMonths, cadence, annualRatePct) {
+  if (!amount || !tenureMonths) return 0;
+  const r = (annualRatePct || 0) / 100;
+  let periodsPerYear = 12;
+  if (cadence === 'weekly') periodsPerYear = 52;
+  if (cadence === 'daily') periodsPerYear = 365;
+  const totalPeriods = (tenureMonths / 12) * periodsPerYear;
+  if (!totalPeriods) return 0;
+  if (r === 0) return amount / totalPeriods;
+  const ratePerPeriod = r / periodsPerYear;
+  return (amount * ratePerPeriod * Math.pow(1 + ratePerPeriod, totalPeriods)) / (Math.pow(1 + ratePerPeriod, totalPeriods) - 1);
+}
+
 function formatPercent(value) {
   if (value == null || Number.isNaN(Number(value))) return '—';
   return `${Number(value).toFixed(2)}%`;
@@ -163,7 +176,7 @@ export default function UnderwritingDecisionPanel({ assessment, decision }) {
         <MetricCard
           icon={ReceiptText}
           label="Installment"
-          value={formatCurrency(finalTerms.estimated_installment)}
+          value={formatCurrency(finalTerms.estimated_installment || calculateInstallment(finalTerms.amount, finalTerms.tenure_months, finalTerms.repayment_cadence, finalTerms.annual_interest_rate_pct))}
           tone="amber"
           className="min-h-[116px] flex flex-col justify-between"
           valueClassName="text-2xl"

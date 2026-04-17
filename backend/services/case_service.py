@@ -206,13 +206,12 @@ class CaseService:
         actor = self.repository.get_user(payload.actor_user_id)
         if actor is None or actor.org_id != case.org_id:
             raise ValueError("Actor is invalid for this organization")
-        if payload.new_status == case.status:
-            raise ValueError("Case is already in the requested status")
-        allowed = ALLOWED_STATUS_TRANSITIONS.get(case.status, set())
-        if payload.new_status not in allowed:
-            raise ValueError(
-                f"Invalid status transition from {case.status.value} to {payload.new_status.value}"
-            )
+        if payload.new_status != case.status:
+            allowed = ALLOWED_STATUS_TRANSITIONS.get(case.status, set())
+            if payload.new_status not in allowed:
+                raise ValueError(
+                    f"Invalid status transition from {case.status.value} to {payload.new_status.value}"
+                )
         if payload.new_status == CaseStatus.APPROVED and case.latest_loan_range is None:
             raise ValueError("Cannot approve a case before an assessment is linked")
 
