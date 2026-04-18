@@ -1466,5 +1466,132 @@
       ]
     },
     "created_at": "2026-04-17T21:24:58.893769"
+  },
+  {
+    "id": "ad42b128-7ce6-4093-93c6-2a825b88dbec",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "exported",
+    "description": "Exported deterministic case bundle",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "document_bundle_id": "9d02045b-40c1-45db-8bc4-1a0f1ec49035",
+      "formats": [
+        "json",
+        "pdf"
+      ]
+    },
+    "created_at": "2026-04-18T06:25:07.570898"
+  },
+  {
+    "id": "f376f02d-6daf-48ba-91a3-b2948f8ebb71",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "statement_uploaded",
+    "description": "Uploaded statement Paytm_Statement_March_2026.pdf",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "statement_upload_id": "33a79967-239f-47aa-8db6-1b4153fcc55c",
+      "transaction_count": 0
+    },
+    "created_at": "2026-04-18T06:36:42.150223"
+  },
+  {
+    "id": "29c9fe09-6e21-404c-8f41-9ba6c3aa9412",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "monitoring_run_completed",
+    "description": "Completed monitoring run from statement Paytm_Statement_March_2026.pdf",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "monitoring_run_id": "a5fac5f4-7be5-4185-852f-0e18a312d645",
+      "stress_score": 0.8,
+      "current_risk_band": "VERY_HIGH"
+    },
+    "created_at": "2026-04-18T06:36:42.175122"
+  },
+  {
+    "id": "073564b9-384b-4430-96e4-a4e2cbe1b61f",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "statement_uploaded",
+    "description": "Uploaded statement statement-refresh.csv",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "statement_upload_id": "2adc2825-bea8-4081-9e1f-88f771572371",
+      "transaction_count": 2
+    },
+    "created_at": "2026-04-18T06:36:44.654889"
+  },
+  {
+    "id": "c5127c41-3296-4146-a67d-99629b345ffa",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "monitoring_run_completed",
+    "description": "Completed monitoring run from statement statement-refresh.csv",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "monitoring_run_id": "a19d5f26-a7f4-4a10-b843-a0d1b50951e4",
+      "stress_score": 0.0,
+      "current_risk_band": "HIGH"
+    },
+    "created_at": "2026-04-18T06:36:44.670818"
+  },
+  {
+    "id": "5428adf4-4220-4578-9ab6-1065ac8e861c",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "statement_uploaded",
+    "description": "Uploaded statement Paytm_Statement_March_2026.pdf",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "statement_upload_id": "0b5eb6a5-76cd-49c8-b5e0-ffe0a3a2be8f",
+      "transaction_count": 0
+    },
+    "created_at": "2026-04-18T06:36:54.521406"
+  },
+  {
+    "id": "fdb8b70b-69f4-480d-a908-5c45d8f4a8b3",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "monitoring_run_completed",
+    "description": "Completed monitoring run from statement Paytm_Statement_March_2026.pdf",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "monitoring_run_id": "489a45d0-020c-4287-979b-566980a91ed0",
+      "stress_score": 0.8,
+      "current_risk_band": "VERY_HIGH"
+    },
+    "created_at": "2026-04-18T06:36:54.560515"
+  },
+  {
+    "id": "e5dae118-be75-43cf-8eda-b8ad5f134496",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "action": "status_changed",
+    "description": "Changed case status from disbursed to monitoring",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "previous_status": "disbursed",
+      "new_status": "monitoring",
+      "note": null
+    },
+    "created_at": "2026-04-18T06:39:51.015237"
   }
 ]

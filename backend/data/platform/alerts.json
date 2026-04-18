@@ -46,5 +46,29 @@
     "description": "Fresh statements show 100% lower inflows than the prior baseline.",
     "created_at": "2026-04-17T20:25:30.568489",
     "updated_at": "2026-04-17T20:25:30.568489"
+  },
+  {
+    "id": "6bbc2c2a-bf02-48bb-841e-3f487f0b4abb",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "kirana_id": "2f0c10e2-1369-4587-99d1-752090773276",
+    "severity": "critical",
+    "status": "open",
+    "title": "Cash-flow deterioration detected",
+    "description": "Fresh statements show 100% lower inflows than the prior baseline.",
+    "created_at": "2026-04-18T06:36:42.171680",
+    "updated_at": "2026-04-18T06:36:42.171680"
+  },
+  {
+    "id": "024b8b24-9f8e-4f4f-b6b1-a1a16fa6cb04",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "kirana_id": "2f0c10e2-1369-4587-99d1-752090773276",
+    "severity": "critical",
+    "status": "open",
+    "title": "Cash-flow deterioration detected",
+    "description": "Fresh statements show 100% lower inflows than the prior baseline.",
+    "created_at": "2026-04-18T06:36:54.549044",
+    "updated_at": "2026-04-18T06:36:54.549044"
   }
 ]

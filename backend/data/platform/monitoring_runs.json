@@ -188,5 +188,90 @@
     "completed_at": "2026-04-17T20:31:11.765318",
     "created_at": "2026-04-17T20:31:11.765318",
     "updated_at": "2026-04-17T20:31:11.765318"
+  },
+  {
+    "id": "a5fac5f4-7be5-4185-852f-0e18a312d645",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "loan_id": "fb5022a0-6f5c-4978-8e8f-359fb02498f4",
+    "kirana_id": "2f0c10e2-1369-4587-99d1-752090773276",
+    "status": "completed",
+    "statement_upload_id": "33a79967-239f-47aa-8db6-1b4153fcc55c",
+    "previous_risk_band": "HIGH",
+    "new_risk_band": "VERY_HIGH",
+    "new_risk_score": 0.8,
+    "inflow_velocity_change_pct": -1.0,
+    "utilization": {
+      "supplier_inventory_pct": 0.0,
+      "transfer_wallet_pct": 0.0,
+      "personal_cash_pct": 0.0,
+      "unknown_pct": 0.0,
+      "flags": [],
+      "diversion_risk": "low"
+    },
+    "alerts_raised": [
+      "6bbc2c2a-bf02-48bb-841e-3f487f0b4abb"
+    ],
+    "restructuring_suggestion": null,
+    "run_notes": "baseline_inflow=48000.00;current_inflow=0.00",
+    "completed_at": "2026-04-18T06:36:42.171680",
+    "created_at": "2026-04-18T06:36:42.171680",
+    "updated_at": "2026-04-18T06:36:42.171680"
+  },
+  {
+    "id": "a19d5f26-a7f4-4a10-b843-a0d1b50951e4",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "loan_id": "fb5022a0-6f5c-4978-8e8f-359fb02498f4",
+    "kirana_id": "2f0c10e2-1369-4587-99d1-752090773276",
+    "status": "completed",
+    "statement_upload_id": "2adc2825-bea8-4081-9e1f-88f771572371",
+    "previous_risk_band": "HIGH",
+    "new_risk_band": "HIGH",
+    "new_risk_score": 0.0,
+    "inflow_velocity_change_pct": 0.0,
+    "utilization": {
+      "supplier_inventory_pct": 100.0,
+      "transfer_wallet_pct": 0.0,
+      "personal_cash_pct": 0.0,
+      "unknown_pct": 0.0,
+      "flags": [],
+      "diversion_risk": "low"
+    },
+    "alerts_raised": [],
+    "restructuring_suggestion": null,
+    "run_notes": "baseline_inflow=48000.00;current_inflow=48000.00",
+    "completed_at": "2026-04-18T06:36:44.666740",
+    "created_at": "2026-04-18T06:36:44.666740",
+    "updated_at": "2026-04-18T06:36:44.666740"
+  },
+  {
+    "id": "489a45d0-020c-4287-979b-566980a91ed0",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "loan_id": "fb5022a0-6f5c-4978-8e8f-359fb02498f4",
+    "kirana_id": "2f0c10e2-1369-4587-99d1-752090773276",
+    "status": "completed",
+    "statement_upload_id": "0b5eb6a5-76cd-49c8-b5e0-ffe0a3a2be8f",
+    "previous_risk_band": "HIGH",
+    "new_risk_band": "VERY_HIGH",
+    "new_risk_score": 0.8,
+    "inflow_velocity_change_pct": -1.0,
+    "utilization": {
+      "supplier_inventory_pct": 0.0,
+      "transfer_wallet_pct": 0.0,
+      "personal_cash_pct": 0.0,
+      "unknown_pct": 0.0,
+      "flags": [],
+      "diversion_risk": "low"
+    },
+    "alerts_raised": [
+      "024b8b24-9f8e-4f4f-b6b1-a1a16fa6cb04"
+    ],
+    "restructuring_suggestion": null,
+    "run_notes": "baseline_inflow=48000.00;current_inflow=0.00",
+    "completed_at": "2026-04-18T06:36:54.552383",
+    "created_at": "2026-04-18T06:36:54.552383",
+    "updated_at": "2026-04-18T06:36:54.552383"
   }
 ]
