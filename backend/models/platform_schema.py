@@ -476,7 +476,7 @@ class LoanAccountDetailResponse(BaseModel):
 class StatementUploadCreateRequest(BaseModel):
     actor_user_id: uuid.UUID
     file_name: str = Field(..., min_length=1, max_length=255)
-    file_type: str = Field(..., min_length=1, max_length=50)
+    file_type: str = Field(..., min_length=1, max_length=128)
     source_kind: str = Field(default="bank", min_length=3, max_length=30)
     content: str = Field(..., min_length=1)
 

@@ -30,7 +30,7 @@
     "case_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
     "kirana_id": "2f0c10e2-1369-4587-99d1-752090773276",
     "assessment_session_id": "70009568-094a-4204-9ae9-912a8dbe476f",
-    "status": "active",
+    "status": "closed",
     "principal_amount": 133500.0,
     "tenure_months": 12,
     "repayment_cadence": "weekly",
@@ -47,6 +47,6 @@
     "original_risk_band": null,
     "original_revenue_range": null,
     "created_at": "2026-04-17T19:47:50.827334",
-    "updated_at": "2026-04-18T06:39:51.013237"
+    "updated_at": "2026-04-18T10:07:28.533029"
   }
 ]

@@ -273,5 +273,32 @@
     "completed_at": "2026-04-18T06:36:54.552383",
     "created_at": "2026-04-18T06:36:54.552383",
     "updated_at": "2026-04-18T06:36:54.552383"
+  },
+  {
+    "id": "502f5ed8-3fda-4f24-a7cd-8c88b45216fc",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "62222222-2222-2222-2222-222222222222",
+    "loan_id": "92222222-2222-2222-2222-222222222222",
+    "kirana_id": "32222222-2222-2222-2222-222222222222",
+    "status": "completed",
+    "statement_upload_id": "5424d177-da3f-42cd-a0ae-b0c738246939",
+    "previous_risk_band": "LOW",
+    "new_risk_band": "LOW",
+    "new_risk_score": 0.0,
+    "inflow_velocity_change_pct": 0.0833,
+    "utilization": {
+      "supplier_inventory_pct": 100.0,
+      "transfer_wallet_pct": 0.0,
+      "personal_cash_pct": 0.0,
+      "unknown_pct": 0.0,
+      "flags": [],
+      "diversion_risk": "low"
+    },
+    "alerts_raised": [],
+    "restructuring_suggestion": null,
+    "run_notes": "baseline_inflow=48000.00;baseline_source=prior_statement_cycle;current_inflow=52000.00",
+    "completed_at": "2026-04-18T10:28:51.910422",
+    "created_at": "2026-04-18T10:28:51.910432",
+    "updated_at": "2026-04-18T10:28:51.910433"
   }
 ]

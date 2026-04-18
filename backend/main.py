@@ -722,7 +722,14 @@ async def get_platform_portfolio(org_id: uuid.UUID) -> PortfolioAnalyticsRespons
             risk_distribution[case.latest_risk_band.value] = risk_distribution.get(case.latest_risk_band.value, 0) + 1
         status_distribution[case.status.value] = status_distribution.get(case.status.value, 0) + 1
         kirana = kiranas.get(str(case.kirana_id))
-        district_key = kirana.location.district if kirana else "Unknown"
+        if kirana:
+            district_key = ", ".join(
+                part
+                for part in [kirana.location.district, kirana.location.state]
+                if part
+            )
+        else:
+            district_key = "Unknown"
         geography_distribution[district_key] = geography_distribution.get(district_key, 0) + 1
         loan_account = platform_repository.get_loan_account_for_case(case.id)
         latest_monitoring = platform_repository.get_latest_monitoring_run(case.id)
@@ -856,6 +863,9 @@ async def get_case_prefill_data(case_id: uuid.UUID) -> dict:
             "shop_size": kirana.metadata.get("shop_size"),
             "rent": kirana.metadata.get("rent"),
             "years_in_operation": kirana.metadata.get("years_in_operation"),
+            "monthly_revenue_hint": kirana.metadata.get("monthly_revenue_hint"),
+            "monthly_revenue_hint_source": kirana.metadata.get("monthly_revenue_hint_source"),
+            "statement_revenue_hint": kirana.metadata.get("statement_revenue_hint"),
         }
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc

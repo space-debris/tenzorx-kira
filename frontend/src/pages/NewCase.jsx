@@ -11,9 +11,10 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { createPlatformCase } from '../api/kiraApi';
+import StatementUploadCard from '../components/StatementUploadCard';
 import {
   Store, ArrowLeft, PlusCircle, AlertCircle,
-  MapPin, User, Phone, FileText, Loader2
+  MapPin, User, Phone, FileText, Loader2, CheckCircle2
 } from 'lucide-react';
 
 import { INDIA_STATES_DISTRICTS } from '../utils/indiaGeo';
@@ -35,6 +36,7 @@ export default function NewCase() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [statementPrefill, setStatementPrefill] = useState(null);
 
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -67,7 +69,7 @@ export default function NewCase() {
         locality: form.locality.trim() || undefined,
         assigned_to_user_id: user.id, // Fallback to current user
         notes: form.notes.trim() || undefined,
-        metadata: {},
+        metadata: statementPrefill ? { statement_prefill: statementPrefill } : {},
       };
 
       const res = await createPlatformCase(payload);
@@ -175,6 +177,30 @@ export default function NewCase() {
               <input type="text" value={form.locality} onChange={(e) => updateField('locality', e.target.value)} placeholder="e.g., Shastri Nagar (optional)" className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all text-sm" />
             </div>
           </div>
+        </div>
+
+        <div className="space-y-4">
+          <StatementUploadCard
+            onSubmit={(payload) => setStatementPrefill(payload)}
+            title="Optional UPI / bank statement"
+            description="Attach a recent Paytm, PhonePe, bank, or other UPI statement so we can estimate monthly revenue before underwriting."
+            submitLabel="Attach revenue hint"
+            useSampleLabel="Use sample"
+          />
+
+          {statementPrefill && (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <div>
+                  <div className="text-sm font-semibold text-emerald-900">Revenue hint attached</div>
+                  <div className="text-xs text-emerald-700 mt-1">
+                    {statementPrefill.file_name} • {statementPrefill.source_kind?.toUpperCase()} • this will be parsed during case creation to derive a monthly revenue estimate for AI recommendations.
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Notes */}

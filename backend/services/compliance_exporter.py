@@ -6,9 +6,32 @@ from __future__ import annotations
 
 import uuid
 
+from pydantic import BaseModel, Field
+
 from models.platform_schema import AuditAction, AuditEntityType, DocumentBundleResponse
 from services.audit_service import AuditService
 from services.document_builder import DocumentBuilder
+
+
+class AuditExportBundle(BaseModel):
+    org_id: str
+    total_events: int = 0
+    events: list[dict] = Field(default_factory=list)
+
+
+class CaseFilePacket(BaseModel):
+    case_id: str
+    kirana_name: str
+    documents: list[dict] = Field(default_factory=list)
+
+
+class ComplianceReport(BaseModel):
+    org_id: str
+    org_name: str
+    total_cases: int = 0
+    total_loans: int = 0
+    cases_with_overrides: int = 0
+    override_rate_pct: float = 0.0
 
 
 class ComplianceExporter:

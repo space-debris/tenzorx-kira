@@ -13,7 +13,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { Store, AlertCircle, Rocket, User, Phone, Loader2, CheckCircle2 } from 'lucide-react';
+import { Store, AlertCircle, Rocket, User, Phone, Loader2, CheckCircle2, TrendingUp } from 'lucide-react';
 import ImageUploader from '../components/ImageUploader';
 import GeoInput from '../components/GeoInput';
 import { submitAssessment, getCasePrefillData } from '../api/kiraApi';
@@ -45,6 +45,8 @@ export default function Assessment() {
   const [prefillSuccess, setPrefillSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [monthlyRevenueHint, setMonthlyRevenueHint] = useState(null);
+  const [monthlyRevenueHintSource, setMonthlyRevenueHintSource] = useState('');
 
   const gpsValidationError = gpsData.validationError;
   const imageCountValid = images.length >= 3 && images.length <= 5;
@@ -66,6 +68,8 @@ export default function Assessment() {
         if (data.shop_size) setShopSize(data.shop_size);
         if (data.rent) setRent(data.rent.toString());
         if (data.years_in_operation) setYearsInOperation(data.years_in_operation.toString());
+        if (data.monthly_revenue_hint) setMonthlyRevenueHint(Number(data.monthly_revenue_hint));
+        if (data.monthly_revenue_hint_source) setMonthlyRevenueHintSource(data.monthly_revenue_hint_source);
 
         setPrefillSuccess(true);
       } catch (err) {
@@ -212,6 +216,24 @@ export default function Assessment() {
               View Case
             </Link>
           )}
+        </div>
+      )}
+
+      {monthlyRevenueHint > 0 && (
+        <div className="bg-sky-50 border border-sky-200 text-sky-900 p-4 rounded-2xl flex items-start gap-3 shadow-sm">
+          <TrendingUp className="w-5 h-5 shrink-0 mt-0.5" />
+          <div>
+            <div className="font-semibold text-sm">
+              Monthly revenue hint available: {new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                maximumFractionDigits: 0,
+              }).format(monthlyRevenueHint)}
+            </div>
+            <div className="text-xs text-sky-700 mt-1">
+              Derived from the attached {monthlyRevenueHintSource || 'statement'} data. This helps the assessment and later restructuring recommendation stay aligned with recent transaction trends.
+            </div>
+          </div>
         </div>
       )}
 

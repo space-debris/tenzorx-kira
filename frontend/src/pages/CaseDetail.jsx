@@ -13,18 +13,25 @@ import { useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { getPlatformCase, overrideUnderwritingDecision, updateCaseStatus } from '../api/kiraApi';
+import {
+  getPlatformCase,
+  getLoanAccount,
+  overrideUnderwritingDecision,
+  updateCaseStatus,
+  uploadStatement,
+} from '../api/kiraApi';
 import CaseTimeline from '../components/CaseTimeline';
 import OverrideDecisionForm from '../components/OverrideDecisionForm';
+import StatementUploadCard from '../components/StatementUploadCard';
 import UnderwritingDecisionPanel from '../components/UnderwritingDecisionPanel';
 import ForecastPanel from '../components/ForecastPanel';
 import ScenarioSimulator from '../components/ScenarioSimulator';
 import { getCaseForecast, simulateCaseScenario } from '../api/kiraApi';
 import {
   ArrowLeft, Loader2, AlertTriangle, Store, MapPin,
-  Phone, User, Briefcase, ShieldCheck, ShieldAlert,
+  Phone, User, ShieldCheck, ShieldAlert,
   Activity, AlertOctagon, ChevronRight, CheckCircle2,
-  ArrowRightLeft, FileText, Rocket
+  ArrowRightLeft, FileText, Rocket, TrendingDown, TrendingUp, Wallet
 } from 'lucide-react';
 
 const STATUS_COLORS = {
@@ -38,6 +45,10 @@ const STATUS_LABELS = {
   approved: 'Approved', disbursed: 'Disbursed', monitoring: 'Monitoring',
   restructured: 'Restructured', closed: 'Closed',
 };
+
+const SANCTIONED_CASE_STATUSES = ['approved', 'disbursed', 'monitoring', 'restructured', 'closed'];
+const BOOKED_LOAN_STATUSES = ['disbursed', 'monitoring', 'restructured', 'closed'];
+const MONITORING_CASE_STATUSES = ['monitoring', 'restructured', 'closed'];
 
 // Allowed status transitions
 const STATUS_TRANSITIONS = {
@@ -77,6 +88,12 @@ function formatDate(iso) {
   return parseUTCDate(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+function formatChangeRatio(value) {
+  if (value == null || Number.isNaN(Number(value))) return '0%';
+  const pct = Math.round(Number(value) * 100);
+  return `${pct > 0 ? '+' : ''}${pct}%`;
+}
+
 function calculateInstallment(amount, tenureMonths, cadence, annualRatePct) {
   if (!amount || !tenureMonths) return 0;
   const r = (annualRatePct || 0) / 100;
@@ -103,9 +120,12 @@ export default function CaseDetail() {
   const [isRestructureModalOpen, setIsRestructureModalOpen] = useState(false);
   const [showOriginalDecision, setShowOriginalDecision] = useState(false);
   const [forecast, setForecast] = useState(null);
+  const [loanAccountData, setLoanAccountData] = useState(null);
+  const [loanLoading, setLoanLoading] = useState(false);
   const [activityLimit, setActivityLimit] = useState(5);
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [editNoteContent, setEditNoteContent] = useState('');
+  const [statementSubmitting, setStatementSubmitting] = useState(false);
 
   const loadCase = useCallback(async () => {
     try {
@@ -126,6 +146,19 @@ export default function CaseDetail() {
     }
   }, [caseId]);
 
+  const loadLoanAccount = useCallback(async () => {
+    try {
+      setLoanLoading(true);
+      const res = await getLoanAccount(caseId);
+      setLoanAccountData(res.data);
+    } catch (err) {
+      console.warn('Failed to load loan account details for case view', err);
+      setLoanAccountData(null);
+    } finally {
+      setLoanLoading(false);
+    }
+  }, [caseId]);
+
   useEffect(() => {
     if (caseId) loadCase();
     
@@ -134,6 +167,16 @@ export default function CaseDetail() {
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, [caseId, loadCase]);
+
+  useEffect(() => {
+    const caseStatus = caseData?.case?.status;
+    if (!caseId || !BOOKED_LOAN_STATUSES.includes(caseStatus)) {
+      setLoanAccountData(null);
+      setLoanLoading(false);
+      return;
+    }
+    loadLoanAccount();
+  }, [caseData?.case?.status, caseId, loadLoanAccount]);
 
   const handleStatusTransition = async (newStatus) => {
     if (!user?.id) return;
@@ -159,7 +202,7 @@ export default function CaseDetail() {
     if (!user?.id) return;
     try {
       setOverrideLoading(true);
-      const res = await overrideUnderwritingDecision(caseId, {
+      await overrideUnderwritingDecision(caseId, {
         actor_user_id: user.id,
         ...payload,
       });
@@ -182,7 +225,7 @@ export default function CaseDetail() {
         ...payload,
       });
       const appendedNote = c.notes && payload.reason ? `${c.notes}\n\n[Restructure]: ${payload.reason}` : payload.reason || c.notes;
-      const resStatus = await updateCaseStatus(caseId, {
+      await updateCaseStatus(caseId, {
         actor_user_id: user.id,
         new_status: 'restructured',
         note: appendedNote || undefined,
@@ -218,6 +261,23 @@ export default function CaseDetail() {
     }
   };
 
+  const handleStatementUpload = async (payload) => {
+    if (!user?.id) return;
+    try {
+      setStatementSubmitting(true);
+      await uploadStatement(caseId, {
+        ...payload,
+        actor_user_id: user.id,
+      });
+      await Promise.all([loadCase(), loadLoanAccount()]);
+    } catch (err) {
+      console.error('Statement upload failed from case detail:', err);
+      alert(err?.response?.data?.detail || 'Failed to upload statement for monitoring.');
+    } finally {
+      setStatementSubmitting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
@@ -243,6 +303,10 @@ export default function CaseDetail() {
   const alerts = caseData.alerts || [];
   const auditEvents = caseData.audit_events || [];
   const allowedTransitions = STATUS_TRANSITIONS[c.status] || [];
+  const latestMonitoringRun = loanAccountData?.monitoring_runs?.[0];
+  const recentStatementUploads = loanAccountData?.statement_uploads?.slice(0, 2) || [];
+  const canShowMonitoringTools = MONITORING_CASE_STATUSES.includes(c.status);
+  const hasSanctionedLoanView = SANCTIONED_CASE_STATUSES.includes(c.status) && assessment && underwritingDecision;
 
   const riskConfig = RISK_CONFIG[c.latest_risk_band] || RISK_CONFIG.MEDIUM;
   const RiskIcon = riskConfig.icon;
@@ -250,12 +314,12 @@ export default function CaseDetail() {
   return (
     <div className="animate-fade-in max-w-5xl mx-auto">
       {/* Breadcrumb */}
-      <Link to="/app/cases" className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-primary-600 transition mb-6">
+      <Link to="/app/cases" className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-primary-600 transition mb-4">
         <ArrowLeft className="w-4 h-4" /> Back to Cases
       </Link>
 
       {/* Case Header */}
-      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm mb-6">
+      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm mb-4">
         <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-2">
@@ -277,15 +341,158 @@ export default function CaseDetail() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      {hasSanctionedLoanView && (
+        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm mb-4 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-indigo-600" />
+              <div>
+                <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+                  Sanctioned Loan Details + AI Decision
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">
+                  Final loan terms appear first so the case opens on the core decision.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowOriginalDecision(!showOriginalDecision)}
+              className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-full transition"
+            >
+              {showOriginalDecision ? 'Hide AI decision' : 'Show AI decision'}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 xl:grid-cols-6 gap-3">
+            <div className="rounded-lg bg-indigo-50 border border-indigo-200 px-3 py-3 xl:col-span-2">
+              <div className="text-[10px] uppercase font-bold text-indigo-500 mb-1">Final Amount</div>
+              <div className="text-xl font-black text-slate-900">
+                {formatCurrency(underwritingDecision.final_terms?.amount || underwritingDecision.recommended_terms?.amount)}
+              </div>
+            </div>
+            <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-3">
+              <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Tenure</div>
+              <div className="font-bold text-slate-700">
+                {underwritingDecision.final_terms?.tenure_months || underwritingDecision.recommended_terms?.tenure_months} Months
+              </div>
+            </div>
+            <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-3">
+              <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Repayment</div>
+              <div className="font-bold text-slate-700 capitalize">
+                {(underwritingDecision.final_terms?.repayment_cadence || underwritingDecision.recommended_terms?.repayment_cadence || '').replace('_', ' ')}
+              </div>
+            </div>
+            <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-3">
+              <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Annual Rate</div>
+              <div className="font-bold text-slate-700">
+                {(underwritingDecision.final_terms?.annual_interest_rate_pct || underwritingDecision.recommended_terms?.annual_interest_rate_pct || 0).toFixed(2)}%
+              </div>
+            </div>
+            <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-3">
+              <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Installment</div>
+              <div className="font-bold text-slate-700">
+                {formatCurrency(
+                  (underwritingDecision.final_terms?.estimated_installment || underwritingDecision.recommended_terms?.estimated_installment)
+                  || calculateInstallment(
+                    underwritingDecision.final_terms?.amount || underwritingDecision.recommended_terms?.amount,
+                    underwritingDecision.final_terms?.tenure_months || underwritingDecision.recommended_terms?.tenure_months,
+                    underwritingDecision.final_terms?.repayment_cadence || underwritingDecision.recommended_terms?.repayment_cadence,
+                    underwritingDecision.final_terms?.annual_interest_rate_pct || underwritingDecision.recommended_terms?.annual_interest_rate_pct,
+                  )
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-3">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+              <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Decision status</div>
+              <div className="text-sm text-slate-700">
+                Final terms were established {underwritingDecision.has_override ? 'with a manual officer override.' : 'exactly as recommended by the AI underwriter.'}
+              </div>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+              <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Maturity date</div>
+              <div className="text-sm font-semibold text-slate-700">
+                {new Date(
+                  new Date(c.updated_at || Date.now()).setMonth(
+                    new Date(c.updated_at || Date.now()).getMonth()
+                    + (underwritingDecision.final_terms?.tenure_months || underwritingDecision.recommended_terms?.tenure_months || 0),
+                  ),
+                ).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </div>
+            </div>
+          </div>
+
+          {loanAccountData?.loan_account && (
+            <div className="grid sm:grid-cols-3 gap-3">
+              <div className="rounded-lg border border-slate-200 px-4 py-3">
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Outstanding Principal</div>
+                <div className="text-sm font-semibold text-slate-800">
+                  {formatCurrency(loanAccountData.loan_account.outstanding_principal)}
+                </div>
+              </div>
+              <div className="rounded-lg border border-slate-200 px-4 py-3">
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Loan Status</div>
+                <div className="text-sm font-semibold text-slate-800 capitalize">
+                  {String(loanAccountData.loan_account.status || c.status).replace('_', ' ')}
+                </div>
+              </div>
+              <div className="rounded-lg border border-slate-200 px-4 py-3">
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Latest Cashflow Trend</div>
+                <div className={`text-sm font-semibold flex items-center gap-1.5 ${latestMonitoringRun?.inflow_change_ratio < 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
+                  {latestMonitoringRun?.inflow_change_ratio < 0 ? <TrendingDown className="w-4 h-4" /> : <TrendingUp className="w-4 h-4" />}
+                  {latestMonitoringRun ? formatChangeRatio(latestMonitoringRun.inflow_change_ratio) : 'Awaiting monitoring refresh'}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {latestMonitoringRun?.restructuring_recommendation && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+              <div className="text-xs font-bold uppercase tracking-wider text-amber-700 mb-1">Latest monitoring recommendation</div>
+              <div className="text-sm text-amber-900">{latestMonitoringRun.restructuring_recommendation}</div>
+            </div>
+          )}
+
+          {((underwritingDecision.final_terms?.amount || 0) > (underwritingDecision.loan_range_guardrail?.high || underwritingDecision.recommended_terms?.amount || 0)) && (
+            <div className="bg-rose-50 border border-rose-200 p-3 rounded-lg flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+              <div>
+                <div className="text-sm font-bold text-rose-800">Amount exceeds AI recommendation</div>
+                <div className="text-xs text-rose-600 mt-0.5 mb-2">
+                  The sanctioned amount exceeds the system guarded limit of {formatCurrency(underwritingDecision.loan_range_guardrail?.high || underwritingDecision.recommended_terms?.amount)}.
+                </div>
+                <button
+                  onClick={() => setIsRestructureModalOpen(true)}
+                  className="text-xs font-bold text-rose-700 bg-white px-3 py-1.5 border border-rose-200 rounded hover:bg-rose-50 transition"
+                >
+                  Recommend Restructure
+                </button>
+              </div>
+            </div>
+          )}
+
+          {showOriginalDecision && (
+            <div className="pt-4 border-t border-slate-200">
+              <UnderwritingDecisionPanel
+                assessment={assessment}
+                decision={underwritingDecision}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="grid lg:grid-cols-3 gap-3">
         {/* Left Column */}
-        <div className="lg:col-span-1 space-y-6">
+        <div className="lg:col-span-1 space-y-2.5">
           {/* Kirana Profile */}
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-2">
               <Store className="w-4 h-4 text-primary-600" /> Borrower
             </h2>
-            <div className="space-y-3 text-sm">
+            <div className="space-y-1 text-xs">
               <div className="flex items-center gap-2 text-slate-700">
                 <User className="w-4 h-4 text-slate-400" />
                 <span className="font-medium">{kirana.owner_name}</span>
@@ -306,22 +513,86 @@ export default function CaseDetail() {
 
           {/* Loan Summary */}
           {c.latest_loan_range && (
-            <div className="bg-primary-900 text-white rounded-xl p-5 shadow-lg relative overflow-hidden">
+            <div className="bg-primary-900 text-white rounded-xl p-4 shadow-lg relative overflow-hidden">
               <div className="absolute top-0 right-0 -mt-6 -mr-6 w-24 h-24 bg-primary-600 opacity-20 rounded-full blur-xl"></div>
               <h2 className="text-primary-200 text-xs font-bold uppercase tracking-wider mb-3">
-                {['approved', 'disbursed', 'monitoring', 'restructured', 'closed'].includes(c.status) ? 'Loan Sanctioned' : 'Loan Range'}
+                {SANCTIONED_CASE_STATUSES.includes(c.status) ? 'Loan Sanctioned' : 'Loan Range'}
               </h2>
               <div className="text-2xl font-black">
-                {['approved', 'disbursed', 'monitoring', 'restructured', 'closed'].includes(c.status) && underwritingDecision
+                {SANCTIONED_CASE_STATUSES.includes(c.status) && underwritingDecision
                   ? formatCurrency(underwritingDecision.final_terms?.amount || underwritingDecision.recommended_terms?.amount)
                   : `${formatCurrency(c.latest_loan_range.low)} – ${formatCurrency(c.latest_loan_range.high)}`}
               </div>
             </div>
           )}
 
+          {canShowMonitoringTools && (
+            <div className="space-y-3">
+              {latestMonitoringRun && (
+                <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Wallet className="w-4 h-4 text-amber-600" />
+                    <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+                      Monitoring Snapshot
+                    </h2>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-2 mb-3">
+                    <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
+                      <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Current Risk</div>
+                      <div className="text-sm font-semibold text-slate-700">
+                        {latestMonitoringRun.current_risk_band || 'Pending refresh'}
+                      </div>
+                    </div>
+                    <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
+                      <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Inflow Change</div>
+                      <div className={`text-sm font-semibold flex items-center gap-1.5 ${latestMonitoringRun.inflow_change_ratio < 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
+                        {latestMonitoringRun.inflow_change_ratio < 0 ? <TrendingDown className="w-4 h-4" /> : <TrendingUp className="w-4 h-4" />}
+                        {formatChangeRatio(latestMonitoringRun.inflow_change_ratio)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-3">
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-amber-700 mb-1">Restructuring Guidance</div>
+                    <div className="text-sm text-amber-900">
+                      {latestMonitoringRun.restructuring_recommendation || 'Upload a fresh statement to generate updated restructuring guidance.'}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {loanLoading && !loanAccountData && (
+                <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center gap-2 text-sm text-slate-500">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Loading monitoring history...
+                </div>
+              )}
+
+              {recentStatementUploads.length > 0 && (
+                <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                  <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-primary-600" /> Recent Statement Uploads
+                  </h2>
+                  <div className="space-y-2.5">
+                    {recentStatementUploads.map((upload) => (
+                      <div key={upload.id} className="rounded-lg border border-slate-100 px-3 py-2.5">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm font-semibold text-slate-800 leading-tight wrap-break-word">{upload.label}</div>
+                            <div className="text-xs text-slate-400 mt-1 leading-tight wrap-break-word">{upload.note}</div>
+                          </div>
+                          <div className="shrink-0 text-[11px] font-bold uppercase tracking-wide text-primary-600 pt-0.5">{upload.status}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Status Actions */}
           {allowedTransitions.length > 0 && (
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
               <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
                 <ArrowRightLeft className="w-4 h-4 text-indigo-600" /> Actions
               </h2>
@@ -364,7 +635,7 @@ export default function CaseDetail() {
           )}
 
           {/* Activity Timeline moved to left column */}
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
             <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
               <Activity className="w-4 h-4 text-indigo-600" /> Activity History
             </h2>
@@ -381,34 +652,15 @@ export default function CaseDetail() {
         </div>
 
         {/* Right Column */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Advanced Intelligence */}
-          {c.status !== 'draft' && (
-             <div className="grid sm:grid-cols-2 gap-6">
-                <ForecastPanel forecast={forecast} />
-                <ScenarioSimulator
-                  currentRevenue={assessment?.revenue_range?.low || 100000}
-                  onSimulate={async (scenario) => {
-                     try {
-                       const res = await simulateCaseScenario(caseId, scenario);
-                       return res.data;
-                     } catch(err) {
-                       console.error(err);
-                       return null;
-                     }
-                  }}
-                />
-             </div>
-          )}
-
+        <div className="lg:col-span-2 space-y-2.5">
           {/* Assessment Summary */}
           {!assessment ? (
-            <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm text-center">
-              <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm text-center">
+              <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Rocket className="w-8 h-8" />
               </div>
               <h2 className="text-lg font-bold text-slate-800 mb-2">Ready for Underwriting?</h2>
-              <p className="text-sm text-slate-600 mb-6 max-w-sm mx-auto">
+              <p className="text-sm text-slate-600 mb-4 max-w-sm mx-auto">
                 Run our visual and spatial analysis to generate a risk score and loan recommendation.
               </p>
               <Link
@@ -419,8 +671,8 @@ export default function CaseDetail() {
               </Link>
             </div>
           ) : (
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
+            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
                   <FileText className="w-4 h-4 text-emerald-600" /> Latest Assessment
                 </h2>
@@ -497,122 +749,66 @@ export default function CaseDetail() {
             </div>
           )}
 
+          {canShowMonitoringTools && (
+            <StatementUploadCard
+              onSubmit={handleStatementUpload}
+              isSubmitting={statementSubmitting}
+              title="Monitoring statement upload"
+              description="Upload the latest bank, Paytm, PhonePe, or UPI statement to refresh monitoring and generate a restructuring recommendation."
+              submitLabel="Upload and refresh monitoring"
+              className=""
+            />
+          )}
+
+          {c.status !== 'draft' && assessment && (
+            <div className="grid lg:grid-cols-2 gap-3 items-stretch">
+                <ForecastPanel forecast={forecast} />
+                <ScenarioSimulator
+                  currentRevenue={assessment?.revenue_range?.low || 100000}
+                  onSimulate={async (scenario) => {
+                     try {
+                       const res = await simulateCaseScenario(caseId, scenario);
+                       return res.data;
+                     } catch(err) {
+                       console.error(err);
+                       return null;
+                     }
+                  }}
+                />
+                </div>
+          )}
+
           {assessment && underwritingDecision && (
             <>
-              {['approved', 'disbursed', 'monitoring', 'restructured', 'closed'].includes(c.status) ? (
-                <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                       <CheckCircle2 className="w-5 h-5 text-indigo-600" />
-                       <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
-                         Sanctioned Loan Details
-                       </h2>
-                    </div>
-                    <button 
-                      onClick={() => setShowOriginalDecision(!showOriginalDecision)}
-                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-full transition"
+              {!hasSanctionedLoanView && (
+                <>
+                  <UnderwritingDecisionPanel
+                    assessment={assessment}
+                    decision={underwritingDecision}
+                  />
+
+                  <div className="flex items-center gap-3 mt-4">
+                    <button
+                      onClick={() => handleStatusTransition('approved')}
+                      disabled={transitionLoading === 'approved'}
+                      className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition disabled:opacity-50"
                     >
-                      {showOriginalDecision ? 'Hide AI Decision' : 'View AI Decision'}
+                      {transitionLoading === 'approved' ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+                      Sanction Loan
+                    </button>
+                    <button
+                      onClick={() => setIsOverrideModalOpen(true)}
+                      className="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold transition"
+                    >
+                      <ShieldCheck className="w-5 h-5 text-indigo-600" />
+                      Officer Override
                     </button>
                   </div>
-                  <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-lg border border-slate-100">
-                     <p className="font-medium text-slate-800 mb-2">Loan has been officially sanctioned.</p>
-                     <p className="mb-4">Final terms were established {underwritingDecision.has_override ? 'with a manual officer override' : 'exactly as recommended by the AI underwriter'}.</p>
-                     
-                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        <div className="bg-white p-3 rounded border border-slate-200">
-                           <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Final Amount</div>
-                           <div className="font-bold text-slate-700">{formatCurrency(underwritingDecision.final_terms?.amount || underwritingDecision.recommended_terms?.amount)}</div>
-                        </div>
-                        <div className="bg-white p-3 rounded border border-slate-200">
-                           <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Tenure</div>
-                           <div className="font-bold text-slate-700">{underwritingDecision.final_terms?.tenure_months || underwritingDecision.recommended_terms?.tenure_months} Months</div>
-                        </div>
-                        <div className="bg-white p-3 rounded border border-slate-200">
-                           <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Repayment</div>
-                           <div className="font-bold text-slate-700 capitalize">{(underwritingDecision.final_terms?.repayment_cadence || underwritingDecision.recommended_terms?.repayment_cadence || '').replace('_', ' ')}</div>
-                        </div>
-                        <div className="bg-white p-3 rounded border border-slate-200">
-                           <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Annual Rate</div>
-                           <div className="font-bold text-slate-700">{(underwritingDecision.final_terms?.annual_interest_rate_pct || underwritingDecision.recommended_terms?.annual_interest_rate_pct || 0).toFixed(2)}%</div>
-                        </div>
-                        <div className="bg-white p-3 rounded border border-slate-200">
-                           <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Installment</div>
-                           <div className="font-bold text-slate-700">{formatCurrency(
-                             (underwritingDecision.final_terms?.estimated_installment || underwritingDecision.recommended_terms?.estimated_installment) ||
-                             calculateInstallment(
-                               underwritingDecision.final_terms?.amount || underwritingDecision.recommended_terms?.amount,
-                               underwritingDecision.final_terms?.tenure_months || underwritingDecision.recommended_terms?.tenure_months,
-                               underwritingDecision.final_terms?.repayment_cadence || underwritingDecision.recommended_terms?.repayment_cadence,
-                               underwritingDecision.final_terms?.annual_interest_rate_pct || underwritingDecision.recommended_terms?.annual_interest_rate_pct
-                             )
-                           )}</div>
-                        </div>
-                        <div className="bg-white p-3 rounded border border-slate-200">
-                           <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Maturity Date</div>
-                           <div className="font-bold text-slate-700">
-                             {new Date(new Date(c.updated_at || Date.now()).setMonth(new Date(c.updated_at || Date.now()).getMonth() + (underwritingDecision.final_terms?.tenure_months || underwritingDecision.recommended_terms?.tenure_months || 0))).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                           </div>
-                        </div>
-                     </div>
-                     
-                     {((underwritingDecision.final_terms?.amount || 0) > (underwritingDecision.loan_range_guardrail?.high || underwritingDecision.recommended_terms?.amount || 0)) && (
-                       <div className="mt-4 bg-rose-50 border border-rose-200 p-3 rounded-lg flex items-start gap-3">
-                         <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-                         <div>
-                           <div className="text-sm font-bold text-rose-800">Amount Exceeds AI Recommendation</div>
-                           <div className="text-xs text-rose-600 mt-0.5 mb-2">
-                             The sanctioned amount exceeds the system guarded limit of {formatCurrency(underwritingDecision.loan_range_guardrail?.high || underwritingDecision.recommended_terms?.amount)}.
-                           </div>
-                           <button 
-                             onClick={() => setIsRestructureModalOpen(true)}
-                             className="text-xs font-bold text-rose-700 bg-white px-3 py-1.5 border border-rose-200 rounded hover:bg-rose-50 transition"
-                           >
-                             Recommend Restructure
-                           </button>
-                         </div>
-                       </div>
-                     )}
-                  </div>
-                  
-                  {showOriginalDecision && (
-                    <div className="mt-4 pt-4 border-t border-slate-200">
-                      <UnderwritingDecisionPanel
-                        assessment={assessment}
-                        decision={underwritingDecision}
-                      />
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <UnderwritingDecisionPanel
-                  assessment={assessment}
-                  decision={underwritingDecision}
-                />
-              )}
-              
-              {!['approved', 'disbursed', 'monitoring', 'restructured', 'closed'].includes(c.status) && (
-                <div className="flex items-center gap-3 mt-4">
-                  <button
-                    onClick={() => handleStatusTransition('approved')}
-                    disabled={transitionLoading === 'approved'}
-                    className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition disabled:opacity-50"
-                  >
-                    {transitionLoading === 'approved' ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
-                    Sanction Loan
-                  </button>
-                  <button
-                    onClick={() => setIsOverrideModalOpen(true)}
-                    className="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold transition"
-                  >
-                    <ShieldCheck className="w-5 h-5 text-indigo-600" />
-                    Officer Override
-                  </button>
-                </div>
+                </>
               )}
 
               {isOverrideModalOpen && createPortal(
-                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/75 overflow-y-auto">
+                <div className="fixed inset-0 z-9999 flex items-center justify-center p-4 bg-slate-900/75 overflow-y-auto">
                   <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-50 rounded-2xl shadow-xl flex flex-col my-auto">
                     <div className="sticky top-0 right-0 z-10 flex justify-end p-2 bg-slate-50 rounded-t-2xl">
                       <button onClick={() => setIsOverrideModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-2 text-xl font-bold leading-none hidden">×</button>
@@ -630,7 +826,7 @@ export default function CaseDetail() {
               )}
 
               {isRestructureModalOpen && createPortal(
-                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/75 overflow-y-auto">
+                <div className="fixed inset-0 z-9999 flex items-center justify-center p-4 bg-slate-900/75 overflow-y-auto">
                   <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-50 rounded-2xl shadow-xl flex flex-col my-auto">
                     <div className="sticky top-0 right-0 z-10 flex justify-end p-2 bg-slate-50 rounded-t-2xl">
                       <button onClick={() => setIsRestructureModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-2 text-xl font-bold leading-none hidden">×</button>
@@ -652,8 +848,8 @@ export default function CaseDetail() {
 
           {/* Alerts */}
           {alerts.length > 0 && (
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-              <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+              <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-500" /> Alerts ({alerts.length})
               </h2>
               <div className="space-y-3">
@@ -677,8 +873,8 @@ export default function CaseDetail() {
           )}
 
           {/* Notes */}
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
+          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-2">
               <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Notes</h2>
               {!isEditingNotes && (
                 <button 

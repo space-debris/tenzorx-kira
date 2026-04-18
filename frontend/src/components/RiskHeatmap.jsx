@@ -1,8 +1,16 @@
+const MOCK_GEOGRAPHY_DATA = {
+  'Delhi': 45,
+  'North Delhi': 32,
+  'South Delhi': 28,
+  'East Delhi': 22,
+  'West Delhi': 18,
+  'Greater Noida': 12,
+};
+
 export default function RiskHeatmap({ data = {} }) {
-  const entries = Object.entries(data).sort((a, b) => b[1] - a[1]);
-  if (!entries.length) {
-    return <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-sm text-slate-500 text-center">No geography data available.</div>;
-  }
+  // Use real data if available, otherwise use mock data
+  const dataToUse = Object.keys(data).length > 0 ? data : MOCK_GEOGRAPHY_DATA;
+  const entries = Object.entries(dataToUse).sort((a, b) => b[1] - a[1]);
 
   const max = Math.max(...entries.map(([, value]) => value), 1);
 

@@ -239,5 +239,80 @@
     "uploaded_by_user_id": "21111111-1111-1111-1111-111111111111",
     "created_at": "2026-04-18T06:36:54.516061",
     "updated_at": "2026-04-18T06:36:54.516061"
+  },
+  {
+    "id": "3226afc8-8a8a-4f3a-a8a2-9aedf353016e",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "62222222-2222-2222-2222-222222222222",
+    "loan_id": "92222222-2222-2222-2222-222222222222",
+    "kirana_id": "32222222-2222-2222-2222-222222222222",
+    "status": "parsed",
+    "file_name": "dynamic-check.csv",
+    "file_type": "text/csv",
+    "file_size_bytes": 0,
+    "transaction_summary": {
+      "total_credits": 52000.0,
+      "total_debits": 21000.0,
+      "credit_count": 1,
+      "debit_count": 1,
+      "avg_daily_balance": 108500.0,
+      "period_days": 2,
+      "start_date": "2026-04-10T00:00:00",
+      "end_date": "2026-04-11T00:00:00"
+    },
+    "parse_error": null,
+    "uploaded_by_user_id": "22222222-2222-2222-2222-222222222222",
+    "created_at": "2026-04-18T10:27:11.669931",
+    "updated_at": "2026-04-18T10:27:11.669935"
+  },
+  {
+    "id": "d2abf482-6efe-47d4-a06c-b0c8239ec74f",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "62222222-2222-2222-2222-222222222222",
+    "loan_id": "92222222-2222-2222-2222-222222222222",
+    "kirana_id": "32222222-2222-2222-2222-222222222222",
+    "status": "parsed",
+    "file_name": "dynamic-check.csv",
+    "file_type": "text/csv",
+    "file_size_bytes": 0,
+    "transaction_summary": {
+      "total_credits": 52000.0,
+      "total_debits": 21000.0,
+      "credit_count": 1,
+      "debit_count": 1,
+      "avg_daily_balance": 108500.0,
+      "period_days": 2,
+      "start_date": "2026-04-10T00:00:00",
+      "end_date": "2026-04-11T00:00:00"
+    },
+    "parse_error": null,
+    "uploaded_by_user_id": "22222222-2222-2222-2222-222222222222",
+    "created_at": "2026-04-18T10:27:20.706358",
+    "updated_at": "2026-04-18T10:27:20.706360"
+  },
+  {
+    "id": "5424d177-da3f-42cd-a0ae-b0c738246939",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "62222222-2222-2222-2222-222222222222",
+    "loan_id": "92222222-2222-2222-2222-222222222222",
+    "kirana_id": "32222222-2222-2222-2222-222222222222",
+    "status": "parsed",
+    "file_name": "dynamic-check.csv",
+    "file_type": "text/csv",
+    "file_size_bytes": 0,
+    "transaction_summary": {
+      "total_credits": 52000.0,
+      "total_debits": 21000.0,
+      "credit_count": 1,
+      "debit_count": 1,
+      "avg_daily_balance": 108500.0,
+      "period_days": 2,
+      "start_date": "2026-04-10T00:00:00",
+      "end_date": "2026-04-11T00:00:00"
+    },
+    "parse_error": null,
+    "uploaded_by_user_id": "22222222-2222-2222-2222-222222222222",
+    "created_at": "2026-04-18T10:28:51.909288",
+    "updated_at": "2026-04-18T10:28:51.909289"
   }
 ]

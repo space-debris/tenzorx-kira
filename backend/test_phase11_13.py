@@ -1,3 +1,5 @@
+import base64
+from pathlib import Path
 from uuid import UUID
 
 import pytest
@@ -113,3 +115,18 @@ def test_pdf_style_upi_statement_text_is_parsed():
     assert parsed["transaction_count"] == 3
     assert parsed["inflow_total"] == 48000.0
     assert parsed["outflow_total"] == 25500.0
+
+
+def test_real_paytm_pdf_sample_is_parsed_as_transactions():
+    pdf_path = Path(__file__).resolve().parents[1] / "Paytm_Statement_MAR26.pdf"
+    pdf_content = pdf_path.read_bytes()
+    parsed = parse_statement_content(
+        file_name=pdf_path.name,
+        file_type="application/pdf",
+        content="data:application/pdf;base64," + base64.b64encode(pdf_content).decode("ascii"),
+    )
+
+    assert parsed["parse_status"] == "parsed"
+    assert parsed["transaction_count"] >= 70
+    assert parsed["inflow_total"] > 100000
+    assert parsed["outflow_total"] == 0.0
