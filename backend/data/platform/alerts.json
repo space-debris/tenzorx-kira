@@ -70,5 +70,41 @@
     "description": "Fresh statements show 100% lower inflows than the prior baseline.",
     "created_at": "2026-04-18T06:36:54.549044",
     "updated_at": "2026-04-18T06:36:54.549044"
+  },
+  {
+    "id": "b4c17c6c-b040-4d06-9e80-f60178a42630",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "62222222-2222-2222-2222-222222222222",
+    "kirana_id": "32222222-2222-2222-2222-222222222222",
+    "severity": "critical",
+    "status": "open",
+    "title": "Cash-flow deterioration detected",
+    "description": "Fresh statements are about 95% below the prior statement cycle.",
+    "created_at": "2026-04-18T10:47:50.701501",
+    "updated_at": "2026-04-18T10:47:50.701502"
+  },
+  {
+    "id": "29624e0b-63ff-4665-bf1a-704762efe886",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "62222222-2222-2222-2222-222222222222",
+    "kirana_id": "32222222-2222-2222-2222-222222222222",
+    "severity": "critical",
+    "status": "open",
+    "title": "Cash-flow deterioration detected",
+    "description": "Fresh statements are about 95% below the prior statement cycle.",
+    "created_at": "2026-04-18T10:49:04.585835",
+    "updated_at": "2026-04-18T10:49:04.585835"
+  },
+  {
+    "id": "0d673880-8db7-4496-bd1b-c0835bfe7ba0",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "62222222-2222-2222-2222-222222222222",
+    "kirana_id": "32222222-2222-2222-2222-222222222222",
+    "severity": "critical",
+    "status": "open",
+    "title": "Cash-flow deterioration detected",
+    "description": "Fresh statements are about 95% below the assessment revenue benchmark.",
+    "created_at": "2026-04-18T10:49:58.838973",
+    "updated_at": "2026-04-18T10:49:58.838974"
   }
 ]

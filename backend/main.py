@@ -926,6 +926,10 @@ async def upload_platform_statement(
         return monitoring_service.upload_statement(case_id, payload)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        import traceback
+        logger.error("Unexpected error in statement upload: %s\n%s", str(exc), traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Internal server error during statement processing: {str(exc)}") from exc
 
 
 @app.get(

@@ -274,8 +274,12 @@ def _decode_data_url_text(content: str) -> str:
 def _decode_data_url_bytes(content: str) -> bytes:
     if not content.startswith("data:") or ";base64," not in content:
         return content.encode("utf-8", errors="ignore")
-    encoded_payload = content.split(",", 1)[1]
-    return base64.b64decode(encoded_payload)
+    try:
+        encoded_payload = content.split(",", 1)[1]
+        return base64.b64decode(encoded_payload)
+    except Exception:
+        # Fallback: treat as plain text if base64 decode fails
+        return content.encode("utf-8", errors="ignore")
 
 
 def _extract_pdf_text(content: str) -> str:

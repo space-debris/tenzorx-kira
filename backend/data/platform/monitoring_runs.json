@@ -300,5 +300,143 @@
     "completed_at": "2026-04-18T10:28:51.910422",
     "created_at": "2026-04-18T10:28:51.910432",
     "updated_at": "2026-04-18T10:28:51.910433"
+  },
+  {
+    "id": "ee905c02-958b-4eef-bf57-c42099c43089",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "62222222-2222-2222-2222-222222222222",
+    "loan_id": "92222222-2222-2222-2222-222222222222",
+    "kirana_id": "32222222-2222-2222-2222-222222222222",
+    "status": "completed",
+    "statement_upload_id": "8e798888-a4e8-46d3-9451-d2cf8e6bdd6f",
+    "previous_risk_band": "LOW",
+    "new_risk_band": "VERY_HIGH",
+    "new_risk_score": 0.785,
+    "inflow_velocity_change_pct": -0.9808,
+    "utilization": {
+      "supplier_inventory_pct": 0.0,
+      "transfer_wallet_pct": 0.0,
+      "personal_cash_pct": 0.0,
+      "unknown_pct": 0.0,
+      "flags": [],
+      "diversion_risk": "low"
+    },
+    "alerts_raised": [
+      "b4c17c6c-b040-4d06-9e80-f60178a42630"
+    ],
+    "restructuring_suggestion": {
+      "id": "3ab32fad-505c-41df-9099-56c81c75d858",
+      "loan_id": "92222222-2222-2222-2222-222222222222",
+      "case_id": "62222222-2222-2222-2222-222222222222",
+      "org_id": "11111111-1111-1111-1111-111111111111",
+      "trigger": "Critical inflow drop: -95.8% decline in credit velocity",
+      "suggestion_type": "tenure_extension",
+      "suggested_tenure_extension_months": 3,
+      "suggested_emi_reduction_pct": 20.0,
+      "suggested_moratorium_months": null,
+      "rationale": "Moderate stress indicators (score 0.40) suggest the merchant is experiencing temporary cash-flow tightness. Extending tenure by 3 months would reduce the per-period obligation and improve sustainability without requiring a moratorium.",
+      "created_at": "2026-04-18T10:47:50.701367"
+    },
+    "run_notes": "baseline_inflow=52000.00;baseline_source=prior_statement_cycle;current_inflow=1000.00",
+    "completed_at": "2026-04-18T10:47:50.701746",
+    "created_at": "2026-04-18T10:47:50.701763",
+    "updated_at": "2026-04-18T10:47:50.701764"
+  },
+  {
+    "id": "8488bd34-f663-4c2e-9397-47115928d3d7",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "62222222-2222-2222-2222-222222222222",
+    "loan_id": "92222222-2222-2222-2222-222222222222",
+    "kirana_id": "32222222-2222-2222-2222-222222222222",
+    "status": "completed",
+    "statement_upload_id": "2adff815-a68e-4d73-8cf5-7f9f142d6a5c",
+    "previous_risk_band": "LOW",
+    "new_risk_band": "LOW",
+    "new_risk_score": 0.0,
+    "inflow_velocity_change_pct": 0.0,
+    "utilization": {
+      "supplier_inventory_pct": 0.0,
+      "transfer_wallet_pct": 0.0,
+      "personal_cash_pct": 0.0,
+      "unknown_pct": 0.0,
+      "flags": [],
+      "diversion_risk": "low"
+    },
+    "alerts_raised": [],
+    "restructuring_suggestion": null,
+    "run_notes": "baseline_inflow=1000.00;baseline_source=prior_statement_cycle;current_inflow=1000.00",
+    "completed_at": "2026-04-18T10:47:55.251916",
+    "created_at": "2026-04-18T10:47:55.251926",
+    "updated_at": "2026-04-18T10:47:55.251927"
+  },
+  {
+    "id": "b560d1d7-6491-4b41-a5f3-a307f513c48f",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "62222222-2222-2222-2222-222222222222",
+    "loan_id": "92222222-2222-2222-2222-222222222222",
+    "kirana_id": "32222222-2222-2222-2222-222222222222",
+    "status": "completed",
+    "statement_upload_id": "f7e5f4b5-ca02-47dc-8454-676d2b125e93",
+    "previous_risk_band": "LOW",
+    "new_risk_band": "VERY_HIGH",
+    "new_risk_score": 0.8,
+    "inflow_velocity_change_pct": -1.0,
+    "utilization": {
+      "supplier_inventory_pct": 0.0,
+      "transfer_wallet_pct": 0.0,
+      "personal_cash_pct": 0.0,
+      "unknown_pct": 0.0,
+      "flags": [],
+      "diversion_risk": "low"
+    },
+    "alerts_raised": [
+      "29624e0b-63ff-4665-bf1a-704762efe886"
+    ],
+    "restructuring_suggestion": {
+      "id": "981087d0-ec81-4891-a1f2-31d8010c3ff8",
+      "loan_id": "92222222-2222-2222-2222-222222222222",
+      "case_id": "62222222-2222-2222-2222-222222222222",
+      "org_id": "11111111-1111-1111-1111-111111111111",
+      "trigger": "Critical inflow drop: -100.0% decline in credit velocity",
+      "suggestion_type": "tenure_extension",
+      "suggested_tenure_extension_months": 3,
+      "suggested_emi_reduction_pct": 20.0,
+      "suggested_moratorium_months": null,
+      "rationale": "Moderate stress indicators (score 0.40) suggest the merchant is experiencing temporary cash-flow tightness. Extending tenure by 3 months would reduce the per-period obligation and improve sustainability without requiring a moratorium.",
+      "created_at": "2026-04-18T10:49:04.585752"
+    },
+    "run_notes": "baseline_inflow=1000.00;baseline_source=prior_statement_cycle;current_inflow=0.00",
+    "completed_at": "2026-04-18T10:49:04.586000",
+    "created_at": "2026-04-18T10:49:04.586014",
+    "updated_at": "2026-04-18T10:49:04.586015"
+  },
+  {
+    "id": "d50e93d6-e333-415a-ac72-537b051452dd",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "62222222-2222-2222-2222-222222222222",
+    "loan_id": "92222222-2222-2222-2222-222222222222",
+    "kirana_id": "32222222-2222-2222-2222-222222222222",
+    "status": "completed",
+    "statement_upload_id": "eddb0fe1-6fdf-4822-9673-cc766863831a",
+    "previous_risk_band": "LOW",
+    "new_risk_band": "VERY_HIGH",
+    "new_risk_score": 0.8,
+    "inflow_velocity_change_pct": -1.0,
+    "utilization": {
+      "supplier_inventory_pct": 0.0,
+      "transfer_wallet_pct": 0.0,
+      "personal_cash_pct": 0.0,
+      "unknown_pct": 0.0,
+      "flags": [],
+      "diversion_risk": "low"
+    },
+    "alerts_raised": [
+      "0d673880-8db7-4496-bd1b-c0835bfe7ba0"
+    ],
+    "restructuring_suggestion": null,
+    "run_notes": "baseline_inflow=285000.00;baseline_source=assessment_revenue_midpoint;current_inflow=0.00",
+    "completed_at": "2026-04-18T10:49:58.839112",
+    "created_at": "2026-04-18T10:49:58.839125",
+    "updated_at": "2026-04-18T10:49:58.839126"
   }
 ]

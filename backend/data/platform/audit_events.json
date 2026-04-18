@@ -1671,5 +1671,148 @@
       "note": null
     },
     "created_at": "2026-04-18T10:35:03.973521"
+  },
+  {
+    "id": "d218e7ec-e67f-48f8-b005-3d2ca24a5871",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "62222222-2222-2222-2222-222222222222",
+    "action": "statement_uploaded",
+    "description": "Uploaded statement statement-refresh.csv",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "statement_upload_id": "54ee53ec-ced8-4f51-8faa-5290dd3eacf9",
+      "transaction_count": 2
+    },
+    "created_at": "2026-04-18T10:44:58.723556"
+  },
+  {
+    "id": "8d57e5de-6692-4f12-b704-99aef178824f",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "62222222-2222-2222-2222-222222222222",
+    "action": "statement_uploaded",
+    "description": "Uploaded statement test.csv",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "statement_upload_id": "8e798888-a4e8-46d3-9451-d2cf8e6bdd6f",
+      "transaction_count": 1
+    },
+    "created_at": "2026-04-18T10:47:50.699817"
+  },
+  {
+    "id": "4c0354c3-34e1-415d-81b5-3ac6a9ce9941",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "62222222-2222-2222-2222-222222222222",
+    "action": "monitoring_run_completed",
+    "description": "Completed monitoring run from statement test.csv",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "monitoring_run_id": "ee905c02-958b-4eef-bf57-c42099c43089",
+      "stress_score": 0.785,
+      "current_risk_band": "VERY_HIGH",
+      "restructuring_suggestion": "Moderate stress indicators (score 0.40) suggest the merchant is experiencing temporary cash-flow tightness. Extending tenure by 3 months would reduce the per-period obligation and improve sustainability without requiring a moratorium."
+    },
+    "created_at": "2026-04-18T10:47:50.702120"
+  },
+  {
+    "id": "95040329-ab1e-4fa5-8672-997b3554ed51",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "62222222-2222-2222-2222-222222222222",
+    "action": "statement_uploaded",
+    "description": "Uploaded statement test.csv",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "statement_upload_id": "2adff815-a68e-4d73-8cf5-7f9f142d6a5c",
+      "transaction_count": 1
+    },
+    "created_at": "2026-04-18T10:47:55.251244"
+  },
+  {
+    "id": "c3b4f9cd-0ed7-4196-b5cb-6f85a4e79717",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "62222222-2222-2222-2222-222222222222",
+    "action": "monitoring_run_completed",
+    "description": "Completed monitoring run from statement test.csv",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "monitoring_run_id": "8488bd34-f663-4c2e-9397-47115928d3d7",
+      "stress_score": 0.0,
+      "current_risk_band": "LOW",
+      "restructuring_suggestion": null
+    },
+    "created_at": "2026-04-18T10:47:55.252102"
+  },
+  {
+    "id": "771fdb42-f542-4c50-a865-44e9cebc4fcd",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "62222222-2222-2222-2222-222222222222",
+    "action": "statement_uploaded",
+    "description": "Uploaded statement statement.pdf",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "statement_upload_id": "f7e5f4b5-ca02-47dc-8454-676d2b125e93",
+      "transaction_count": 0
+    },
+    "created_at": "2026-04-18T10:49:04.584569"
+  },
+  {
+    "id": "fafeace2-807e-4076-8839-68b911cf39d8",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "62222222-2222-2222-2222-222222222222",
+    "action": "monitoring_run_completed",
+    "description": "Completed monitoring run from statement statement.pdf",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "monitoring_run_id": "b560d1d7-6491-4b41-a5f3-a307f513c48f",
+      "stress_score": 0.8,
+      "current_risk_band": "VERY_HIGH",
+      "restructuring_suggestion": "Moderate stress indicators (score 0.40) suggest the merchant is experiencing temporary cash-flow tightness. Extending tenure by 3 months would reduce the per-period obligation and improve sustainability without requiring a moratorium."
+    },
+    "created_at": "2026-04-18T10:49:04.586221"
+  },
+  {
+    "id": "f5ddd2fa-2c5e-444e-9f9d-fc467dd94895",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "62222222-2222-2222-2222-222222222222",
+    "action": "statement_uploaded",
+    "description": "Uploaded statement statement.pdf",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "statement_upload_id": "eddb0fe1-6fdf-4822-9673-cc766863831a",
+      "transaction_count": 0
+    },
+    "created_at": "2026-04-18T10:49:58.837854"
+  },
+  {
+    "id": "715a29aa-0913-45c7-9377-6333c66fca34",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "entity_type": "case",
+    "entity_id": "62222222-2222-2222-2222-222222222222",
+    "action": "monitoring_run_completed",
+    "description": "Completed monitoring run from statement statement.pdf",
+    "actor_user_id": "21111111-1111-1111-1111-111111111111",
+    "actor_name": "Maya Sharma",
+    "metadata": {
+      "monitoring_run_id": "d50e93d6-e333-415a-ac72-537b051452dd",
+      "stress_score": 0.8,
+      "current_risk_band": "VERY_HIGH",
+      "restructuring_suggestion": null
+    },
+    "created_at": "2026-04-18T10:49:58.839353"
   }
 ]
