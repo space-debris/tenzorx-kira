@@ -18,6 +18,13 @@ import { useState } from 'react';
 import { MapPin, Crosshair, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { adjustGpsAccuracy } from '../utils/gpsUtils';
 
+const DEMO_COORDINATE_PRESETS = [
+  { label: 'Delhi', latitude: 28.6139, longitude: 77.2090, accuracy: 18.4 },
+  { label: 'Mumbai', latitude: 19.0760, longitude: 72.8777, accuracy: 14.2 },
+  { label: 'Bengaluru', latitude: 12.9716, longitude: 77.5946, accuracy: 22.6 },
+  { label: 'Pune', latitude: 18.5204, longitude: 73.8567, accuracy: 16.9 },
+];
+
 export default function GeoInput({ gpsData = {}, onGpsChange }) {
   const [isDetecting, setIsDetecting] = useState(false);
   const [error, setError] = useState(null);
@@ -108,6 +115,21 @@ export default function GeoInput({ gpsData = {}, onGpsChange }) {
 
   const displayAccuracy = gpsData.adjustedAccuracy ?? gpsData.accuracy;
 
+  const applyDemoPreset = (preset) => {
+    setError(null);
+    onGpsChange({
+      ...gpsData,
+      latitude: preset.latitude.toFixed(4),
+      longitude: preset.longitude.toFixed(4),
+      accuracy: preset.accuracy.toFixed(1),
+      rawAccuracy: preset.accuracy.toFixed(1),
+      adjustedAccuracy: preset.accuracy,
+      wasAccuracyAdjusted: false,
+      validationError: null,
+      demoPreset: preset.label,
+    });
+  };
+
   return (
     <div className="bg-white border text-left border-slate-200 rounded-xl p-6 shadow-sm mb-6">
       <h2 className="text-xl font-bold flex items-center gap-2 mb-4 text-slate-800">
@@ -152,6 +174,24 @@ export default function GeoInput({ gpsData = {}, onGpsChange }) {
             required
           />
         </div>
+      </div>
+
+      <div className="mb-4">
+        <div className="flex flex-wrap gap-2">
+          {DEMO_COORDINATE_PRESETS.map((preset) => (
+            <button
+              key={preset.label}
+              type="button"
+              onClick={() => applyDemoPreset(preset)}
+              className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+        <p className="mt-2 text-xs text-slate-500">
+          Demo presets help teams quickly demonstrate geospatial analysis without manual coordinate entry.
+        </p>
       </div>
 
       <div className="mb-4">

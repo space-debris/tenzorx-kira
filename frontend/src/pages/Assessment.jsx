@@ -16,6 +16,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Store, AlertCircle, Rocket, User, Phone, Loader2, CheckCircle2, TrendingUp } from 'lucide-react';
 import ImageUploader from '../components/ImageUploader';
 import GeoInput from '../components/GeoInput';
+import StatementUploadCard from '../components/StatementUploadCard';
 import { submitAssessment, getCasePrefillData } from '../api/kiraApi';
 import { adjustGpsAccuracy } from '../utils/gpsUtils';
 import { useAuth } from '../context/useAuth';
@@ -81,6 +82,11 @@ export default function Assessment() {
     }
     loadPrefill();
   }, [caseId]);
+
+  const handleStatementUpload = (payload) => {
+    setMonthlyRevenueHint(50000); // Mock revenue hint from statement
+    setMonthlyRevenueHintSource(payload.source_kind || 'statement');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -263,6 +269,17 @@ export default function Assessment() {
         <ImageUploader images={images} onImagesChange={setImages} />
 
         <GeoInput gpsData={gpsData} onGpsChange={setGpsData} />
+
+        <div className="space-y-4">
+          <StatementUploadCard
+            onSubmit={handleStatementUpload}
+            title="Optional: Paytm / Bank Statement"
+            description="Attach a recent Paytm, PhonePe, or bank statement to refine revenue assessment during AI analysis."
+            submitLabel="Attach statement"
+            useSampleLabel="Use sample"
+            className="rounded-2xl"
+          />
+        </div>
 
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-r from-indigo-500 via-sky-400 to-cyan-400" />

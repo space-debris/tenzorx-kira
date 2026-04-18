@@ -1,10 +1,16 @@
 const MOCK_GEOGRAPHY_DATA = {
-  'Delhi': 45,
-  'North Delhi': 32,
-  'South Delhi': 28,
-  'East Delhi': 22,
-  'West Delhi': 18,
-  'Greater Noida': 12,
+  'Delhi': 56,
+  'North Delhi': 44,
+  'South Delhi': 38,
+  'East Delhi': 34,
+  'West Delhi': 30,
+  'Gurugram': 29,
+  'Noida': 27,
+  'Faridabad': 24,
+  'Ghaziabad': 22,
+  'Greater Noida': 18,
+  'Meerut': 15,
+  'Sonipat': 12,
 };
 
 export default function RiskHeatmap({ data = {} }) {

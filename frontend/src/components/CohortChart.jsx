@@ -1,12 +1,18 @@
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
 const MOCK_COHORT_DATA = [
-  { cohort: 'Delhi', cases: 24 },
-  { cohort: 'North Delhi', cases: 18 },
-  { cohort: 'South Delhi', cases: 15 },
-  { cohort: 'East Delhi', cases: 12 },
-  { cohort: 'West Delhi', cases: 10 },
-  { cohort: 'Greater Noida', cases: 8 },
+  { cohort: 'Delhi NCR', cases: 42 },
+  { cohort: 'North Delhi', cases: 28 },
+  { cohort: 'South Delhi', cases: 24 },
+  { cohort: 'East Delhi', cases: 21 },
+  { cohort: 'West Delhi', cases: 18 },
+  { cohort: 'Gurugram', cases: 17 },
+  { cohort: 'Noida', cases: 16 },
+  { cohort: 'Faridabad', cases: 14 },
+  { cohort: 'Ghaziabad', cases: 13 },
+  { cohort: 'Greater Noida', cases: 11 },
+  { cohort: 'Meerut', cases: 9 },
+  { cohort: 'Sonipat', cases: 7 },
 ];
 
 export default function CohortChart({ cohorts = [] }) {

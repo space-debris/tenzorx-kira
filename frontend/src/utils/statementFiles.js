@@ -1,9 +1,18 @@
 export const DEFAULT_SAMPLE_CONTENT =
-  'date,description,amount,type\n2026-04-01,Supplier Traders,22000,debit\n2026-04-02,Customer UPI,48000,credit\n';
+  'date,description,amount,type\n'
+  + '2026-04-01,Supplier Traders,22000,debit\n'
+  + '2026-04-02,Customer UPI,48000,credit\n'
+  + '2026-04-03,Paytm QR Collection,12600,credit\n'
+  + '2026-04-03,Shop Rent,15000,debit\n'
+  + '2026-04-04,Grocery Wholesale,18450,debit\n'
+  + '2026-04-05,UPI Settlement,22150,credit\n'
+  + '2026-04-06,Card Settlement,17300,credit\n'
+  + '2026-04-07,Cash Purchase,6200,debit\n';
 
 export const SAMPLE_STATEMENT_FILES = [
   { label: 'Paytm UPI sample PDF', href: '/sample-statements/paytm-dummy-statement.pdf' },
   { label: 'PhonePe UPI sample PDF', href: '/sample-statements/phonepe-dummy-statement.pdf' },
+  { label: 'Merchant settlement sample PDF', href: '/sample-statements/paytm-dummy-statement.pdf' },
 ];
 
 export const XLSX_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';

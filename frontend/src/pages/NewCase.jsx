@@ -32,6 +32,8 @@ export default function NewCase() {
     district: '',
     pin_code: '',
     locality: '',
+    latitude: '',
+    longitude: '',
     notes: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,7 +71,13 @@ export default function NewCase() {
         locality: form.locality.trim() || undefined,
         assigned_to_user_id: user.id, // Fallback to current user
         notes: form.notes.trim() || undefined,
-        metadata: statementPrefill ? { statement_prefill: statementPrefill } : {},
+        metadata: {
+          ...( form.latitude && form.longitude ? {
+            latitude: parseFloat(form.latitude),
+            longitude: parseFloat(form.longitude),
+          } : {}),
+          ...(statementPrefill ? { statement_prefill: statementPrefill } : {}),
+        },
       };
 
       const res = await createPlatformCase(payload);
@@ -114,10 +122,23 @@ export default function NewCase() {
           <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-5 flex items-center gap-2">
             <Store className="w-4 h-4 text-primary-600" /> Store Details
           </h2>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-xs text-blue-800">
+            <strong>Pro Tip:</strong> GPS coordinates enable geospatial analysis for lending patterns and risk assessment. For demo purposes, try <code className="bg-white px-1.5 py-0.5 rounded">28.6139, 77.2090</code> (Delhi) or <code className="bg-white px-1.5 py-0.5 rounded">19.0760, 72.8777</code> (Mumbai).
+          </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
               <label className="block text-sm font-semibold text-slate-700 mb-1.5">Store Name *</label>
               <input type="text" value={form.store_name} onChange={(e) => updateField('store_name', e.target.value)} required placeholder="e.g., Gupta General Store" className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all text-sm" />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Latitude (Optional)</label>
+              <input type="number" step="0.0001" value={form.latitude} onChange={(e) => updateField('latitude', e.target.value)} placeholder="e.g., 28.6139" className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all text-sm" />
+              <p className="text-xs text-slate-400 mt-1">Enables geospatial analysis</p>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Longitude (Optional)</label>
+              <input type="number" step="0.0001" value={form.longitude} onChange={(e) => updateField('longitude', e.target.value)} placeholder="e.g., 77.2090" className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all text-sm" />
+              <p className="text-xs text-slate-400 mt-1">Enables geospatial analysis</p>
             </div>
           </div>
         </div>
