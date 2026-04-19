@@ -5,8 +5,7 @@
     "full_name": "Maya Sharma",
     "email": "maya@democapital.in",
     "role": "admin",
-    "created_at": "2026-03-18T18:56:47.300977",
-    "is_active": true
+    "created_at": "2026-01-18T14:00:00"
   },
   {
     "id": "22222222-2222-2222-2222-222222222222",
@@ -14,7 +13,22 @@
     "full_name": "Rohan Verma",
     "email": "rohan@democapital.in",
     "role": "loan_officer",
-    "created_at": "2026-03-19T18:56:47.300977",
-    "is_active": true
+    "created_at": "2026-01-20T14:00:00"
+  },
+  {
+    "id": "d9b6f83a-7c7b-45a8-ad0a-91966a850604",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "full_name": "Priya Mehta",
+    "email": "priya@democapital.in",
+    "role": "loan_officer",
+    "created_at": "2026-02-17T14:00:00"
+  },
+  {
+    "id": "b9fa26d7-4313-4b3c-867d-ee8187bbb10e",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "full_name": "Arjun Kapoor",
+    "email": "arjun@democapital.in",
+    "role": "admin",
+    "created_at": "2026-02-02T14:00:00"
   }
 ]

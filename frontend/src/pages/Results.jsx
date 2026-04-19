@@ -22,6 +22,8 @@ import ResultsDashboard from '../components/ResultsDashboard';
 import RiskScoreCard from '../components/RiskScoreCard';
 import LoanOfferCard from '../components/LoanOfferCard';
 import FraudFlagBanner from '../components/FraudFlagBanner';
+import PeerBenchmarkCard from '../components/PeerBenchmarkCard';
+import SeasonalityStressCard from '../components/SeasonalityStressCard';
 import { Store, ChevronLeft, Loader2, AlertCircle, FileText, CheckCircle2, AlertTriangle, Download } from 'lucide-react';
 
 export default function Results() {
@@ -239,6 +241,15 @@ export default function Results() {
               revenueEstimate={assessment.revenue_estimate}
               cvSignals={assessment.cv_signals}
               geoSignals={assessment.geo_signals}
+            />
+          </div>
+
+          {/* Peer Benchmark + Seasonality */}
+          <div className="grid lg:grid-cols-2 gap-6">
+            <PeerBenchmarkCard peerBenchmark={assessment.peer_benchmark} />
+            <SeasonalityStressCard
+              seasonalityForecast={assessment.seasonality_forecast}
+              stressScenarios={assessment.stress_scenarios}
             />
           </div>
           

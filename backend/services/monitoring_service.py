@@ -22,9 +22,11 @@ from models.platform_schema import (
     StatementUploadCreateRequest,
     StatementUploadRecord,
     StatementUploadResponse,
+    StatementUploadStatus,
     TransactionSummary,
     UtilizationBreakdown,
 )
+from orchestration.restructuring_advisor import assess_restructuring_need
 from services.audit_service import AuditService
 from services.loan_service import LoanService
 from services.statement_parser import parse_statement_content
@@ -101,6 +103,14 @@ class MonitoringService:
 
         loan_account = self.loan_service.ensure_loan_account_for_case(case, payload.actor_user_id)
         parsed = parse_statement_content(payload.file_name, payload.content, payload.file_type)
+        period_days = max(0, int(parsed.get("period_days") or 0))
+        upload_status = _derive_upload_status(parsed)
+        avg_daily_balance = 0.0
+        if period_days > 0:
+            avg_daily_balance = round(
+                max(parsed["inflow_total"] - parsed["outflow_total"], 0.0) / period_days * 7,
+                2,
+            )
         parsed_summary = self._build_parsed_summary(
             parsed["transactions"],
             parsed["inflow_total"],
@@ -112,6 +122,7 @@ class MonitoringService:
             loan_id=loan_account.id,
             kirana_id=case.kirana_id,
             uploaded_by_user_id=payload.actor_user_id,
+            status=upload_status,
             file_name=payload.file_name,
             file_type=payload.file_type,
             transaction_summary=TransactionSummary(
@@ -119,10 +130,12 @@ class MonitoringService:
                 total_debits=parsed["outflow_total"],
                 credit_count=sum(1 for item in parsed["transactions"] if item.get("type") == "credit"),
                 debit_count=sum(1 for item in parsed["transactions"] if item.get("type") == "debit"),
+                avg_daily_balance=avg_daily_balance,
+                period_days=period_days,
                 start_date=_parse_iso(parsed.get("period_start")),
                 end_date=_parse_iso(parsed.get("period_end")),
             ),
-            parse_error=None if parsed["parse_status"] == "parsed" else parsed["parse_status"],
+            parse_error=None if upload_status == StatementUploadStatus.PARSED else (parsed.get("summary") or parsed["parse_status"]),
         )
         self.repository.create_statement_upload(upload)
         self.audit_service.record_event(
@@ -140,7 +153,7 @@ class MonitoringService:
             },
         )
 
-        monitoring_run, alerts = self._create_monitoring_run(case_id, upload, parsed_summary)
+        monitoring_run, alerts = self._create_monitoring_run(case_id, loan_account, upload, parsed_summary)
         return StatementUploadResponse(
             statement_upload=_build_statement_upload_record(upload),
             monitoring_run=_build_monitoring_run_record(monitoring_run),
@@ -150,6 +163,7 @@ class MonitoringService:
     def _create_monitoring_run(
         self,
         case_id: uuid.UUID,
+        loan_account,
         upload: StatementUpload,
         parsed_summary: dict,
     ) -> tuple[MonitoringRun, list[RiskAlert]]:
@@ -158,27 +172,53 @@ class MonitoringService:
             raise ValueError("Case not found")
 
         previous_run = self.repository.get_latest_monitoring_run(case_id)
-        upload_inflow_total = upload.transaction_summary.total_credits if upload.transaction_summary is not None else 0.0
-        baseline_inflow = (
-            previous_run_metadata_inflow(previous_run)
-            if previous_run is not None
-            else (case.latest_loan_range.high if case.latest_loan_range else upload_inflow_total)
+        previous_uploads = [
+            existing
+            for existing in self.repository.list_statement_uploads(case_id=case_id)
+            if existing.id != upload.id
+        ]
+        previous_summary = previous_uploads[0].transaction_summary if previous_uploads else None
+        latest_summary = (
+            self.repository.get_assessment_summary(case.latest_assessment_session_id)
+            if case.latest_assessment_session_id is not None
+            else None
         )
-        if baseline_inflow is None:
-            baseline_inflow = case.latest_loan_range.high if case.latest_loan_range else upload_inflow_total
-        if baseline_inflow <= 0:
-            baseline_inflow = upload_inflow_total or 1.0
+        kirana = self.repository.get_kirana(case.kirana_id)
+        upload_inflow_total = upload.transaction_summary.total_credits if upload.transaction_summary is not None else 0.0
+        baseline_inflow, baseline_source = _resolve_baseline_inflow(
+            case=case,
+            previous_run=previous_run,
+            latest_summary=latest_summary,
+            kirana=kirana,
+            current_inflow_total=upload_inflow_total,
+        )
 
         inflow_change_ratio = round((upload_inflow_total - baseline_inflow) / baseline_inflow, 4)
         utilization = parsed_summary.get("utilization_breakdown", {})
         cash_share = utilization.get("personal_or_cash_withdrawal_like", 0.0)
         stress_score = min(1.0, max(0.0, (cash_share * 0.6) + (max(0.0, -inflow_change_ratio) * 0.8)))
         current_risk = _risk_from_stress(case.latest_risk_band, stress_score)
-        restructure = None
-        if inflow_change_ratio <= -0.30:
-            restructure = "Consider 1-2 month tenor extension and tighter statement refresh cadence."
-        elif inflow_change_ratio <= -0.15:
-            restructure = "Soft stress detected. Review collections and refresh in 14 days."
+        current_summary = upload.transaction_summary
+        if (
+            previous_summary is None
+            and current_summary is not None
+            and baseline_inflow > 0
+        ):
+            previous_summary = TransactionSummary(
+                total_credits=baseline_inflow,
+                total_debits=current_summary.total_debits,
+                credit_count=max(current_summary.credit_count, 1),
+                debit_count=current_summary.debit_count,
+                avg_daily_balance=current_summary.avg_daily_balance,
+                period_days=max(current_summary.period_days, 30),
+            )
+        utilization_breakdown = _build_utilization_breakdown(utilization)
+        restructuring_suggestion = assess_restructuring_need(
+            loan=loan_account,
+            current_summary=current_summary,
+            previous_summary=previous_summary,
+            utilization=utilization_breakdown,
+        )
 
         alerts: list[RiskAlert] = []
         
@@ -216,7 +256,7 @@ class MonitoringService:
                         severity=AlertSeverity.WARNING if inflow_change_ratio > -0.35 else AlertSeverity.CRITICAL,
                         status=AlertStatus.OPEN,
                         title="Cash-flow deterioration detected",
-                        description=f"Fresh statements show {abs(round(inflow_change_ratio * 100))}% lower inflows than the prior baseline.",
+                        description=_build_inflow_alert_description(inflow_change_ratio, baseline_source),
                     )
                 )
             )
@@ -246,9 +286,14 @@ class MonitoringService:
             new_risk_band=current_risk,
             new_risk_score=round(stress_score, 3),
             inflow_velocity_change_pct=inflow_change_ratio,
-            utilization=_build_utilization_breakdown(utilization),
+            utilization=utilization_breakdown,
             alerts_raised=[str(alert.id) for alert in alerts],
-            run_notes=f"baseline_inflow={baseline_inflow:.2f};current_inflow={upload_inflow_total:.2f}",
+            restructuring_suggestion=restructuring_suggestion,
+            run_notes=(
+                f"baseline_inflow={baseline_inflow:.2f};"
+                f"baseline_source={baseline_source};"
+                f"current_inflow={upload_inflow_total:.2f}"
+            ),
             completed_at=datetime.utcnow(),
         )
         self.repository.create_monitoring_run(run)
@@ -263,6 +308,11 @@ class MonitoringService:
                 "monitoring_run_id": str(run.id),
                 "stress_score": run.new_risk_score,
                 "current_risk_band": run.new_risk_band.value if run.new_risk_band is not None else None,
+                "restructuring_suggestion": (
+                    restructuring_suggestion.rationale
+                    if restructuring_suggestion is not None
+                    else None
+                ),
             },
         )
         return run, alerts
@@ -304,6 +354,12 @@ def _parse_iso(value: str | None) -> datetime | None:
     return datetime.fromisoformat(value)
 
 
+def _derive_upload_status(parsed: dict) -> StatementUploadStatus:
+    if parsed.get("transaction_count", 0) > 0 or float(parsed.get("inflow_total", 0.0) or 0.0) > 0:
+        return StatementUploadStatus.PARSED
+    return StatementUploadStatus.FAILED
+
+
 def previous_run_metadata_inflow(run: MonitoringRun | None) -> float | None:
     if run is None or not run.run_notes:
         return None
@@ -314,6 +370,49 @@ def previous_run_metadata_inflow(run: MonitoringRun | None) -> float | None:
             except ValueError:
                 return None
     return None
+
+
+def _resolve_baseline_inflow(
+    *,
+    case,
+    previous_run: MonitoringRun | None,
+    latest_summary,
+    kirana,
+    current_inflow_total: float,
+) -> tuple[float, str]:
+    previous_inflow = previous_run_metadata_inflow(previous_run)
+    if previous_inflow and previous_inflow > 0:
+        return previous_inflow, "prior_statement_cycle"
+
+    metadata_hint = None
+    if kirana is not None:
+        metadata_hint = kirana.metadata.get("monthly_revenue_hint")
+    if metadata_hint:
+        try:
+            metadata_hint = float(metadata_hint)
+        except (TypeError, ValueError):
+            metadata_hint = None
+    if metadata_hint and metadata_hint > 0:
+        return metadata_hint, "statement_revenue_hint"
+
+    if latest_summary is not None and latest_summary.revenue_range is not None:
+        midpoint = (latest_summary.revenue_range.low + latest_summary.revenue_range.high) / 2
+        if midpoint > 0:
+            return midpoint, "assessment_revenue_midpoint"
+
+    fallback = current_inflow_total or 1.0
+    return fallback, "current_statement"
+
+
+def _build_inflow_alert_description(inflow_change_ratio: float, baseline_source: str) -> str:
+    rounded_drop = min(95, abs(round(inflow_change_ratio * 100)))
+    source_label = {
+        "prior_statement_cycle": "the prior statement cycle",
+        "statement_revenue_hint": "the uploaded monthly revenue benchmark",
+        "assessment_revenue_midpoint": "the assessment revenue benchmark",
+        "current_statement": "the working baseline",
+    }.get(baseline_source, "the working baseline")
+    return f"Fresh statements are about {rounded_drop}% below {source_label}."
 
 
 def _build_utilization_breakdown(utilization: dict[str, float]) -> UtilizationBreakdown:

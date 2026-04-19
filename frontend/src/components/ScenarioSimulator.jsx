@@ -28,7 +28,7 @@ export default function ScenarioSimulator({ currentRevenue, onSimulate }) {
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-5">
+    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3">
 
       {/* Header */}
       <div className="space-y-1">
@@ -38,13 +38,13 @@ export default function ScenarioSimulator({ currentRevenue, onSimulate }) {
             Stress Testing Simulator
           </h2>
         </div>
-        <p className="text-sm text-slate-900 font-medium leading-tight">
+        <p className="text-xs text-slate-700 font-medium leading-tight">
           Simulate macroeconomic shocks on borrower revenue.
         </p>
       </div>
 
       {/* Controls - STACKED */}
-      <div className="space-y-3">
+      <div className="space-y-2">
 
         {/* Full-width Dropdown */}
         <div className="relative">
@@ -88,20 +88,20 @@ export default function ScenarioSimulator({ currentRevenue, onSimulate }) {
 
       {/* Results */}
       {result && (
-        <div className="mt-2 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="mt-1 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 animate-in fade-in slide-in-from-bottom-2 duration-300">
 
           {/* Result Header */}
-          <div className="border-b border-slate-200 bg-slate-100/50 px-4 py-2.5">
+          <div className="border-b border-slate-200 bg-slate-100/50 px-3 py-2">
             <div className="flex items-center gap-2 text-xs font-bold text-slate-700 leading-none">
               <ShieldAlert className="h-4 w-4 text-rose-500" />
               Scenario Impact Analysis
             </div>
           </div>
 
-          <div className="p-4 space-y-5">
+          <div className="p-3 space-y-3">
 
             {/* Before / After */}
-            <div className="grid grid-cols-3 items-center">
+            <div className="grid grid-cols-3 items-center gap-2">
               <div>
                 <p className="text-xs text-slate-500">Base Revenue</p>
                 <p className="text-sm font-semibold text-slate-700">

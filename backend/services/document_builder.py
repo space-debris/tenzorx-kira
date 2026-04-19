@@ -7,8 +7,96 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
+from pydantic import BaseModel, Field
+
 from models.platform_schema import DocumentBundle, DocumentBundleResponse
 from storage.repository import PlatformRepository
+
+
+class DocumentSection(BaseModel):
+    title: str
+    content: str
+
+
+class GeneratedDocument(BaseModel):
+    document_type: str
+    title: str
+    sections: list[DocumentSection] = Field(default_factory=list)
+
+
+def build_underwriting_summary(case, kirana, assessment, decision) -> GeneratedDocument:
+    sections = [
+        DocumentSection(
+            title="Borrower Profile",
+            content=f"Store: {kirana.store_name}\nOwner: {kirana.owner_name}",
+        )
+    ]
+    if assessment is not None:
+        sections.append(
+            DocumentSection(
+                title="Assessment Results",
+                content=f"Risk band: {getattr(getattr(assessment, 'risk_band', None), 'value', getattr(assessment, 'risk_band', 'N/A'))}",
+            )
+        )
+        sections.append(
+            DocumentSection(
+                title="Loan Recommendation",
+                content=f"Recommended amount: {getattr(assessment, 'recommended_amount', 'N/A')}",
+            )
+        )
+    elif decision is not None:
+        sections.append(
+            DocumentSection(
+                title="Loan Recommendation",
+                content=f"Approved amount: {getattr(decision, 'approved_amount', 'N/A')}",
+            )
+        )
+    else:
+        sections.append(DocumentSection(title="Loan Recommendation", content="Pending assessment"))
+
+    return GeneratedDocument(
+        document_type="underwriting_summary",
+        title=f"Underwriting Summary — {kirana.store_name}",
+        sections=sections,
+    )
+
+
+def build_sanction_note(case, kirana, decision) -> GeneratedDocument:
+    amount = getattr(getattr(decision, "final_terms", None), "amount", None)
+    formatted_amount = f"{int(amount):,}" if amount is not None else "N/A"
+    sections = [
+        DocumentSection(title="Sanction Overview", content=f"Borrower: {kirana.store_name}"),
+        DocumentSection(title="Approved Terms", content=f"Approved Amount: {formatted_amount}"),
+    ]
+    return GeneratedDocument(
+        document_type="sanction_note",
+        title=f"Sanction Note — {kirana.store_name}",
+        sections=sections,
+    )
+
+
+def build_monitoring_summary(loan, kirana, monitoring_run) -> GeneratedDocument:
+    sections = [
+        DocumentSection(
+            title="Loan Overview",
+            content=(
+                f"Store: {kirana.store_name}\n"
+                f"Outstanding: {getattr(loan, 'outstanding_principal', 0)}"
+            ),
+        )
+    ]
+    if monitoring_run is not None:
+        sections.append(
+            DocumentSection(
+                title="Latest Monitoring Run",
+                content=f"Risk Band: {getattr(getattr(monitoring_run, 'new_risk_band', None), 'value', 'N/A')}",
+            )
+        )
+    return GeneratedDocument(
+        document_type="monitoring_summary",
+        title=f"Monitoring Summary — {kirana.store_name}",
+        sections=sections,
+    )
 
 
 def _monitoring_summary(run) -> dict:

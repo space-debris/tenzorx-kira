@@ -94,6 +94,7 @@ async def run_fusion_engine(
     shop_size: str | None = None,
     rent: float | None = None,
     years_in_operation: float | None = None,
+    statement_revenue_hint: float | None = None,
 ) -> dict[str, Any]:
     """
     Fuse CV and Geo signals into a composite revenue estimate and risk assessment.
@@ -186,11 +187,68 @@ async def run_fusion_engine(
             composite_score = composite_score * 0.90
             monthly_low, monthly_high = _map_score_to_revenue(composite_score, area_type)
 
+    # Step 3b: Optional Statement Cross-Validation
+    statement_cross_validation = None
+    if statement_revenue_hint is not None and statement_revenue_hint > 0:
+        # Cross-validate AI estimate against uploaded statement data
+        ai_midpoint = (monthly_low + monthly_high) / 2.0
+        divergence = abs(ai_midpoint - statement_revenue_hint) / max(ai_midpoint, 1.0)
+
+        if divergence < 0.20:
+            # Strong agreement — boost confidence
+            logger.info(
+                f"Statement cross-validation: strong agreement "
+                f"(AI=₹{ai_midpoint:,.0f}, statement=₹{statement_revenue_hint:,.0f}, "
+                f"divergence={divergence:.1%}). Boosting confidence."
+            )
+            composite_score = min(1.0, composite_score * 1.03)
+            monthly_low, monthly_high = _map_score_to_revenue(composite_score, area_type)
+            statement_cross_validation = {
+                "status": "corroborated",
+                "divergence_pct": round(divergence * 100, 1),
+                "confidence_impact": "positive",
+            }
+        elif divergence < 0.50:
+            # Moderate divergence — blend toward statement hint
+            blend_weight = 0.25  # 25% weight to statement
+            blended_mid = ai_midpoint * (1 - blend_weight) + statement_revenue_hint * blend_weight
+            half_range = (monthly_high - monthly_low) / 2.0
+            monthly_low = max(30000, blended_mid - half_range)
+            monthly_high = blended_mid + half_range
+            logger.info(
+                f"Statement cross-validation: moderate divergence "
+                f"({divergence:.1%}). Blending estimates."
+            )
+            statement_cross_validation = {
+                "status": "partially_corroborated",
+                "divergence_pct": round(divergence * 100, 1),
+                "confidence_impact": "neutral",
+            }
+        else:
+            # High divergence — flag but don't override AI
+            logger.warning(
+                f"Statement cross-validation: HIGH divergence "
+                f"(AI=₹{ai_midpoint:,.0f}, statement=₹{statement_revenue_hint:,.0f}, "
+                f"{divergence:.1%}). Flagging for review."
+            )
+            statement_cross_validation = {
+                "status": "divergent",
+                "divergence_pct": round(divergence * 100, 1),
+                "confidence_impact": "negative",
+            }
+
     # Step 4: Determine risk band
     risk_band = _determine_risk_band(composite_score)
 
     # Step 5: Compute confidence
     confidence = _compute_confidence(cv_signals, geo_signals)
+
+    # Adjust confidence based on statement cross-validation
+    if statement_cross_validation:
+        if statement_cross_validation["status"] == "corroborated":
+            confidence = min(1.0, confidence + 0.08)
+        elif statement_cross_validation["status"] == "divergent":
+            confidence = max(0.1, confidence - 0.05)
 
     # Step 6: Compute risk score (inverse of composite — higher = riskier)
     risk_score = max(0.0, min(1.0, 1.0 - composite_score))
@@ -214,13 +272,17 @@ async def run_fusion_engine(
         f"risk_band={risk_band.value}, confidence={confidence:.2f}"
     )
 
-    return {
+    result = {
         "composite_score": round(composite_score, 4),
         "revenue_estimate": revenue_estimate,
         "risk_assessment": risk_assessment,
         "signal_contributions": signal_contributions,
         "normalized_signals": normalized_signals,
     }
+    if statement_cross_validation is not None:
+        result["statement_cross_validation"] = statement_cross_validation
+
+    return result
 
 
 # ---------------------------------------------------------------------------

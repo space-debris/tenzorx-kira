@@ -69,7 +69,12 @@ from orchestration.output_formatter import (
     retrieve_assessment,
 )
 from analytics.forecasting import forecast_liquidity
-from analytics.stress_testing import simulate_stress_scenario
+from analytics.stress_testing import (
+    simulate_all_stress_scenarios,
+    simulate_stress_scenario,
+    generate_seasonality_forecast,
+)
+from orchestration.peer_benchmarking import compute_peer_benchmark
 from integrations.account_aggregator import AccountAggregatorConnector
 from orchestration.enhanced_fraud import detect_longitudinal_fraud
 from cv_module.image_analyzer import analyze_images
@@ -275,6 +280,10 @@ async def submit_assessment(
         default=None,
         description="Optional org ID for auto-creating case (standalone flow)"
     ),
+    monthly_revenue_hint: Optional[float] = Form(
+        default=None,
+        description="Optional revenue hint from uploaded statement (INR/month)"
+    ),
     created_by_user_id: Optional[str] = Form(
         default=None,
         description="Optional user ID for auto-creating case (standalone flow)"
@@ -469,6 +478,7 @@ async def submit_assessment(
             shop_size=shop_size,
             rent=rent,
             years_in_operation=years_in_operation,
+            statement_revenue_hint=monthly_revenue_hint,
         )
 
         revenue_estimate = fusion_result["revenue_estimate"]
@@ -553,8 +563,32 @@ async def submit_assessment(
             f"eligible={loan_rec.eligible}"
         )
 
+        # ---- Step 9: Peer Benchmarking ----
+        logger.info("Computing peer benchmark...")
+        peer_benchmark = compute_peer_benchmark(
+            cv_signals=cv_signals,
+            geo_signals=geo_signals,
+            composite_score=fusion_result.get("composite_score", 0.5),
+            monthly_revenue_low=revenue_estimate.monthly_low,
+            monthly_revenue_high=revenue_estimate.monthly_high,
+        )
+
+        # ---- Step 10: Seasonality Forecast ----
+        logger.info("Generating seasonality forecast...")
+        revenue_midpoint = (
+            revenue_estimate.monthly_low + revenue_estimate.monthly_high
+        ) / 2.0
+        seasonality = generate_seasonality_forecast(
+            monthly_revenue=revenue_midpoint,
+            area_type=geo_signals.area_type.value,
+        )
+        stress_scenarios = simulate_all_stress_scenarios(revenue_midpoint)
+
         # --- Case lifecycle integration ---
         response_data = output.model_dump(mode="json")
+        response_data["peer_benchmark"] = peer_benchmark
+        response_data["seasonality_forecast"] = seasonality
+        response_data["stress_scenarios"] = stress_scenarios
         linked_case_id = None
 
         try:
@@ -658,10 +692,11 @@ async def submit_assessment(
 # Get Assessment by Session ID
 # ---------------------------------------------------------------------------
 
-@app.get("/api/v1/assess/{session_id}", response_model=AssessmentOutput)
-async def get_assessment(session_id: uuid.UUID) -> AssessmentOutput:
+@app.get("/api/v1/assess/{session_id}")
+async def get_assessment(session_id: uuid.UUID):
     """
     Retrieve a previously completed assessment by session ID.
+    Enriches stored data with peer benchmark + seasonality on-the-fly.
     """
     result = await retrieve_assessment(session_id)
     if result is None:
@@ -669,7 +704,34 @@ async def get_assessment(session_id: uuid.UUID) -> AssessmentOutput:
             status_code=404,
             detail=f"Assessment {session_id} not found"
     )
-    return result
+
+    response_data = result.model_dump(mode="json")
+
+    # Enrich with peer benchmark + seasonality (computed on-the-fly)
+    try:
+        peer_benchmark = compute_peer_benchmark(
+            cv_signals=result.cv_signals,
+            geo_signals=result.geo_signals,
+            composite_score=0.5,
+            monthly_revenue_low=result.revenue_estimate.monthly_low,
+            monthly_revenue_high=result.revenue_estimate.monthly_high,
+        )
+        revenue_midpoint = (
+            result.revenue_estimate.monthly_low + result.revenue_estimate.monthly_high
+        ) / 2.0
+        seasonality = generate_seasonality_forecast(
+            monthly_revenue=revenue_midpoint,
+            area_type=result.geo_signals.area_type.value,
+        )
+        stress_scenarios = simulate_all_stress_scenarios(revenue_midpoint)
+
+        response_data["peer_benchmark"] = peer_benchmark
+        response_data["seasonality_forecast"] = seasonality
+        response_data["stress_scenarios"] = stress_scenarios
+    except Exception as e:
+        logger.warning(f"Failed to enrich assessment with peer/seasonality: {e}")
+
+    return response_data
 
 
 # ---------------------------------------------------------------------------
@@ -722,7 +784,14 @@ async def get_platform_portfolio(org_id: uuid.UUID) -> PortfolioAnalyticsRespons
             risk_distribution[case.latest_risk_band.value] = risk_distribution.get(case.latest_risk_band.value, 0) + 1
         status_distribution[case.status.value] = status_distribution.get(case.status.value, 0) + 1
         kirana = kiranas.get(str(case.kirana_id))
-        district_key = kirana.location.district if kirana else "Unknown"
+        if kirana:
+            district_key = ", ".join(
+                part
+                for part in [kirana.location.district, kirana.location.state]
+                if part
+            )
+        else:
+            district_key = "Unknown"
         geography_distribution[district_key] = geography_distribution.get(district_key, 0) + 1
         loan_account = platform_repository.get_loan_account_for_case(case.id)
         latest_monitoring = platform_repository.get_latest_monitoring_run(case.id)
@@ -856,6 +925,9 @@ async def get_case_prefill_data(case_id: uuid.UUID) -> dict:
             "shop_size": kirana.metadata.get("shop_size"),
             "rent": kirana.metadata.get("rent"),
             "years_in_operation": kirana.metadata.get("years_in_operation"),
+            "monthly_revenue_hint": kirana.metadata.get("monthly_revenue_hint"),
+            "monthly_revenue_hint_source": kirana.metadata.get("monthly_revenue_hint_source"),
+            "statement_revenue_hint": kirana.metadata.get("statement_revenue_hint"),
         }
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -916,6 +988,10 @@ async def upload_platform_statement(
         return monitoring_service.upload_statement(case_id, payload)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        import traceback
+        logger.error("Unexpected error in statement upload: %s\n%s", str(exc), traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Internal server error during statement processing: {str(exc)}") from exc
 
 
 @app.get(

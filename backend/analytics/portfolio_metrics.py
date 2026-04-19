@@ -2,8 +2,41 @@
 
 from __future__ import annotations
 
+from pydantic import BaseModel, Field
+
 from models.platform_schema import AlertStatus, CaseStatus, PortfolioMetricCard
 from storage.repository import PlatformRepository
+
+
+class PortfolioKpis(BaseModel):
+    total_kiranas: int = 0
+    total_cases: int = 0
+    total_loans: int = 0
+    active_loans: int = 0
+    total_disbursed: float = 0.0
+    total_outstanding: float = 0.0
+
+
+class RiskDistribution(BaseModel):
+    low: int = 0
+    medium: int = 0
+    high: int = 0
+    very_high: int = 0
+
+
+class GeographicConcentration(BaseModel):
+    by_state: dict[str, int] = Field(default_factory=dict)
+
+
+class StatusBreakdown(BaseModel):
+    cases_by_status: dict[str, int] = Field(default_factory=dict)
+
+
+class PortfolioSummary(BaseModel):
+    kpis: PortfolioKpis = Field(default_factory=PortfolioKpis)
+    risk_distribution: RiskDistribution = Field(default_factory=RiskDistribution)
+    geographic_concentration: GeographicConcentration = Field(default_factory=GeographicConcentration)
+    status_breakdown: StatusBreakdown = Field(default_factory=StatusBreakdown)
 
 
 def build_portfolio_metrics(repository: PlatformRepository, org_id) -> list[PortfolioMetricCard]:

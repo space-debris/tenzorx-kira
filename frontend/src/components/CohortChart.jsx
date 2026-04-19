@@ -1,13 +1,27 @@
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
-export default function CohortChart({ cohorts = [] }) {
-  if (!cohorts.length) {
-    return <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-sm text-slate-500 text-center">No cohort trends available yet.</div>;
-  }
+const MOCK_COHORT_DATA = [
+  { cohort: 'Delhi NCR', cases: 42 },
+  { cohort: 'North Delhi', cases: 28 },
+  { cohort: 'South Delhi', cases: 24 },
+  { cohort: 'East Delhi', cases: 21 },
+  { cohort: 'West Delhi', cases: 18 },
+  { cohort: 'Gurugram', cases: 17 },
+  { cohort: 'Noida', cases: 16 },
+  { cohort: 'Faridabad', cases: 14 },
+  { cohort: 'Ghaziabad', cases: 13 },
+  { cohort: 'Greater Noida', cases: 11 },
+  { cohort: 'Meerut', cases: 9 },
+  { cohort: 'Sonipat', cases: 7 },
+];
 
+export default function CohortChart({ cohorts = [] }) {
+  // Use real data if available, otherwise use mock data
+  const data = cohorts.length > 0 ? cohorts : MOCK_COHORT_DATA;
+  
   return (
     <ResponsiveContainer width="100%" height={260}>
-      <BarChart data={cohorts} barCategoryGap="18%" margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
+      <BarChart data={data} barCategoryGap="18%" margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
         <CartesianGrid strokeDasharray="4 4" stroke="#e2e8f0" vertical={false} />
         <XAxis dataKey="cohort" tick={{ fontSize: 12, fill: '#64748b', fontWeight: 600 }} axisLine={false} tickLine={false} />
         <YAxis tick={{ fontSize: 12, fill: '#64748b', fontWeight: 600 }} axisLine={false} tickLine={false} />

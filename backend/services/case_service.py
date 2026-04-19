@@ -31,6 +31,7 @@ from models.platform_schema import (
 )
 from services.audit_service import AuditService
 from services.loan_service import LoanService
+from services.statement_parser import parse_statement_content
 from storage.repository import PlatformRepository
 
 ALLOWED_STATUS_TRANSITIONS: dict[CaseStatus, set[CaseStatus]] = {
@@ -43,6 +44,43 @@ ALLOWED_STATUS_TRANSITIONS: dict[CaseStatus, set[CaseStatus]] = {
     CaseStatus.RESTRUCTURED: {CaseStatus.MONITORING, CaseStatus.CLOSED},
     CaseStatus.CLOSED: set(),
 }
+
+
+def _extract_statement_hint_metadata(metadata: dict | None) -> dict:
+    clean_metadata = dict(metadata or {})
+    statement_prefill = clean_metadata.pop("statement_prefill", None)
+    if not isinstance(statement_prefill, dict):
+        return clean_metadata
+
+    file_name = str(statement_prefill.get("file_name") or "statement-upload")
+    file_type = str(statement_prefill.get("file_type") or "text/csv")
+    source_kind = str(statement_prefill.get("source_kind") or "upi")
+    content = str(statement_prefill.get("content") or "").strip()
+
+    if not content:
+        return clean_metadata
+
+    parsed = parse_statement_content(file_name=file_name, content=content, file_type=file_type)
+    monthly_revenue_hint = round(float(parsed.get("monthly_revenue_estimate") or parsed.get("inflow_total") or 0.0), 2)
+    statement_revenue_hint = {
+        "file_name": file_name,
+        "file_type": file_type,
+        "source_kind": source_kind,
+        "parse_status": parsed.get("parse_status"),
+        "parse_confidence": parsed.get("parse_confidence"),
+        "transaction_count": parsed.get("transaction_count"),
+        "inflow_total": parsed.get("inflow_total"),
+        "outflow_total": parsed.get("outflow_total"),
+        "period_days": parsed.get("period_days"),
+        "monthly_revenue_estimate": monthly_revenue_hint,
+    }
+
+    clean_metadata["statement_revenue_hint"] = statement_revenue_hint
+    if monthly_revenue_hint > 0:
+        clean_metadata["monthly_revenue_hint"] = monthly_revenue_hint
+        clean_metadata["monthly_revenue_hint_source"] = source_kind
+
+    return clean_metadata
 
 
 def _build_statement_upload_record(upload) -> StatementUploadRecord:
@@ -120,6 +158,7 @@ class CaseService:
             initial_status = CaseStatus.UNDER_REVIEW
 
         now = datetime.utcnow()
+        statement_hint_metadata = _extract_statement_hint_metadata(payload.metadata)
         kirana = KiranaProfile(
             org_id=payload.org_id,
             store_name=payload.store_name,
@@ -131,7 +170,7 @@ class CaseService:
                 pin_code=payload.pin_code,
                 locality=payload.locality,
             ),
-            metadata=payload.metadata,
+            metadata=statement_hint_metadata,
             created_at=now,
             updated_at=now,
         )
@@ -664,6 +703,7 @@ class CaseService:
             updated_at=now,
         )
         self.repository.save_underwriting_decision(decision)
+        self._sync_active_loan_terms(case, final_terms)
 
         self.audit_service.record_event(
             org_id=case.org_id,
@@ -682,6 +722,32 @@ class CaseService:
         )
 
         return self.get_case_detail(case_id)
+
+    def _sync_active_loan_terms(
+        self,
+        case: AssessmentCase,
+        final_terms: UnderwritingTerms,
+    ) -> None:
+        if self.loan_service is None:
+            return
+
+        loan_account = self.repository.get_loan_account_for_case(case.id)
+        if loan_account is None:
+            return
+
+        updated_account = loan_account.model_copy(
+            update={
+                "principal_amount": final_terms.amount,
+                "outstanding_principal": final_terms.amount,
+                "tenure_months": final_terms.tenure_months,
+                "repayment_cadence": final_terms.repayment_cadence,
+                "annual_interest_rate_pct": final_terms.annual_interest_rate_pct,
+                "processing_fee_pct": final_terms.processing_fee_pct,
+                "estimated_installment": final_terms.estimated_installment,
+                "updated_at": datetime.utcnow(),
+            }
+        )
+        self.repository.update_loan_account(updated_account)
 
     def _resolve_underwriting_decision(
         self,
