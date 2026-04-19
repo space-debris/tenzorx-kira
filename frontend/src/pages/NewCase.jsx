@@ -14,11 +14,17 @@ import { createPlatformCase } from '../api/kiraApi';
 import StatementUploadCard from '../components/StatementUploadCard';
 import {
   Store, ArrowLeft, PlusCircle, AlertCircle,
-  MapPin, User, Phone, FileText, Loader2, CheckCircle2
+  MapPin, User, Phone, FileText, Loader2, CheckCircle2, Ruler, Clock3, Banknote
 } from 'lucide-react';
 
 import { INDIA_STATES_DISTRICTS } from '../utils/indiaGeo';
 const INDIAN_STATES = Object.keys(INDIA_STATES_DISTRICTS);
+
+const SHOP_SIZE_PRESETS = [
+  { label: 'Small', value: '100' },
+  { label: 'Medium', value: '250' },
+  { label: 'Large', value: '500' },
+];
 
 export default function NewCase() {
   const navigate = useNavigate();
@@ -34,6 +40,9 @@ export default function NewCase() {
     locality: '',
     latitude: '',
     longitude: '',
+    shop_size: '',
+    rent: '',
+    years_in_operation: '',
     notes: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,6 +85,9 @@ export default function NewCase() {
             latitude: parseFloat(form.latitude),
             longitude: parseFloat(form.longitude),
           } : {}),
+          ...(form.shop_size ? { shop_size: form.shop_size } : {}),
+          ...(form.rent ? { rent: parseFloat(form.rent) } : {}),
+          ...(form.years_in_operation ? { years_in_operation: parseFloat(form.years_in_operation) } : {}),
           ...(statementPrefill ? { statement_prefill: statementPrefill } : {}),
         },
       };
@@ -102,8 +114,9 @@ export default function NewCase() {
         <ArrowLeft className="w-4 h-4" /> Back to Cases
       </Link>
 
-      <div className="mb-8">
-        <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-primary-50/30 p-6 shadow-sm mb-8">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary-500 via-indigo-500 to-cyan-400" />
+        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
           <PlusCircle className="w-6 h-6 text-primary-600" /> New Case
         </h1>
         <p className="text-slate-500 font-medium mt-1">Onboard a new kirana borrower and create an assessment case</p>
@@ -118,7 +131,8 @@ export default function NewCase() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Store Info */}
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+        <div className="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary-400 to-indigo-400" />
           <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-5 flex items-center gap-2">
             <Store className="w-4 h-4 text-primary-600" /> Store Details
           </h2>
@@ -144,7 +158,8 @@ export default function NewCase() {
         </div>
 
         {/* Owner Info */}
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+        <div className="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-purple-400 to-fuchsia-400" />
           <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-5 flex items-center gap-2">
             <User className="w-4 h-4 text-purple-600" /> Owner Details
           </h2>
@@ -164,7 +179,8 @@ export default function NewCase() {
         </div>
 
         {/* Location */}
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+        <div className="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-400 to-teal-400" />
           <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-5 flex items-center gap-2">
             <MapPin className="w-4 h-4 text-emerald-600" /> Location
           </h2>
@@ -200,6 +216,50 @@ export default function NewCase() {
           </div>
         </div>
 
+        {/* Store Metrics */}
+        <div className="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-cyan-400 to-sky-400" />
+          <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-5 flex items-center gap-2">
+            <Ruler className="w-4 h-4 text-cyan-600" /> Store Metrics
+          </h2>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-xs text-blue-800">
+            <strong>These fields help the AI engine</strong> deliver more accurate risk assessments and loan sizing when you run the assessment later.
+          </div>
+          <div className="grid sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Shop Area (sq ft)</label>
+              <div className="flex gap-2 mb-2">
+                {SHOP_SIZE_PRESETS.map((preset) => {
+                  const isActive = form.shop_size === preset.value;
+                  return (
+                    <button
+                      key={preset.value}
+                      type="button"
+                      onClick={() => updateField('shop_size', preset.value)}
+                      className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition ${isActive ? 'border border-indigo-300 bg-indigo-50 text-indigo-700' : 'border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                    >
+                      {preset.label} ({preset.value})
+                    </button>
+                  );
+                })}
+              </div>
+              <input type="number" min="0" value={form.shop_size} onChange={(e) => updateField('shop_size', e.target.value)} placeholder="Custom sq ft" className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all text-sm" />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                <Clock3 className="w-3.5 h-3.5 text-slate-400" /> Years in Operation
+              </label>
+              <input type="number" step="0.5" min="0" value={form.years_in_operation} onChange={(e) => updateField('years_in_operation', e.target.value)} placeholder="e.g., 5.5" className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all text-sm" />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                <Banknote className="w-3.5 h-3.5 text-slate-400" /> Monthly Rent (₹)
+              </label>
+              <input type="number" min="0" value={form.rent} onChange={(e) => updateField('rent', e.target.value)} placeholder="e.g., 15000" className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all text-sm" />
+            </div>
+          </div>
+        </div>
+
         <div className="space-y-4">
           <StatementUploadCard
             onSubmit={(payload) => setStatementPrefill(payload)}
@@ -225,7 +285,8 @@ export default function NewCase() {
         </div>
 
         {/* Notes */}
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+        <div className="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-amber-400 to-orange-400" />
           <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-5 flex items-center gap-2">
             <FileText className="w-4 h-4 text-amber-600" /> Additional Notes
           </h2>
@@ -246,7 +307,7 @@ export default function NewCase() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-8 py-3 rounded-xl font-bold text-sm transition-all shadow-lg shadow-primary-600/25"
+            className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 hover:-translate-y-0.5 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:translate-y-0 text-white px-8 py-3 rounded-xl font-bold text-sm transition-all shadow-lg shadow-primary-600/25"
           >
             {isSubmitting ? (
               <>

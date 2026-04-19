@@ -142,6 +142,7 @@ export default function Assessment() {
       if (shopSize) formData.append('shop_size', shopSize);
       if (rent) formData.append('rent', parseFloat(rent));
       if (yearsInOperation) formData.append('years_in_operation', parseFloat(yearsInOperation));
+      if (monthlyRevenueHint > 0) formData.append('monthly_revenue_hint', monthlyRevenueHint);
 
       // Auto case context
       if (caseId) {
@@ -273,8 +274,8 @@ export default function Assessment() {
         <div className="space-y-4">
           <StatementUploadCard
             onSubmit={handleStatementUpload}
-            title="Optional: Paytm / Bank Statement"
-            description="Attach a recent Paytm, PhonePe, or bank statement to refine revenue assessment during AI analysis."
+            title="Optional: Digital Transaction Verification"
+            description="Attach a Paytm, PhonePe, or bank statement to cross-validate the AI revenue estimate. The core assessment works fully without this."
             submitLabel="Attach statement"
             useSampleLabel="Use sample"
             className="rounded-2xl"
@@ -286,6 +287,44 @@ export default function Assessment() {
           <h2 className="text-xl font-bold flex items-center gap-2 mb-5 text-slate-800">
             <Store className="text-indigo-600" /> Borrower & Store Details
           </h2>
+
+          {/* When launched from case: show compact read-only summary */}
+          {prefillSuccess && caseId ? (
+            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+                <div>
+                  <div className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Store</div>
+                  <div className="font-semibold text-slate-800">{storeName || '—'}</div>
+                </div>
+                {ownerName && (
+                  <div>
+                    <div className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Owner</div>
+                    <div className="font-semibold text-slate-800">{ownerName}</div>
+                  </div>
+                )}
+                {shopSize && (
+                  <div>
+                    <div className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Shop Size</div>
+                    <div className="font-semibold text-slate-800">{shopSize} sq ft</div>
+                  </div>
+                )}
+                {rent && (
+                  <div>
+                    <div className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Rent</div>
+                    <div className="font-semibold text-slate-800">₹{Number(rent).toLocaleString('en-IN')}/mo</div>
+                  </div>
+                )}
+                {yearsInOperation && (
+                  <div>
+                    <div className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Yrs Operating</div>
+                    <div className="font-semibold text-slate-800">{yearsInOperation}</div>
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-slate-400 mt-3">Pre-filled from case profile. Upload images & GPS to run AI assessment.</p>
+            </div>
+          ) : (
+            <>
           <div className="grid md:grid-cols-2 gap-4 mb-4">
             <div className="md:col-span-2">
               <label className="block text-sm font-semibold text-slate-700 mb-1">Store Name {caseId ? '' : '*'}</label>
@@ -387,6 +426,8 @@ export default function Assessment() {
             {!caseId && "A new case and borrower profile will be automatically created upon submission. "}
             Providing optional details helps the AI Fusion Engine provide a more accurate risk assessment and loan size.
           </p>
+            </>
+          )}
         </div>
 
         <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm">
@@ -396,7 +437,7 @@ export default function Assessment() {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-8 py-4 text-lg font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-indigo-700 disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-indigo-500/30 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-500/40 disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none"
           >
             {isSubmitting ? (
               <>

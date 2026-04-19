@@ -1,92 +1,308 @@
 [
   {
+    "id": "ef772c14-d13d-4a2c-8e9b-0e3b1e951ba3",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "kirana_id": "0e9c0440-e690-420b-93f3-14a786e1f1e0",
+    "created_by_user_id": "21111111-1111-1111-1111-111111111111",
+    "assigned_to_user_id": "22222222-2222-2222-2222-222222222222",
+    "status": "under_review",
+    "latest_assessment_session_id": "18e6b93b-ea4f-456e-8213-110262a514fd",
+    "latest_assessment_id": "b48cf135-5e0e-4988-a357-5cc36f313bef",
+    "latest_risk_band": "MEDIUM",
+    "latest_loan_range": {
+      "low": 63365.0,
+      "high": 196734.0
+    },
+    "notes": "Store expansion noted during field visit. Positive sign.",
+    "created_at": "2026-02-17T14:00:00",
+    "updated_at": "2026-04-18T14:00:00"
+  },
+  {
     "id": "62222222-2222-2222-2222-222222222222",
     "org_id": "11111111-1111-1111-1111-111111111111",
     "kirana_id": "32222222-2222-2222-2222-222222222222",
-    "created_by_user_id": "21111111-1111-1111-1111-111111111111",
-    "assigned_to_user_id": "22222222-2222-2222-2222-222222222222",
+    "created_by_user_id": "d9b6f83a-7c7b-45a8-ad0a-91966a850604",
+    "assigned_to_user_id": "21111111-1111-1111-1111-111111111111",
     "status": "monitoring",
-    "latest_assessment_session_id": "42222222-2222-2222-2222-222222222222",
-    "latest_assessment_id": "52222222-2222-2222-2222-222222222222",
+    "latest_assessment_session_id": "8e546299-81f1-4d69-ab28-f247d749afac",
+    "latest_assessment_id": "6267bc33-2caa-4336-ba98-94a6cfc030f1",
     "latest_risk_band": "LOW",
     "latest_loan_range": {
-      "low": 120000.0,
-      "high": 220000.0
+      "low": 78215.0,
+      "high": 247427.0
     },
-    "notes": "Disbursed last week, monitoring first refresh cycle.",
-    "created_at": "2026-04-10T18:53:26.034419",
-    "updated_at": "2026-04-17T09:18:51.567577"
+    "notes": "Documents verified. Ready for underwriting committee review.",
+    "created_at": "2026-02-20T14:00:00",
+    "updated_at": "2026-04-16T14:00:00"
+  },
+  {
+    "id": "52c51b63-f7d6-4a02-b978-a0294a3924b0",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "kirana_id": "de323195-77c2-4629-9327-74871dff3332",
+    "created_by_user_id": "b9fa26d7-4313-4b3c-867d-ee8187bbb10e",
+    "assigned_to_user_id": "21111111-1111-1111-1111-111111111111",
+    "status": "monitoring",
+    "latest_assessment_session_id": "bf09198e-47a2-4aaa-9ac6-e5564affda9c",
+    "latest_assessment_id": "dc912d6a-2fd3-4933-bfe6-3c3ba381ba72",
+    "latest_risk_band": "HIGH",
+    "latest_loan_range": {
+      "low": 44212.0,
+      "high": 169330.0
+    },
+    "notes": "Fraud signal flagged \u2014 manual review pending.",
+    "created_at": "2026-02-25T14:00:00",
+    "updated_at": "2026-04-17T14:00:00"
   },
   {
     "id": "61111111-1111-1111-1111-111111111111",
     "org_id": "11111111-1111-1111-1111-111111111111",
     "kirana_id": "31111111-1111-1111-1111-111111111111",
-    "created_by_user_id": "21111111-1111-1111-1111-111111111111",
-    "assigned_to_user_id": "22222222-2222-2222-2222-222222222222",
+    "created_by_user_id": "d9b6f83a-7c7b-45a8-ad0a-91966a850604",
+    "assigned_to_user_id": "b9fa26d7-4313-4b3c-867d-ee8187bbb10e",
     "status": "approved",
-    "latest_assessment_session_id": "41111111-1111-1111-1111-111111111111",
-    "latest_assessment_id": "51111111-1111-1111-1111-111111111111",
+    "latest_assessment_session_id": "85b64664-3f30-43fc-9c1d-d01ebc7cca17",
+    "latest_assessment_id": "34452dfb-b2c0-4968-ac2a-c17b33088ab0",
+    "latest_risk_band": "LOW",
+    "latest_loan_range": {
+      "low": 65217.0,
+      "high": 144699.0
+    },
+    "notes": "Initial assessment complete. Awaiting field verification.",
+    "created_at": "2026-03-03T14:00:00",
+    "updated_at": "2026-04-18T14:00:00"
+  },
+  {
+    "id": "07dffc16-b876-4389-867a-8371ec385bd4",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "kirana_id": "b3265130-dfc5-4a61-9485-cb5940200ca2",
+    "created_by_user_id": "d9b6f83a-7c7b-45a8-ad0a-91966a850604",
+    "assigned_to_user_id": "21111111-1111-1111-1111-111111111111",
+    "status": "under_review",
+    "latest_assessment_session_id": "2408b23e-bd69-40a9-9e0d-4c9c26112ca7",
+    "latest_assessment_id": "4e582245-5514-47bb-aad6-93a1c64ebb74",
+    "latest_risk_band": "LOW",
+    "latest_loan_range": {
+      "low": 51320.0,
+      "high": 218820.0
+    },
+    "notes": "Slight revenue dip noted. Monitoring closely for next quarter.",
+    "created_at": "2026-03-04T14:00:00",
+    "updated_at": "2026-04-18T14:00:00"
+  },
+  {
+    "id": "e81b68f6-591a-4399-818d-a9675b76e737",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "kirana_id": "753d054f-f2ce-49df-98b9-bcbcaa691e3c",
+    "created_by_user_id": "b9fa26d7-4313-4b3c-867d-ee8187bbb10e",
+    "assigned_to_user_id": "d9b6f83a-7c7b-45a8-ad0a-91966a850604",
+    "status": "disbursed",
+    "latest_assessment_session_id": "64b5cb4b-80fd-4741-8ee0-b98f50a60db9",
+    "latest_assessment_id": "f9b84eb2-38a7-4505-8f6b-98c3d3fef438",
+    "latest_risk_band": "LOW",
+    "latest_loan_range": {
+      "low": 96717.0,
+      "high": 306243.0
+    },
+    "notes": "Restructured after monsoon impact. Recovery trajectory positive.",
+    "created_at": "2026-03-05T14:00:00",
+    "updated_at": "2026-04-15T14:00:00"
+  },
+  {
+    "id": "0673d0bb-4b14-4097-a4d0-259461252c85",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "kirana_id": "2ae4d7a0-bafd-4f53-bd96-82dc651107a9",
+    "created_by_user_id": "21111111-1111-1111-1111-111111111111",
+    "assigned_to_user_id": "d9b6f83a-7c7b-45a8-ad0a-91966a850604",
+    "status": "approved",
+    "latest_assessment_session_id": "4d3ff1a2-b5b9-47e2-b681-a7de8e52acab",
+    "latest_assessment_id": "f38f4697-ea5b-49a8-9f94-618c905478bf",
     "latest_risk_band": "MEDIUM",
     "latest_loan_range": {
-      "low": 90000.0,
-      "high": 180000.0
+      "low": 43349.0,
+      "high": 189117.0
     },
-    "notes": "Waiting for lender override decision.",
-    "created_at": "2026-04-12T18:53:26.034419",
-    "updated_at": "2026-04-17T16:05:12.143570"
+    "notes": "Excellent repayment track record. Mark for renewal eligibility.",
+    "created_at": "2026-03-09T14:00:00",
+    "updated_at": "2026-04-18T14:00:00"
+  },
+  {
+    "id": "3081a378-48e5-4609-a2e8-a55367108730",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "kirana_id": "55c3ae4a-aa47-42c5-b75e-2b0962be1294",
+    "created_by_user_id": "22222222-2222-2222-2222-222222222222",
+    "assigned_to_user_id": "22222222-2222-2222-2222-222222222222",
+    "status": "monitoring",
+    "latest_assessment_session_id": "0b621c62-067f-4e11-a6ab-09554cfc746b",
+    "latest_assessment_id": "3688e334-088d-4fc3-8465-c1b8aaf6d068",
+    "latest_risk_band": "LOW",
+    "latest_loan_range": {
+      "low": 139728.0,
+      "high": 370997.0
+    },
+    "notes": "Semi-urban catchment with high demand index score.",
+    "created_at": "2026-03-14T14:00:00",
+    "updated_at": "2026-04-17T14:00:00"
+  },
+  {
+    "id": "eb89be0d-236a-4826-bc68-0c61f31add27",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "kirana_id": "605b2de5-d362-4aba-aa30-80fbec2b22e7",
+    "created_by_user_id": "21111111-1111-1111-1111-111111111111",
+    "assigned_to_user_id": "b9fa26d7-4313-4b3c-867d-ee8187bbb10e",
+    "status": "under_review",
+    "latest_assessment_session_id": "147f6a7c-7c9e-47ac-8c2d-8c4acf2d4982",
+    "latest_assessment_id": "98e60cf0-b78a-4eab-a446-a0e875083711",
+    "latest_risk_band": "LOW",
+    "latest_loan_range": {
+      "low": 70607.0,
+      "high": 223470.0
+    },
+    "notes": "Disbursed per approved terms. Monitoring cycle initiated.",
+    "created_at": "2026-03-16T14:00:00",
+    "updated_at": "2026-04-17T14:00:00"
+  },
+  {
+    "id": "1abddf37-1772-479e-abce-85de2fb9d7f8",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "kirana_id": "6d52024f-58b8-4c5f-b0d1-c3f8ed8136e1",
+    "created_by_user_id": "b9fa26d7-4313-4b3c-867d-ee8187bbb10e",
+    "assigned_to_user_id": "22222222-2222-2222-2222-222222222222",
+    "status": "monitoring",
+    "latest_assessment_session_id": "7c67bf0b-08e2-40ca-9de8-16d9575c8f3f",
+    "latest_assessment_id": "91d26ec7-d082-4b33-bbba-27f00f2fd79e",
+    "latest_risk_band": "HIGH",
+    "latest_loan_range": {
+      "low": 76775.0,
+      "high": 162575.0
+    },
+    "notes": "Loan fully repaid. Case closed successfully.",
+    "created_at": "2026-03-20T14:00:00",
+    "updated_at": "2026-04-16T14:00:00"
+  },
+  {
+    "id": "fc46f78f-6ce8-4743-8a3b-33256ea7b5b6",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "kirana_id": "3d9b8403-94cb-47d2-b494-6c0224d456f2",
+    "created_by_user_id": "d9b6f83a-7c7b-45a8-ad0a-91966a850604",
+    "assigned_to_user_id": "21111111-1111-1111-1111-111111111111",
+    "status": "restructured",
+    "latest_assessment_session_id": "662a8c18-1cc1-4175-893e-58186b61b4ba",
+    "latest_assessment_id": "3a430d1b-3716-4609-8ce5-f6ca65975a4b",
+    "latest_risk_band": "LOW",
+    "latest_loan_range": {
+      "low": 34968.0,
+      "high": 95654.0
+    },
+    "notes": "Owner requested tenure extension due to seasonal slowdown.",
+    "created_at": "2026-04-03T14:00:00",
+    "updated_at": "2026-04-18T14:00:00"
+  },
+  {
+    "id": "8c60c4bf-9f9b-452c-b634-7ec140752af8",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "kirana_id": "bea999ce-bc09-4c73-9d75-842a6cc6f76c",
+    "created_by_user_id": "21111111-1111-1111-1111-111111111111",
+    "assigned_to_user_id": "21111111-1111-1111-1111-111111111111",
+    "status": "draft",
+    "latest_assessment_session_id": "7eb4e170-6425-4e13-acfe-d61d46eb1696",
+    "latest_assessment_id": "037abe6e-3767-4121-a3a9-a4c34316bb55",
+    "latest_risk_band": "MEDIUM",
+    "latest_loan_range": {
+      "low": 37628.0,
+      "high": 185269.0
+    },
+    "notes": "Submitted for committee review. Good geo-demand index.",
+    "created_at": "2026-04-04T14:00:00",
+    "updated_at": "2026-04-16T14:00:00"
+  },
+  {
+    "id": "a75e4169-f82e-45b9-8d6a-ce9b3fd2e547",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "kirana_id": "a8ef6cf8-9c6a-49c3-8ac2-37054f576e71",
+    "created_by_user_id": "21111111-1111-1111-1111-111111111111",
+    "assigned_to_user_id": "d9b6f83a-7c7b-45a8-ad0a-91966a850604",
+    "status": "disbursed",
+    "latest_assessment_session_id": "9048bc07-7b77-49c3-be86-c5b238cb3b9e",
+    "latest_assessment_id": "d5719675-b9ae-4085-afa8-0f714469cd72",
+    "latest_risk_band": "VERY_HIGH",
+    "latest_loan_range": {
+      "low": 103275.0,
+      "high": 257702.0
+    },
+    "notes": "First refresh cycle shows stable performance.",
+    "created_at": "2026-04-10T14:00:00",
+    "updated_at": "2026-04-15T14:00:00"
   },
   {
     "id": "63333333-3333-3333-3333-333333333333",
     "org_id": "11111111-1111-1111-1111-111111111111",
     "kirana_id": "33333333-3333-3333-3333-333333333333",
-    "created_by_user_id": "22222222-2222-2222-2222-222222222222",
+    "created_by_user_id": "d9b6f83a-7c7b-45a8-ad0a-91966a850604",
     "assigned_to_user_id": "22222222-2222-2222-2222-222222222222",
     "status": "restructured",
-    "latest_assessment_session_id": "43333333-3333-3333-3333-333333333333",
-    "latest_assessment_id": "53333333-3333-3333-3333-333333333333",
-    "latest_risk_band": "HIGH",
-    "latest_loan_range": {
-      "low": 40000.0,
-      "high": 80000.0
-    },
-    "notes": "as per our confidence level and manual inspection we feel we can increase the amount and tenure xxx\n\n[Restructure]: as per our confidence level and manual inspection we feel we can increase the amount and tenure xxxfngfj\n\n[Restructure]: as per our confidence level and manual inspection we feel we can increase the amount and tenure xxxfngfjnbvcx\n\n[Restructure]: as per our confidence level and manual inspection we feel we can increase the amount and tenure xxxfngfjnbvcx",
-    "created_at": "2026-04-15T18:53:26.034419",
-    "updated_at": "2026-04-17T09:57:59.257815"
-  },
-  {
-    "id": "4fa891cd-44c2-43d6-a2c1-41308c0f0ecc",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "kirana_id": "5883330b-bd09-4075-9c54-19d2e0305b66",
-    "created_by_user_id": "21111111-1111-1111-1111-111111111111",
-    "assigned_to_user_id": "21111111-1111-1111-1111-111111111111",
-    "status": "approved",
-    "latest_assessment_session_id": "bee61da6-5d21-4f03-98fa-34bdfd28607e",
-    "latest_assessment_id": "d64a60db-a958-40c9-98e9-30add2e412b7",
+    "latest_assessment_session_id": "8257ec86-f36c-43e1-a8c9-9ada73324e22",
+    "latest_assessment_id": "dca41485-d8be-44b5-a52d-f97ee81491c3",
     "latest_risk_band": "MEDIUM",
     "latest_loan_range": {
-      "low": 0.0,
-      "high": 0.0
+      "low": 105625.0,
+      "high": 286840.0
     },
-    "notes": "Auto-created from standalone assessment.",
-    "created_at": "2026-04-17T19:18:31.631380",
-    "updated_at": "2026-04-18T10:35:03.965411"
+    "notes": "Strong turnover history. Low competition in catchment.",
+    "created_at": "2026-04-12T14:00:00",
+    "updated_at": "2026-04-15T14:00:00"
   },
   {
-    "id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
+    "id": "e6e840aa-996a-4a86-b3a4-1b38ee2950ac",
     "org_id": "11111111-1111-1111-1111-111111111111",
-    "kirana_id": "2f0c10e2-1369-4587-99d1-752090773276",
+    "kirana_id": "afb03252-ff85-4e9d-8ac0-8a3db6a01337",
+    "created_by_user_id": "22222222-2222-2222-2222-222222222222",
+    "assigned_to_user_id": "d9b6f83a-7c7b-45a8-ad0a-91966a850604",
+    "status": "disbursed",
+    "latest_assessment_session_id": "eb1aef61-90dc-4c5d-bf29-ed897850d993",
+    "latest_assessment_id": "e982b85a-e4e0-4f2a-b142-a5f1205a1af7",
+    "latest_risk_band": "LOW",
+    "latest_loan_range": {
+      "low": 109877.0,
+      "high": 315340.0
+    },
+    "notes": "Store has consistent cash flow pattern. Recommended for approval.",
+    "created_at": "2026-04-15T14:00:00",
+    "updated_at": "2026-04-17T14:00:00"
+  },
+  {
+    "id": "928030a4-335f-4e3a-90f0-16273ae5f1a6",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "kirana_id": "f3266fbf-bbd7-4615-b018-146654f74deb",
     "created_by_user_id": "21111111-1111-1111-1111-111111111111",
     "assigned_to_user_id": "21111111-1111-1111-1111-111111111111",
     "status": "closed",
-    "latest_assessment_session_id": "70009568-094a-4204-9ae9-912a8dbe476f",
-    "latest_assessment_id": "ecb21b1d-86bd-4ed6-8e35-63abba74460f",
-    "latest_risk_band": "HIGH",
+    "latest_assessment_session_id": "2bba0d67-6205-4464-923e-e4a9fdb93c9c",
+    "latest_assessment_id": "5c4877c0-d1f2-4309-b02a-89eee11ff317",
+    "latest_risk_band": "MEDIUM",
     "latest_loan_range": {
-      "low": 100000.0,
-      "high": 167000.0
+      "low": 165000.0,
+      "high": 276000.0
+    },
+    "notes": null,
+    "created_at": "2026-04-19T13:23:18.541798",
+    "updated_at": "2026-04-19T14:29:11.852351"
+  },
+  {
+    "id": "b6894703-7616-4088-ba57-2d0b0d21a086",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "kirana_id": "13991e2b-533b-4d8c-be1a-8eabc83691d1",
+    "created_by_user_id": "21111111-1111-1111-1111-111111111111",
+    "assigned_to_user_id": "21111111-1111-1111-1111-111111111111",
+    "status": "monitoring",
+    "latest_assessment_session_id": "0aeb09d2-975d-447a-9efd-94c1e9294fc3",
+    "latest_assessment_id": "39b1f620-2867-4165-abb9-0b18e022664b",
+    "latest_risk_band": "MEDIUM",
+    "latest_loan_range": {
+      "low": 169000.0,
+      "high": 282000.0
     },
     "notes": "Auto-created from standalone assessment.",
-    "created_at": "2026-04-17T19:43:03.616021",
-    "updated_at": "2026-04-18T10:07:28.526216"
+    "created_at": "2026-04-19T16:44:48.063343",
+    "updated_at": "2026-04-19T16:52:25.594924"
   }
 ]

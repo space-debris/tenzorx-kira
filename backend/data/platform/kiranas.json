@@ -14,8 +14,8 @@
     "metadata": {
       "shop_size": "medium"
     },
-    "created_at": "2026-04-04T18:56:47.300977",
-    "updated_at": "2026-04-12T18:56:47.300977"
+    "created_at": "2026-01-23T14:00:00",
+    "updated_at": "2026-02-04T14:00:00"
   },
   {
     "id": "32222222-2222-2222-2222-222222222222",
@@ -32,8 +32,8 @@
     "metadata": {
       "shop_size": "small"
     },
-    "created_at": "2026-04-06T18:56:47.300977",
-    "updated_at": "2026-04-14T18:56:47.300977"
+    "created_at": "2026-01-28T14:00:00",
+    "updated_at": "2026-02-17T14:00:00"
   },
   {
     "id": "33333333-3333-3333-3333-333333333333",
@@ -50,43 +50,355 @@
     "metadata": {
       "shop_size": "large"
     },
-    "created_at": "2026-04-08T18:56:47.300977",
-    "updated_at": "2026-04-15T18:56:47.300977"
+    "created_at": "2026-02-02T14:00:00",
+    "updated_at": "2026-02-20T14:00:00"
   },
   {
-    "id": "5883330b-bd09-4075-9c54-19d2e0305b66",
+    "id": "afb03252-ff85-4e9d-8ac0-8a3db6a01337",
     "org_id": "11111111-1111-1111-1111-111111111111",
-    "store_name": "Test Shop",
-    "owner_name": "Monu Jaat",
-    "owner_mobile": "4512789632",
+    "store_name": "Lakshmi Stores",
+    "owner_name": "Ramesh Iyer",
+    "owner_mobile": "+91-9845123678",
+    "location": {
+      "state": "Tamil Nadu",
+      "district": "Chennai",
+      "pin_code": "600028",
+      "locality": "Adyar"
+    },
+    "metadata": {
+      "shop_size": "medium"
+    },
+    "created_at": "2026-02-05T14:00:00",
+    "updated_at": "2026-02-19T14:00:00"
+  },
+  {
+    "id": "605b2de5-d362-4aba-aa30-80fbec2b22e7",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "Balaji Supermart",
+    "owner_name": "Krishna Reddy",
+    "owner_mobile": "+91-9632587410",
+    "location": {
+      "state": "Telangana",
+      "district": "Hyderabad",
+      "pin_code": "500034",
+      "locality": "Jubilee Hills"
+    },
+    "metadata": {
+      "shop_size": "large"
+    },
+    "created_at": "2026-02-09T14:00:00",
+    "updated_at": "2026-02-19T14:00:00"
+  },
+  {
+    "id": "a8ef6cf8-9c6a-49c3-8ac2-37054f576e71",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "Sharma Kirana",
+    "owner_name": "Deepak Sharma",
+    "owner_mobile": "+91-9753186420",
+    "location": {
+      "state": "Rajasthan",
+      "district": "Jaipur",
+      "pin_code": "302017",
+      "locality": "Malviya Nagar"
+    },
+    "metadata": {
+      "shop_size": "small"
+    },
+    "created_at": "2026-02-12T14:00:00",
+    "updated_at": "2026-02-22T14:00:00"
+  },
+  {
+    "id": "b3265130-dfc5-4a61-9485-cb5940200ca2",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "Bhatia General Store",
+    "owner_name": "Suresh Bhatia",
+    "owner_mobile": "+91-9612345789",
+    "location": {
+      "state": "Punjab",
+      "district": "Ludhiana",
+      "pin_code": "141001",
+      "locality": "Chaura Bazar"
+    },
+    "metadata": {
+      "shop_size": "medium"
+    },
+    "created_at": "2026-02-17T14:00:00",
+    "updated_at": "2026-02-24T14:00:00"
+  },
+  {
+    "id": "3d9b8403-94cb-47d2-b494-6c0224d456f2",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "Nandi Provisions",
+    "owner_name": "Venkatesh Nandi",
+    "owner_mobile": "+91-9456123780",
+    "location": {
+      "state": "Karnataka",
+      "district": "Bengaluru",
+      "pin_code": "560034",
+      "locality": "Koramangala"
+    },
+    "metadata": {
+      "shop_size": "large"
+    },
+    "created_at": "2026-02-22T14:00:00",
+    "updated_at": "2026-03-02T14:00:00"
+  },
+  {
+    "id": "2ae4d7a0-bafd-4f53-bd96-82dc651107a9",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "Patel Corner Shop",
+    "owner_name": "Hitesh Patel",
+    "owner_mobile": "+91-9321654870",
+    "location": {
+      "state": "Gujarat",
+      "district": "Ahmedabad",
+      "pin_code": "380015",
+      "locality": "Satellite"
+    },
+    "metadata": {
+      "shop_size": "medium"
+    },
+    "created_at": "2026-02-27T14:00:00",
+    "updated_at": "2026-03-15T14:00:00"
+  },
+  {
+    "id": "de323195-77c2-4629-9327-74871dff3332",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "Das Grocery",
+    "owner_name": "Amitabh Das",
+    "owner_mobile": "+91-9871234560",
+    "location": {
+      "state": "West Bengal",
+      "district": "Kolkata",
+      "pin_code": "700029",
+      "locality": "Gariahat"
+    },
+    "metadata": {
+      "shop_size": "small"
+    },
+    "created_at": "2026-03-01T14:00:00",
+    "updated_at": "2026-03-20T14:00:00"
+  },
+  {
+    "id": "0e9c0440-e690-420b-93f3-14a786e1f1e0",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "Singh Brothers",
+    "owner_name": "Manpreet Singh",
+    "owner_mobile": "+91-9654321870",
+    "location": {
+      "state": "Haryana",
+      "district": "Gurugram",
+      "pin_code": "122001",
+      "locality": "DLF Phase 4"
+    },
+    "metadata": {
+      "shop_size": "large"
+    },
+    "created_at": "2026-03-04T14:00:00",
+    "updated_at": "2026-03-23T14:00:00"
+  },
+  {
+    "id": "bea999ce-bc09-4c73-9d75-842a6cc6f76c",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "Rao Supermarket",
+    "owner_name": "Srinivas Rao",
+    "owner_mobile": "+91-9890123456",
+    "location": {
+      "state": "Andhra Pradesh",
+      "district": "Visakhapatnam",
+      "pin_code": "530016",
+      "locality": "Dwaraka Nagar"
+    },
+    "metadata": {
+      "shop_size": "medium"
+    },
+    "created_at": "2026-03-07T14:00:00",
+    "updated_at": "2026-03-18T14:00:00"
+  },
+  {
+    "id": "55c3ae4a-aa47-42c5-b75e-2b0962be1294",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "Mehta Trader",
+    "owner_name": "Ketan Mehta",
+    "owner_mobile": "+91-9234567890",
+    "location": {
+      "state": "Maharashtra",
+      "district": "Mumbai",
+      "pin_code": "400076",
+      "locality": "Powai"
+    },
+    "metadata": {
+      "shop_size": "small"
+    },
+    "created_at": "2026-03-11T14:00:00",
+    "updated_at": "2026-03-24T14:00:00"
+  },
+  {
+    "id": "753d054f-f2ce-49df-98b9-bcbcaa691e3c",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "Joshi Provision",
+    "owner_name": "Madhusudan Joshi",
+    "owner_mobile": "+91-9178456230",
+    "location": {
+      "state": "Madhya Pradesh",
+      "district": "Indore",
+      "pin_code": "452001",
+      "locality": "Rajwada"
+    },
+    "metadata": {
+      "shop_size": "medium"
+    },
+    "created_at": "2026-03-14T14:00:00",
+    "updated_at": "2026-03-25T14:00:00"
+  },
+  {
+    "id": "6d52024f-58b8-4c5f-b0d1-c3f8ed8136e1",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "KK Mart",
+    "owner_name": "Kuldeep Kumar",
+    "owner_mobile": "+91-9087654321",
+    "location": {
+      "state": "Bihar",
+      "district": "Patna",
+      "pin_code": "800001",
+      "locality": "Fraser Road"
+    },
+    "metadata": {
+      "shop_size": "small"
+    },
+    "created_at": "2026-03-17T14:00:00",
+    "updated_at": "2026-04-06T14:00:00"
+  },
+  {
+    "id": "053daabb-bee8-4e38-a37e-e1940db7914b",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "Pillai Stores",
+    "owner_name": "Arun Pillai",
+    "owner_mobile": "+91-9345678912",
+    "location": {
+      "state": "Kerala",
+      "district": "Kochi",
+      "pin_code": "682016",
+      "locality": "Edappally"
+    },
+    "metadata": {
+      "shop_size": "medium"
+    },
+    "created_at": "2026-03-21T14:00:00",
+    "updated_at": "2026-04-09T14:00:00"
+  },
+  {
+    "id": "103eaf04-8272-4d4e-9f32-02c8df942a3a",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "Choudhary Kirana",
+    "owner_name": "Ratan Choudhary",
+    "owner_mobile": "+91-9567891234",
+    "location": {
+      "state": "Rajasthan",
+      "district": "Udaipur",
+      "pin_code": "313001",
+      "locality": "Hiran Magri"
+    },
+    "metadata": {
+      "shop_size": "small"
+    },
+    "created_at": "2026-03-24T14:00:00",
+    "updated_at": "2026-04-01T14:00:00"
+  },
+  {
+    "id": "3c80b349-d072-43a2-aad9-fb461a4382f4",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "Trivedi General",
+    "owner_name": "Prakash Trivedi",
+    "owner_mobile": "+91-9789012345",
+    "location": {
+      "state": "Gujarat",
+      "district": "Surat",
+      "pin_code": "395007",
+      "locality": "Vesu"
+    },
+    "metadata": {
+      "shop_size": "large"
+    },
+    "created_at": "2026-03-27T14:00:00",
+    "updated_at": "2026-04-04T14:00:00"
+  },
+  {
+    "id": "1f0c7ab5-255b-40d0-86e2-9957fc628e37",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "Mishra Provision",
+    "owner_name": "Rajesh Mishra",
+    "owner_mobile": "+91-9456789012",
+    "location": {
+      "state": "Uttar Pradesh",
+      "district": "Lucknow",
+      "pin_code": "226001",
+      "locality": "Hazratganj"
+    },
+    "metadata": {
+      "shop_size": "medium"
+    },
+    "created_at": "2026-03-31T14:00:00",
+    "updated_at": "2026-04-10T14:00:00"
+  },
+  {
+    "id": "dd39f683-6d5c-4faa-ba46-a90ff95646a8",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "Dutta Corner",
+    "owner_name": "Subhash Dutta",
+    "owner_mobile": "+91-9678901234",
+    "location": {
+      "state": "Assam",
+      "district": "Guwahati",
+      "pin_code": "781005",
+      "locality": "Paltan Bazar"
+    },
+    "metadata": {
+      "shop_size": "small"
+    },
+    "created_at": "2026-04-03T14:00:00",
+    "updated_at": "2026-04-16T14:00:00"
+  },
+  {
+    "id": "f3266fbf-bbd7-4615-b018-146654f74deb",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "Groc Hub",
+    "owner_name": "Ayush Kumar",
+    "owner_mobile": "345687543543",
+    "location": {
+      "state": "Delhi",
+      "district": "East Delhi",
+      "pin_code": "110092",
+      "locality": "Jagriti Enclave"
+    },
+    "metadata": {
+      "latitude": 28.6538,
+      "longitude": 77.2966,
+      "shop_size": "500",
+      "rent": 0.0,
+      "years_in_operation": 12.0
+    },
+    "created_at": "2026-04-19T13:23:18.541798",
+    "updated_at": "2026-04-19T13:29:29.858060"
+  },
+  {
+    "id": "13991e2b-533b-4d8c-be1a-8eabc83691d1",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "store_name": "Shoppers needs",
+    "owner_name": "Aman Verma",
+    "owner_mobile": "43547657655",
     "location": {
       "state": "Unknown",
       "district": "Delhi",
-      "pin_code": "000000",
-      "locality": "Chittaranjan Park"
+      "pin_code": "110051",
+      "locality": "Karkarduma"
     },
     "metadata": {
-      "shop_size": "500"
+      "shop_size": "749",
+      "rent": 1.0,
+      "years_in_operation": 15.0
     },
-    "created_at": "2026-04-17T19:18:31.631380",
-    "updated_at": "2026-04-17T19:18:31.631380"
-  },
-  {
-    "id": "2f0c10e2-1369-4587-99d1-752090773276",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "store_name": "Mukesh Store",
-    "owner_name": "Mukesh",
-    "owner_mobile": "00000000",
-    "location": {
-      "state": "Unknown",
-      "district": "Delhi",
-      "pin_code": "000000",
-      "locality": "Chittaranjan Park"
-    },
-    "metadata": {
-      "shop_size": "500"
-    },
-    "created_at": "2026-04-17T19:43:03.615021",
-    "updated_at": "2026-04-17T19:43:03.615021"
+    "created_at": "2026-04-19T16:44:48.054419",
+    "updated_at": "2026-04-19T16:44:48.054419"
   }
 ]

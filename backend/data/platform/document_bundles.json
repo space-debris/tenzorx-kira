@@ -1,6 +1,57 @@
 [
   {
-    "id": "95555555-5555-5555-5555-555555555555",
+    "id": "586baf22-40b2-4791-ac21-958fc496e496",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "61111111-1111-1111-1111-111111111111",
+    "documents": {
+      "underwriting_summary": "ready",
+      "sanction_note": "ready",
+      "monitoring_history_summary": "not_applicable",
+      "audit_event_export": "ready"
+    },
+    "created_at": "2026-03-31T14:00:00",
+    "generated_by_user_id": "22222222-2222-2222-2222-222222222222",
+    "export_formats": [
+      "json",
+      "pdf"
+    ]
+  },
+  {
+    "id": "56bc735f-0665-4b31-b991-52ce9310406a",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "52c51b63-f7d6-4a02-b978-a0294a3924b0",
+    "documents": {
+      "underwriting_summary": "ready",
+      "sanction_note": "ready",
+      "monitoring_history_summary": "ready",
+      "audit_event_export": "ready"
+    },
+    "created_at": "2026-04-02T14:00:00",
+    "generated_by_user_id": "21111111-1111-1111-1111-111111111111",
+    "export_formats": [
+      "json",
+      "pdf"
+    ]
+  },
+  {
+    "id": "090859c7-5f0e-47f8-a0c8-5a91c3989cb2",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "ef772c14-d13d-4a2c-8e9b-0e3b1e951ba3",
+    "documents": {
+      "underwriting_summary": "ready",
+      "sanction_note": "not_applicable",
+      "monitoring_history_summary": "not_applicable",
+      "audit_event_export": "ready"
+    },
+    "created_at": "2026-04-04T14:00:00",
+    "generated_by_user_id": "21111111-1111-1111-1111-111111111111",
+    "export_formats": [
+      "json",
+      "pdf"
+    ]
+  },
+  {
+    "id": "09c4875e-c467-4c76-a27d-6ddbcdc7bd71",
     "org_id": "11111111-1111-1111-1111-111111111111",
     "case_id": "62222222-2222-2222-2222-222222222222",
     "documents": {
@@ -9,7 +60,24 @@
       "monitoring_history_summary": "ready",
       "audit_event_export": "ready"
     },
-    "created_at": "2026-04-14T18:56:47.300977",
+    "created_at": "2026-04-05T14:00:00",
+    "generated_by_user_id": "b9fa26d7-4313-4b3c-867d-ee8187bbb10e",
+    "export_formats": [
+      "json",
+      "pdf"
+    ]
+  },
+  {
+    "id": "f473790e-bff9-424e-9aba-534277ec1de8",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "07dffc16-b876-4389-867a-8371ec385bd4",
+    "documents": {
+      "underwriting_summary": "ready",
+      "sanction_note": "not_applicable",
+      "monitoring_history_summary": "not_applicable",
+      "audit_event_export": "ready"
+    },
+    "created_at": "2026-04-05T14:00:00",
     "generated_by_user_id": "22222222-2222-2222-2222-222222222222",
     "export_formats": [
       "json",
@@ -17,27 +85,128 @@
     ]
   },
   {
-    "id": "002b78fe-08f0-4962-93e7-936ec763feb8",
+    "id": "80739efe-18ce-411e-9ff3-67eaabfc1fe0",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "eb89be0d-236a-4826-bc68-0c61f31add27",
+    "documents": {
+      "underwriting_summary": "ready",
+      "sanction_note": "not_applicable",
+      "monitoring_history_summary": "not_applicable",
+      "audit_event_export": "ready"
+    },
+    "created_at": "2026-04-06T14:00:00",
+    "generated_by_user_id": "d9b6f83a-7c7b-45a8-ad0a-91966a850604",
+    "export_formats": [
+      "json",
+      "pdf"
+    ]
+  },
+  {
+    "id": "ca5f4cae-19b5-4e7c-8871-a6d5ec4fc608",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "a75e4169-f82e-45b9-8d6a-ce9b3fd2e547",
+    "documents": {
+      "underwriting_summary": "ready",
+      "sanction_note": "ready",
+      "monitoring_history_summary": "not_applicable",
+      "audit_event_export": "ready"
+    },
+    "created_at": "2026-04-07T14:00:00",
+    "generated_by_user_id": "b9fa26d7-4313-4b3c-867d-ee8187bbb10e",
+    "export_formats": [
+      "json",
+      "pdf"
+    ]
+  },
+  {
+    "id": "e464890e-aec3-4510-ad7d-a48a9b5ff729",
     "org_id": "11111111-1111-1111-1111-111111111111",
     "case_id": "63333333-3333-3333-3333-333333333333",
     "documents": {
-      "underwriting_summary": "generated",
-      "sanction_note": "generated",
-      "decision_override_sheet": "not_required",
-      "monitoring_history_summary": "pending",
-      "audit_event_export": "generated"
+      "underwriting_summary": "ready",
+      "sanction_note": "not_applicable",
+      "monitoring_history_summary": "ready",
+      "audit_event_export": "ready"
     },
-    "created_at": "2026-04-17T15:19:02.274682",
-    "generated_by_user_id": null,
+    "created_at": "2026-04-10T14:00:00",
+    "generated_by_user_id": "d9b6f83a-7c7b-45a8-ad0a-91966a850604",
     "export_formats": [
       "json",
       "pdf"
     ]
   },
   {
-    "id": "be10e50c-b647-4519-bc39-df2e37fefd89",
+    "id": "8b335714-c23c-4690-81cb-96a7244c3f7c",
     "org_id": "11111111-1111-1111-1111-111111111111",
-    "case_id": "61111111-1111-1111-1111-111111111111",
+    "case_id": "0673d0bb-4b14-4097-a4d0-259461252c85",
+    "documents": {
+      "underwriting_summary": "ready",
+      "sanction_note": "ready",
+      "monitoring_history_summary": "not_applicable",
+      "audit_event_export": "ready"
+    },
+    "created_at": "2026-04-13T14:00:00",
+    "generated_by_user_id": "b9fa26d7-4313-4b3c-867d-ee8187bbb10e",
+    "export_formats": [
+      "json",
+      "pdf"
+    ]
+  },
+  {
+    "id": "e667aca9-01c6-4556-aea8-e8e3d107c9d5",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "e81b68f6-591a-4399-818d-a9675b76e737",
+    "documents": {
+      "underwriting_summary": "ready",
+      "sanction_note": "ready",
+      "monitoring_history_summary": "not_applicable",
+      "audit_event_export": "ready"
+    },
+    "created_at": "2026-04-13T14:00:00",
+    "generated_by_user_id": "21111111-1111-1111-1111-111111111111",
+    "export_formats": [
+      "json",
+      "pdf"
+    ]
+  },
+  {
+    "id": "8056d6e4-a11c-4f5f-8a89-0190319ac15d",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "fc46f78f-6ce8-4743-8a3b-33256ea7b5b6",
+    "documents": {
+      "underwriting_summary": "ready",
+      "sanction_note": "not_applicable",
+      "monitoring_history_summary": "ready",
+      "audit_event_export": "ready"
+    },
+    "created_at": "2026-04-16T14:00:00",
+    "generated_by_user_id": "d9b6f83a-7c7b-45a8-ad0a-91966a850604",
+    "export_formats": [
+      "json",
+      "pdf"
+    ]
+  },
+  {
+    "id": "526f7397-23c1-4f4f-be47-b1f603dc3af6",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "e6e840aa-996a-4a86-b3a4-1b38ee2950ac",
+    "documents": {
+      "underwriting_summary": "ready",
+      "sanction_note": "ready",
+      "monitoring_history_summary": "not_applicable",
+      "audit_event_export": "ready"
+    },
+    "created_at": "2026-04-17T14:00:00",
+    "generated_by_user_id": "21111111-1111-1111-1111-111111111111",
+    "export_formats": [
+      "json",
+      "pdf"
+    ]
+  },
+  {
+    "id": "933fb910-060f-4d44-8111-34db46765dca",
+    "org_id": "11111111-1111-1111-1111-111111111111",
+    "case_id": "b6894703-7616-4088-ba57-2d0b0d21a086",
     "documents": {
       "underwriting_summary": "generated",
       "sanction_note": "generated",
@@ -45,43 +214,7 @@
       "monitoring_history_summary": "pending",
       "audit_event_export": "generated"
     },
-    "created_at": "2026-04-17T16:05:40.788297",
-    "generated_by_user_id": null,
-    "export_formats": [
-      "json",
-      "pdf"
-    ]
-  },
-  {
-    "id": "56db09ab-251b-4ee3-bff4-4e292e946f60",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "case_id": "4fa891cd-44c2-43d6-a2c1-41308c0f0ecc",
-    "documents": {
-      "underwriting_summary": "generated",
-      "sanction_note": "pending",
-      "decision_override_sheet": "not_required",
-      "monitoring_history_summary": "pending",
-      "audit_event_export": "generated"
-    },
-    "created_at": "2026-04-17T19:29:01.969787",
-    "generated_by_user_id": null,
-    "export_formats": [
-      "json",
-      "pdf"
-    ]
-  },
-  {
-    "id": "9d02045b-40c1-45db-8bc4-1a0f1ec49035",
-    "org_id": "11111111-1111-1111-1111-111111111111",
-    "case_id": "6a31b426-405e-41ec-b308-cd412a5e2eb2",
-    "documents": {
-      "underwriting_summary": "generated",
-      "sanction_note": "pending",
-      "decision_override_sheet": "not_required",
-      "monitoring_history_summary": "pending",
-      "audit_event_export": "generated"
-    },
-    "created_at": "2026-04-17T19:44:09.281424",
+    "created_at": "2026-04-19T16:51:36.457699",
     "generated_by_user_id": null,
     "export_formats": [
       "json",

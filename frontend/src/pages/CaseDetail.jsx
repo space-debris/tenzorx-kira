@@ -26,7 +26,9 @@ import StatementUploadCard from '../components/StatementUploadCard';
 import UnderwritingDecisionPanel from '../components/UnderwritingDecisionPanel';
 import ForecastPanel from '../components/ForecastPanel';
 import ScenarioSimulator from '../components/ScenarioSimulator';
-import { getCaseForecast, simulateCaseScenario } from '../api/kiraApi';
+import PeerBenchmarkCard from '../components/PeerBenchmarkCard';
+import SeasonalityStressCard from '../components/SeasonalityStressCard';
+import { getCaseForecast, simulateCaseScenario, getAssessmentStatus } from '../api/kiraApi';
 import {
   ArrowLeft, Loader2, AlertTriangle, Store, MapPin,
   Phone, User, ShieldCheck, ShieldAlert,
@@ -126,6 +128,7 @@ export default function CaseDetail() {
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [editNoteContent, setEditNoteContent] = useState('');
   const [statementSubmitting, setStatementSubmitting] = useState(false);
+  const [fullAssessment, setFullAssessment] = useState(null);
 
   const loadCase = useCallback(async () => {
     try {
@@ -137,6 +140,16 @@ export default function CaseDetail() {
         setForecast(fRes.data);
       } catch (fErr) {
         console.warn('Failed to load forecast', fErr);
+      }
+      // Fetch full assessment for peer benchmark + seasonality
+      const sessionId = res.data?.case?.latest_assessment_session_id;
+      if (sessionId) {
+        try {
+          const aRes = await getAssessmentStatus(sessionId);
+          setFullAssessment(aRes.data);
+        } catch (aErr) {
+          console.warn('Failed to load full assessment', aErr);
+        }
       }
     } catch (err) {
       console.error('Failed to load case:', err);
@@ -319,21 +332,22 @@ export default function CaseDetail() {
       </Link>
 
       {/* Case Header */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm mb-4">
+      <div className="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm mb-5">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400" />
         <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-2xl font-extrabold text-slate-900">{kirana.store_name || 'Case'}</h1>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">{kirana.store_name || 'Case'}</h1>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold capitalize" style={{ backgroundColor: `${STATUS_COLORS[c.status]}15`, color: STATUS_COLORS[c.status] }}>
                 <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[c.status] }} />
                 {STATUS_LABELS[c.status] || c.status}
               </span>
             </div>
-            <p className="text-sm text-slate-500 font-mono">Case ID: {c.id?.substring(0, 8).toUpperCase()}</p>
+            <p className="text-sm text-slate-400 font-mono tracking-wide">Case ID: {c.id?.substring(0, 8).toUpperCase()}</p>
           </div>
 
           {c.latest_risk_band && (
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border ${riskConfig.bg} ${riskConfig.border}`}>
+            <div className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border ${riskConfig.bg} ${riskConfig.border} shadow-sm`}>
               <RiskIcon className={`w-5 h-5 ${riskConfig.color}`} />
               <span className={`font-bold text-sm ${riskConfig.color}`}>{riskConfig.label}</span>
             </div>
@@ -342,7 +356,8 @@ export default function CaseDetail() {
       </div>
 
       {hasSanctionedLoanView && (
-        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm mb-4 space-y-3">
+        <div className="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm mb-5 space-y-3">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-indigo-400" />
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-indigo-600" />
@@ -484,11 +499,11 @@ export default function CaseDetail() {
         </div>
       )}
 
-      <div className="grid lg:grid-cols-3 gap-3">
+      <div className="grid lg:grid-cols-3 gap-4">
         {/* Left Column */}
-        <div className="lg:col-span-1 space-y-2.5">
+        <div className="lg:col-span-1 space-y-3">
           {/* Kirana Profile */}
-          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
             <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-2">
               <Store className="w-4 h-4 text-primary-600" /> Borrower
             </h2>
@@ -513,7 +528,7 @@ export default function CaseDetail() {
 
           {/* Loan Summary */}
           {c.latest_loan_range && (
-            <div className="bg-primary-900 text-white rounded-xl p-4 shadow-lg relative overflow-hidden">
+            <div className="bg-primary-900 text-white rounded-2xl p-5 shadow-lg relative overflow-hidden">
               <div className="absolute top-0 right-0 -mt-6 -mr-6 w-24 h-24 bg-primary-600 opacity-20 rounded-full blur-xl"></div>
               <h2 className="text-primary-200 text-xs font-bold uppercase tracking-wider mb-3">
                 {SANCTIONED_CASE_STATUSES.includes(c.status) ? 'Loan Sanctioned' : 'Loan Range'}
@@ -592,7 +607,7 @@ export default function CaseDetail() {
 
           {/* Status Actions */}
           {allowedTransitions.length > 0 && (
-            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
               <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
                 <ArrowRightLeft className="w-4 h-4 text-indigo-600" /> Actions
               </h2>
@@ -635,7 +650,7 @@ export default function CaseDetail() {
           )}
 
           {/* Activity Timeline moved to left column */}
-          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
             <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
               <Activity className="w-4 h-4 text-indigo-600" /> Activity History
             </h2>
@@ -649,13 +664,32 @@ export default function CaseDetail() {
               </button>
             )}
           </div>
+
+          {/* Liquidity Forecast + Stress Testing — below activity */}
+          {c.status !== 'draft' && assessment && (
+            <div className="space-y-3">
+              <ForecastPanel forecast={forecast} />
+              <ScenarioSimulator
+                currentRevenue={assessment?.revenue_range?.low || 100000}
+                onSimulate={async (scenario) => {
+                   try {
+                     const res = await simulateCaseScenario(caseId, scenario);
+                     return res.data;
+                   } catch(err) {
+                     console.error(err);
+                     return null;
+                   }
+                }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Right Column */}
-        <div className="lg:col-span-2 space-y-2.5">
+        <div className="lg:col-span-2 space-y-3">
           {/* Assessment Summary */}
           {!assessment ? (
-            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm text-center">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm text-center">
               <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Rocket className="w-8 h-8" />
               </div>
@@ -760,23 +794,18 @@ export default function CaseDetail() {
             />
           )}
 
-          {c.status !== 'draft' && assessment && (
-            <div className="grid lg:grid-cols-2 gap-3 items-stretch">
-                <ForecastPanel forecast={forecast} />
-                <ScenarioSimulator
-                  currentRevenue={assessment?.revenue_range?.low || 100000}
-                  onSimulate={async (scenario) => {
-                     try {
-                       const res = await simulateCaseScenario(caseId, scenario);
-                       return res.data;
-                     } catch(err) {
-                       console.error(err);
-                       return null;
-                     }
-                  }}
-                />
-                </div>
+          {/* Peer Benchmark + Seasonality — positioned prominently */}
+          {fullAssessment && (fullAssessment.peer_benchmark || fullAssessment.seasonality_forecast) && (
+            <div className="grid lg:grid-cols-2 gap-3">
+              <PeerBenchmarkCard peerBenchmark={fullAssessment.peer_benchmark} />
+              <SeasonalityStressCard
+                seasonalityForecast={fullAssessment.seasonality_forecast}
+                stressScenarios={fullAssessment.stress_scenarios}
+              />
+            </div>
           )}
+
+
 
           {assessment && underwritingDecision && (
             <>

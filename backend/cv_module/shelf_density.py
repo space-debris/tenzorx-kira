@@ -106,11 +106,31 @@ def compute_shelf_density(
     # Step 5: Clamp to [0, 1]
     final_score = max(0.0, min(1.0, final_score))
 
+    # Step 6: Detect refill signal
+    # 50-80% occupancy with some empty areas = positive demand indicator.
+    # Partially depleted shelves suggest recent customer purchases —
+    # this is a POSITIVE signal for cash flow estimation.
+    refill_signal = (
+        50.0 <= occupancy_raw <= 80.0
+        and empty_shelf_areas >= 1
+        and organization_level != "disorganized"
+    )
+    if refill_signal:
+        logger.info(
+            "Refill signal detected: partially depleted shelves indicate "
+            "recent demand (positive cash flow indicator)"
+        )
+
     result = {
         "shelf_density_score": round(final_score, 4),
         "empty_shelf_ratio": round(empty_shelf_ratio, 4),
         "occupancy_raw": round(occupancy_raw, 2),
         "quality_adjustment": quality_adjustment,
+        "refill_signal": refill_signal,
+        "refill_signal_description": (
+            "Partially depleted shelves indicate recent customer demand — "
+            "a positive cash flow signal"
+        ) if refill_signal else None,
     }
 
     logger.info(f"Shelf density result: {result}")

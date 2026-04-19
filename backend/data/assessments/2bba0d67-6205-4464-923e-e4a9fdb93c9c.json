@@ -1,0 +1,104 @@
+{
+  "session_id": "2bba0d67-6205-4464-923e-e4a9fdb93c9c",
+  "assessment_id": "5c4877c0-d1f2-4309-b02a-89eee11ff317",
+  "timestamp": "2026-04-19T13:29:29.751498",
+  "status": "completed",
+  "revenue_estimate": {
+    "monthly_low": 210500.0,
+    "monthly_high": 305200.0,
+    "confidence": 0.7436,
+    "methodology": "inventory_turnover_model"
+  },
+  "risk_assessment": {
+    "risk_band": "MEDIUM",
+    "risk_score": 0.487,
+    "confidence": 0.7436
+  },
+  "cv_signals": {
+    "shelf_density": 1.0,
+    "sku_diversity_score": 0.65,
+    "estimated_sku_count": 1000,
+    "inventory_value_range": {
+      "low": 7405.0,
+      "high": 54520.0
+    },
+    "store_size_category": "small",
+    "brand_tier_mix": "mixed",
+    "consistency_score": 0.537
+  },
+  "geo_signals": {
+    "area_type": "urban",
+    "footfall_score": 0.0385,
+    "competition_count": 0,
+    "competition_score": 1.0,
+    "catchment_population": 7853,
+    "demand_index": 1.0
+  },
+  "loan_recommendation": {
+    "eligible": true,
+    "loan_range": {
+      "low": 165000.0,
+      "high": 276000.0
+    },
+    "recommended_amount": 235000.0,
+    "suggested_tenure_months": 12,
+    "estimated_emi": 21544.8,
+    "emi_to_income_ratio": 0.1024,
+    "repayment_cadence": "weekly",
+    "estimated_installment": 4975.7,
+    "pricing_recommendation": {
+      "annual_interest_rate_pct": 19.0,
+      "processing_fee_pct": 1.75,
+      "annual_interest_rate_band": {
+        "low": 17.5,
+        "high": 20.5
+      },
+      "processing_fee_band": {
+        "low": 1.25,
+        "high": 2.25
+      },
+      "pricing_tier": "standard",
+      "rationale": "MEDIUM risk band anchors pricing to the standard tier. high utilization against the policy cap increases risk loading."
+    }
+  },
+  "fraud_detection": {
+    "fraud_score": 0.301,
+    "is_flagged": false,
+    "flags": [
+      "Low image consistency (0.54): possible mismatched or reused images",
+      "low_product_overlap: only 0/10 categories shared",
+      "brand_tier_mismatch: mixed vs mass_dominant",
+      "low_product_overlap: only 1/7 categories shared",
+      "low_product_overlap: only 0/11 categories shared",
+      "low_product_overlap: only 0/8 categories shared",
+      "low_product_overlap: only 1/8 categories shared",
+      "brand_tier_mismatch: mass_dominant vs mixed",
+      "identical_image_quality: all images have nearly identical quality — unusual for real-world captures from different angles",
+      "Mismatched image resolutions: images from different devices",
+      "Statistical outlier: footfall_score=0.04 is 4.4σ from urban mean (0.70±0.15)"
+    ],
+    "checks_performed": [
+      "image_consistency",
+      "gps_visual_mismatch",
+      "signal_cross_validation",
+      "statistical_outlier"
+    ]
+  },
+  "explanation": {
+    "risk_narrative": "The store exhibits strong operational discipline with a maximum shelf density of 1.0, although its moderate SKU diversity (0.65) and modest inventory value suggest limited product breadth. While the business benefits from a high demand index (1.0) and a total lack of immediate competition in its urban catchment, the exceptionally low footfall score (0.0385) indicates a significant struggle to attract physical traffic. Despite estimated monthly revenues reaching up to ₹305,200, these traffic concerns contribute to a \"Medium\" risk band and a confidence level of 74%. Consequently, a recommended loan amount of ₹0 is advised at this time to mitigate risk until customer acquisition improves.",
+    "summary": {
+      "strengths": [
+        "Well-stocked shelves (100%) indicate active inventory management",
+        "Favorable competitive position with manageable competition (100%)",
+        "Strong local demand (100%) indicates robust customer base"
+      ],
+      "concerns": [
+        "Fraud alert: Low image consistency (0.54): possible mismatched or reused images",
+        "Fraud alert: low_product_overlap: only 0/10 categories shared",
+        "Weak footfall potential (4%) limits customer acquisition"
+      ],
+      "recommendation": "Approve with enhanced monitoring"
+    },
+    "decision_pack": null
+  }
+}
